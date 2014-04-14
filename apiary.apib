@@ -1,47 +1,385 @@
 FORMAT: 1A
-HOST: http://www.google.com
+HOST: http://api.sdisdebts.com
 
-# sdis
-Notes API is a *short texts saving* service similar to its physical paper presence on your table.
+# SDIS Debts API
+SDIS Debts API is a service to track and optimize debts between a group of friends.
 
-# Group Notes
-Notes related resources of the **Notes API**
+## Authentication
+Currently the SDIS Debts API does not provide authenticated access. **TODO**.
 
-## Notes Collection [/notes]
-### List all Notes [GET]
-+ Response 200 (application/json)
+## Media Types
+Where applicable this API uses the JSON media-type to represent resources states and affordances.
 
-        [{
-          "id": 1, "title": "Jogging in park"
-        }, {
-          "id": 2, "title": "Pick-up posters from post-office"
-        }]
+Requests with a message-body are using plain JSON to set or update resource states.
 
-### Create a Note [POST]
-+ Request (application/json)
+## Error States
+The common [HTTP Response Status Codes](https://github.com/for-GET/know-your-http-well/blob/master/status-codes.md) are used.
 
-        { "title": "Buy cheese and bread for breakfast." }
+# SDIS Debts API Root [/]
+SDIS Debts API entry point.
 
-+ Response 201 (application/json)
+This resource does not have any attributes.
 
-        { "id": 3, "title": "Buy cheese and bread for breakfast." }
+## Retrieve the Entry Point [GET]
 
-## Note [/notes/{id}]
-A single Note object with all its details
++ Response 204
+
+# Group User
+Users related resources of the **SDIS Debts API**
+
+## User [/users/{id}]
+A single User object. The User resource is the central resource in the SDIS Debts API. It represents on user of the server.
+
+The User resource has the following attributes:
+
+- id -- Username of the User
+- email -- Email of the User
 
 + Parameters
-    + id (required, number, `1`) ... Numeric `id` of the Note to perform action with. Has example value.
+    + id (string) ... ID of the User
 
-### Retrieve a Note [GET]
++ Model (application/json)
+
+    ```js
+    {
+        "id": "johndoe",
+        "email": "johndoe@example.com"
+    }
+    ```
+
+### Retrieve a single User [GET]
+This method is only available for the authenticated user.
+
 + Response 200 (application/json)
 
-    + Header
+    [User][]
 
-            X-My-Header: The Value
++ Response 403 (application/json)
 
-    + Body
+        { "error": "No permission" }
 
-            { "id": 2, "title": "Pick-up posters from post-office" }
++ Response 404 (application/json)
 
-### Remove a Note [DELETE]
+        { "error": "User 'johndoe' does not exist." }
+
+### Delete a User [DELETE]
+This method is only available for the authenticated user.
+
 + Response 204
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist." }
+
+## Debt [/users/{id}/debts/{debtId}]
+A single Debt object. The Debt resource represents a debt that an User has on another User.
+
+A positive *value* means that this User owes something to another Used, a negative *value* means that this User is owed by another User.
+
+The Debt resource has the following attributes:
+
+- debtId -- Id of a Debt of an User (read-only)
+- user -- User that we owe or are owed by (read-only)
+- value -- Money that we owe or are owed by the User above
+- date -- Date (ISO 8601) the Debt was created (read-only)
+- resolved -- Boolean, true if the debt was paid, false otherwise
+
++ Parameters
+    + id (string) ... ID of the User
+    + debtId (number) ... ID of the Debt of an User
+
++ Model (application/json)
+
+    ```js
+    {
+        "debtId": 1,
+        "user": "janeroe",
+        "value": 100,
+        "date": "2014-04-14T11:29Z",
+        "resolved": false
+    },
+    ```
+
+### Retrieve a single Debt [GET]
+This method is only available for the authenticated user.
+
++ Response 200 (application/json)
+
+    [Debt][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "Debt '2' for user 'johndoe' does not exist." }
+
+### Update a single Debt [PATCH]
+This method is only available for the authenticated user.
+Modifiable fields are *value* and *resolved*.
+
++ Request (application/json)
+
+        {
+            "resolved": false
+        }
+
++ Response 200 (application/json)
+
+    [Debt][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+        or
+        { "error": "Cannot update field 'whatever'" }
+
++ Response 404 (application/json)
+
+        { "error": "Debt '2' for user 'johndoe' does not exist." }
+
+### Delete a Debt [DELETE]
+This method is only available for the authenticated user.
+
++ Response 204
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "Debt '2' for user 'johndoe' does not exist." }
+
+## Debts Collection [/users/{id}/debts]
+Collection of all Debts that this User owes and is owed to another User.
+
+The Debts Collection resource has the following attribute:
+
+- total -- Total number of Balances
+- debts -- Array of Debts
+
++ Parameters
+    + id (string) ... ID of the User
+
++ Model (application/json)
+
+    ```js
+    {
+        "total": 2,
+        "debts": 
+        [
+            {
+                "debtId": 1,
+                "user": "janeroe",
+                "value": 100,
+                "date": "2014-04-14T11:29Z",
+                "resolved": true
+            },
+            {
+                "debtId": 2,
+                "user": "smith",
+                "value": -5.51,
+                "date": "2014-04-16T08:30Z"
+                "resolved": false
+            }
+        ]
+    }
+    ```
+
+### List all Debts of an User [GET]
+This method is only available for the authenticated user.
+
++ Response 200 (application/json)
+
+    [Debts Collection][]
+
+### Create a new Debt of an User [POST]
+This method is only available for the authenticated user.
+
++ Request (application/json)
+
+        {
+            "user": "johndoe",
+            "value": 100,
+        }
+
++ Response 201
+
+        {
+            "id": 2,
+            "user": "johndoe",
+            "value": 100,
+            "date": "2014-04-14T11:29Z",
+            "resolved": true
+        }
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist." }
+        or
+        { "error": "Value '0.0001' is invalid." }
+
+## Balances Collection [/users/{id}/balances]
+Collection of all Debts that this User owes and is owed to another User.
+
+This is a read-only collection and the returned data already contains all the calculations (hence the name *balance*).
+
+The Balances Collection resource has the following attribute:
+
+- total -- Total number of Balances
+- balances -- Array of Balances
+
++ Parameters
+    + id (string) ... ID of the User
+
++ Model (application/json)
+
+    ```js
+    {
+        "total": 1,
+        "balances": 
+        [
+            {
+                "id": 1,
+                "user": "janeroe",
+                "value": 100,
+                "history":
+                [
+                    { "id": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
+                    { "id": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
+                ]
+            }
+        ]
+    }
+    ```
+
+### List all Balances of an User [GET]
+This method is only available for the authenticated user.
+
++ Response 200 (application/json)
+
+    [Balances Collection][]
+
+## Friends Collection [/users/{id}/friends]
+Collection of all Users that are Friends of an User.
+
+This is a one-way only friendship and it is used to provide quick access to Users that are commonly used in the transactions.
+
+The Friends Collection resource has the following attributes:
+
+- total -- Total number of Friends
+- Users -- Array of Users (not detailed)
+
++ Parameters
+    + id (string) ... ID of the User
+
++ Model (application/json)
+
+    ```js
+    {
+        "total": 2,
+        "users": 
+        [
+            { "id": "janeroe" },
+            { "id": "smith" }
+        ]
+    }
+    ```
+
+### List all Friends of an User [GET]
+This method is only available for the authenticated user.
+
++ Response 200 (application/json)
+
+    [Friends Collection][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
+### Create a Friend of an User [POST]
+This method is only available for the authenticated user.
+
++ Request (application/json)
+
+        { "id": "johndoe" }
+
++ Response 201
+
++ Response 403 (application/json)
+
+        { "error": "User 'johndoe' already friended." }
+        or
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist." }
+
+### Delete a Friend of an User [DELETE]
+This method is only available for the authenticated user.
+
++ Request (application/json)
+
+        { "id": "janeroe" }
+
++ Response 204
+
++ Response 403 (application/json)
+
+        { "error": "User 'janeroe' already friended." }
+        or
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'janeroe' does not exist." }
+
+## Users Collection [/users{?search}]
+Collection of all Users.
+
+The User Collection resource has the following attribute:
+
+- total -- Total number of Users
+- Users -- Array of Users (not detailed)
+
+### List all Users [GET]
++ Parameters
+
+    + search (optional, string) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
+
++ Response 200 (application/json)
+
+        {
+            "total": 2,
+            "users": 
+            [
+                { "id": "johndoe" },
+                { "id": "janeroe" }
+            ]
+        }
+
+### Create an User [POST]
+**TODO**: authentication and such
+
++ Request (application/json)
+
+        { "id": "smith", "email": "smith@example.com" }
+
++ Response 201
+
++ Response 403 (application/json)
+
+        { "error": "User 'smith' already exists." }
+        or
+        { "error": "Email 'smith@example.com' already exists." }
