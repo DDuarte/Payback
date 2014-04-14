@@ -212,7 +212,7 @@ This method is only available for the authenticated user.
 + Response 201
 
         {
-            "id": 2,
+            "debtId": 2,
             "user": "johndoe",
             "value": 100,
             "date": "2014-04-14T11:29Z",
@@ -250,13 +250,13 @@ The Balances Collection resource has the following attribute:
         "balances": 
         [
             {
-                "id": 1,
+                "balanceId": 1,
                 "user": "janeroe",
                 "value": 100,
                 "history":
                 [
-                    { "id": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
-                    { "id": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
+                    { "debtId": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
+                    { "debtId": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
                 ]
             }
         ]
