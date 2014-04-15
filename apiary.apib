@@ -28,7 +28,7 @@ This resource does not have any attributes.
 Users related resources of the **SDIS Debts API**
 
 ## User [/users/{id}]
-A single User object. The User resource is the central resource in the SDIS Debts API. It represents on user of the server.
+A single User object. The User resource is the central resource in the SDIS Debts API. It represents one user of the service.
 
 The User resource has the following attributes:
 
@@ -273,9 +273,9 @@ This method is only available for the authenticated user.
 ## Friend [/users/{id}/friends/{friendId}]
 A single Friend object. The Friend resource represents a friend of an User.
 
-The User resource has the following attributes:
+The Friend resource has the following attributes:
 
-- id -- Username of an User
+- id -- Username of a Friend
 
 + Parameters
     + id (string) ... ID of the User
@@ -325,7 +325,7 @@ This is a one-way only friendship and it is used to provide quick access to User
 The Friends Collection resource has the following attributes:
 
 - total -- Total number of Friends
-- Users -- Array of Users (not detailed)
+- friends -- Array of Friends (not detailed)
 
 + Parameters
     + id (string) ... ID of the User
@@ -335,7 +335,7 @@ The Friends Collection resource has the following attributes:
     ```js
     {
         "total": 2,
-        "users": 
+        "friends": 
         [
             { "id": "janeroe" },
             { "id": "smith" }
