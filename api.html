@@ -1,0 +1,325 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>SDIS Debts API</title><link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css"><link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"><link rel="stylesheet" href="//fonts.googleapis.com/css?family=Roboto:400,700|Inconsolata|Raleway:200"><style>/* Highlight.js Theme Tomorrow Night Eighties */
+pre{color:#fff;background:#272b30;border:1px solid rgba(255, 255, 255, 0.2)}
+pre code{display:block;padding:.5em;background:#272b30}
+.hljs-comment,.hljs-title{color:#999}.hljs-variable,.hljs-attribute,.hljs-tag,.hljs-regexp,.ruby .hljs-constant,.xml .hljs-tag .hljs-title,.xml .hljs-pi,.xml .hljs-doctype,.html .hljs-doctype,.css .hljs-id,.css .hljs-class,.css .hljs-pseudo{color:#f2777a}.hljs-number,.hljs-preprocessor,.hljs-pragma,.hljs-built_in,.hljs-literal,.hljs-params,.hljs-constant{color:#f99157}.ruby .hljs-class .hljs-title,.css .hljs-rules .hljs-attribute{color:#fc6}.hljs-string,.hljs-value,.hljs-inheritance,.hljs-header,.ruby .hljs-symbol,.xml .hljs-cdata{color:#9c9}.css .hljs-hexcolor{color:#6cc}.hljs-function,.python .hljs-decorator,.python .hljs-title,.ruby .hljs-function .hljs-title,.ruby .hljs-title .hljs-keyword,.perl .hljs-sub,.javascript .hljs-title,.coffeescript .hljs-title{color:#69c}.hljs-keyword,.javascript .hljs-function{color:#c9c}.hljs{display:block;background:#2d2d2d;color:#ccc;padding:.5em}.coffeescript .javascript,.javascript .xml,.tex .hljs-formula,.xml .javascript,.xml .vbscript,.xml .css,.xml .hljs-cdata{opacity:.5}</style><style>body,
+h4,
+h5 {
+  font-family: 'Roboto' sans-serif !important;
+}
+h1,
+h2,
+h3,
+.aglio {
+  font-family: 'Raleway' sans-serif !important;
+}
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+h5 a {
+  display: none;
+}
+h1:hover a,
+h2:hover a,
+h3:hover a,
+h4:hover a,
+h5:hover a {
+  display: inline;
+}
+code {
+  color: #222;
+  background-color: #aaa;
+  font-family: 'Inconsolata' monospace !important;
+}
+a[data-target] {
+  cursor: pointer;
+}
+h4 {
+  font-size: 100%;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.back-to-top {
+  position: fixed;
+  z-index: 1;
+  bottom: 0px;
+  right: 24px;
+  padding: 4px 8px;
+  color: #aaa;
+  background-color: #171b20;
+  text-decoration: none !important;
+  border-top: 1px solid rgba(0,0,0,0.1);
+  border-left: 1px solid rgba(0,0,0,0.1);
+  border-right: 1px solid rgba(0,0,0,0.1);
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.panel {
+  overflow: hidden;
+}
+.panel-heading code {
+  color: #000;
+  background-color: transparent;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.panel-heading h3 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+a.list-group-item {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+a.list-group-item.heading {
+  background-color: #3e444c;
+}
+.list-group-item.collapse {
+  display: none;
+}
+.list-group-item.collapse.in {
+  display: block;
+}
+#nav {
+  margin-top: 38px;
+  min-width: 255px;
+  top: 0;
+  bottom: 0;
+  padding-right: 12px;
+  padding-bottom: 12px;
+  overflow-y: auto;
+}
+@media (max-width: 1199px) {
+  #nav {
+    min-width: 212px;
+  }
+}
+</style></head><body><a href="#top" class="text-muted back-to-top"><i class="fa fa-toggle-up"></i>&nbsp;Back to top</a><div class="container"><div class="row"><div class="col-md-3"><nav id="nav" class="hidden-sm hidden-xs affix nav"><div class="list-group"><a href="#" class="list-group-item heading">Resource Group</a><a href="#-sdis-debts-api-root" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;SDIS Debts API Root</a></div><div class="list-group"><a href="#user" class="list-group-item heading">User</a><a href="#user-user" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;User</a><a href="#user-user-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;Retrieve a single User</a><a href="#user-user-delete" style="padding-left: 32px" class="list-group-item"><i class="fa fa-warning"></i>&nbsp;Delete a User</a><a href="#user-debt" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;Debt</a><a href="#user-debt-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;Retrieve a single Debt</a><a href="#user-debt-patch" style="padding-left: 32px" class="list-group-item"><i class="fa fa-pencil"></i>&nbsp;Update a single Debt</a><a href="#user-debt-delete" style="padding-left: 32px" class="list-group-item"><i class="fa fa-warning"></i>&nbsp;Delete a Debt</a><a href="#user-debts-collection" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;Debts Collection</a><a href="#user-debts-collection-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;List all Debts of an User</a><a href="#user-debts-collection-post" style="padding-left: 32px" class="list-group-item"><i class="fa fa-plus-square"></i>&nbsp;Create a new Debt of an User</a><a href="#user-balances-collection" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;Balances Collection</a><a href="#user-friend" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;Friend</a><a href="#user-friend-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;Retrieve a single Friend</a><a href="#user-friend-delete" style="padding-left: 32px" class="list-group-item"><i class="fa fa-warning"></i>&nbsp;Delete a single Friend</a><a href="#user-friends-collection" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;Friends Collection</a><a href="#user-friends-collection-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;List all Friends of an User</a><a href="#user-friends-collection-post" style="padding-left: 32px" class="list-group-item"><i class="fa fa-plus-square"></i>&nbsp;Create a Friend of an User</a><a href="#user-friends-collection-delete" style="padding-left: 32px" class="list-group-item"><i class="fa fa-warning"></i>&nbsp;Delete all Friends of an User</a><a href="#user-users-collection" class="list-group-item"><i class="fa fa-bars"></i>&nbsp;Users Collection</a><a href="#user-users-collection-get" style="padding-left: 32px" class="list-group-item"><i class="fa fa-arrow-circle-down"></i>&nbsp;List all Users</a><a href="#user-users-collection-post" style="padding-left: 32px" class="list-group-item"><i class="fa fa-plus-square"></i>&nbsp;Create an User</a></div></nav></div><div class="col-md-9"><div><header><div class="page-header"><h1 id="top">SDIS Debts API</h1></div></header><div class="description"><p>SDIS Debts API is a service to track and optimize debts between a group of friends.</p>
+<h2 id="authentication">Authentication</h2>
+<p>Currently the SDIS Debts API does not provide authenticated access. <strong>TODO</strong>.</p>
+<h2 id="media-types">Media Types</h2>
+<p>Where applicable this API uses the JSON media-type to represent resources states and affordances.</p>
+<p>Requests with a message-body are using plain JSON to set or update resource states.</p>
+<h2 id="error-states">Error States</h2>
+<p>The common <a href="https://github.com/for-GET/know-your-http-well/blob/master/status-codes.md">HTTP Response Status Codes</a> are used.</p>
+</div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="">Resource Group&nbsp;<a href="#"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><h4 id="-sdis-debts-api-root">SDIS Debts API Root&nbsp;<a href="#-sdis-debts-api-root"><i class="fa fa-link"></i></a></h4><p>SDIS Debts API entry point.</p>
+<p>This resource does not have any attributes.</p>
+<section id="-sdis-debts-api-root-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Retrieve the Entry Point</span></div><div style="float:left"><a href="#-sdis-debts-api-root-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/</code></div></div><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li></ul></section></div></div></div><div><div class="panel panel-default"><div class="panel-heading"><h3 id="user">User&nbsp;<a href="#user"><i class="fa fa-link"></i></a></h3></div><div class="panel-body"><p>Users related resources of the <strong>SDIS Debts API</strong></p>
+<h4 id="user-user">User&nbsp;<a href="#user-user"><i class="fa fa-link"></i></a></h4><p>A single User object. The User resource is the central resource in the SDIS Debts API. It represents one user of the service.</p>
+<p>The User resource has the following attributes:</p>
+<ul>
+<li>id — Username of the User</li>
+<li>email — Email of the User</li>
+</ul>
+<section id="user-user-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Retrieve a single User</span></div><div style="float:left"><a href="#user-user-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#4d8e6cfbb5c9af27cc84e29c292bec81" class="pull-right">Toggle</a></li><li id="4d8e6cfbb5c9af27cc84e29c292bec81" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span></span>,
+    "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"johndoe@example.com"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#b9ebb2cc56953804b90f38d493c8da39" class="pull-right">Toggle</a></li><li id="b9ebb2cc56953804b90f38d493c8da39" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#bb59912057679361289bd825f0772553" class="pull-right">Toggle</a></li><li id="bb59912057679361289bd825f0772553" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"User 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><section id="user-user-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete a User</span></div><div style="float:left"><a href="#user-user-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{id}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#dc6e2c39faf06639ae16dc46e2efa0d0" class="pull-right">Toggle</a></li><li id="dc6e2c39faf06639ae16dc46e2efa0d0" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#c6d4dde71e3e0be9d9f18493882445db" class="pull-right">Toggle</a></li><li id="c6d4dde71e3e0be9d9f18493882445db" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"User 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><h4 id="user-debt">Debt&nbsp;<a href="#user-debt"><i class="fa fa-link"></i></a></h4><p>A single Debt object. The Debt resource represents a debt that an User has on another User.</p>
+<p>A positive <em>value</em> means that this User owes something to another Used, a negative <em>value</em> means that this User is owed by another User.</p>
+<p>The Debt resource has the following attributes:</p>
+<ul>
+<li>debtId — Id of a Debt of an User (read-only)</li>
+<li>user — User that we owe or are owed by (read-only)</li>
+<li>value — Money that we owe or are owed by the User above</li>
+<li>date — Date (ISO 8601) the Debt was created (read-only)</li>
+<li>resolved — Boolean, true if the debt was paid, false otherwise</li>
+</ul>
+<section id="user-debt-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Retrieve a single Debt</span></div><div style="float:left"><a href="#user-debt-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}/debts/{debtId}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd><dt>debtId</dt><dd><code>number</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>1</span></span><p>ID of the Debt of an User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#e3edc307be57b669ae19e48070a94b33" class="pull-right">Toggle</a></li><li id="e3edc307be57b669ae19e48070a94b33" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+    "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span></span>,
+    "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span></span>,
+    "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-14T11:29Z"</span></span>,
+    "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">false</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#da2b1296ac9172a446da54155ceb34c8" class="pull-right">Toggle</a></li><li id="da2b1296ac9172a446da54155ceb34c8" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#aaa010891d58e1cc91dcbd7f1b0089c0" class="pull-right">Toggle</a></li><li id="aaa010891d58e1cc91dcbd7f1b0089c0" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"Debt '2' for user 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><section id="user-debt-patch" class="panel panel-warning"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Update a single Debt</span></div><div style="float:left"><a href="#user-debt-patch" class="btn btn-xs btn-warning">PATCH</a></div><div style="overflow:hidden"><code>/users/{id}/debts/{debtId}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.
+Modifiable fields are <em>value</em> and <em>resolved</em>.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd><dt>debtId</dt><dd><code>number</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>1</span></span><p>ID of the Debt of an User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#fbad60b07bd7fa158c85c25b51c78eca" class="pull-right">Toggle</a></li><li id="fbad60b07bd7fa158c85c25b51c78eca" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">false</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#57e89a94ec91bfede3da681da0bb0845" class="pull-right">Toggle</a></li><li id="57e89a94ec91bfede3da681da0bb0845" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+    "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span></span>,
+    "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span></span>,
+    "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-14T11:29Z"</span></span>,
+    "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">false</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#f5d52456585448447959a023cfffcd8f" class="pull-right">Toggle</a></li><li id="f5d52456585448447959a023cfffcd8f" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"No permission"</span> }
+<span class="hljs-keyword">or</span>
+{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"Cannot update field 'whatever'"</span> }
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#49f937ca68d28410f807677905abd4a4" class="pull-right">Toggle</a></li><li id="49f937ca68d28410f807677905abd4a4" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"Debt '2' for user 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><section id="user-debt-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete a Debt</span></div><div style="float:left"><a href="#user-debt-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{id}/debts/{debtId}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd><dt>debtId</dt><dd><code>number</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>1</span></span><p>ID of the Debt of an User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#b06103d48f0bab5c201b7609787fef2c" class="pull-right">Toggle</a></li><li id="b06103d48f0bab5c201b7609787fef2c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#dfe79ab2ce9a972e7a896f386ea1344d" class="pull-right">Toggle</a></li><li id="dfe79ab2ce9a972e7a896f386ea1344d" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"Debt '2' for user 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><h4 id="user-debts-collection">Debts Collection&nbsp;<a href="#user-debts-collection"><i class="fa fa-link"></i></a></h4><p>Collection of all Debts that this User owes and is owed to another User.</p>
+<p>The Debts Collection resource has the following attribute:</p>
+<ul>
+<li>total — Total number of Balances</li>
+<li>debts — Array of Debts</li>
+</ul>
+<section id="user-debts-collection-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">List all Debts of an User</span></div><div style="float:left"><a href="#user-debts-collection-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}/debts</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#9e9b2b1f7deab35016c54412c71bbc16" class="pull-right">Toggle</a></li><li id="9e9b2b1f7deab35016c54412c71bbc16" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">total</span>": <span class="hljs-value"><span class="hljs-number">2</span></span>,
+    "<span class="hljs-attribute">debts</span>": 
+    <span class="hljs-value">[
+        {
+            "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+            "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span></span>,
+            "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span></span>,
+            "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-14T11:29Z"</span></span>,
+            "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">true</span>
+        </span>},
+        {
+            "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">2</span></span>,
+            "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"smith"</span></span>,
+            "<span class="hljs-attribute">value</span>": <span class="hljs-value">-<span class="hljs-number">5.51</span></span>,
+            "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-16T08:30Z"</span></span>,
+            "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">false</span>
+        </span>}
+    ]
+</span>}
+</code></pre></li></ul></section><section id="user-debts-collection-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Create a new Debt of an User</span></div><div style="float:left"><a href="#user-debts-collection-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/users/{id}/debts</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#a0dde768a124ce736262b9c520b5fee9" class="pull-right">Toggle</a></li><li id="a0dde768a124ce736262b9c520b5fee9" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span></span>,
+    "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#51406db530e283cfa1e5f7ebe9104b8c" class="pull-right">Toggle</a></li><li id="51406db530e283cfa1e5f7ebe9104b8c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">2</span></span>,
+    "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span></span>,
+    "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span></span>,
+    "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-14T11:29Z"</span></span>,
+    "<span class="hljs-attribute">resolved</span>": <span class="hljs-value"><span class="hljs-literal">true</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#d94945e1cbcd9eb489d447ec300df0a3" class="pull-right">Toggle</a></li><li id="d94945e1cbcd9eb489d447ec300df0a3" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#10ce175e97f09eb181c48f41c86bbc8a" class="pull-right">Toggle</a></li><li id="10ce175e97f09eb181c48f41c86bbc8a" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"User 'johndoe' does not exist."</span> }
+<span class="hljs-keyword">or</span>
+{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"Value '0.0001' is invalid."</span> }
+</code></pre></li></ul></section><h4 id="user-balances-collection">Balances Collection&nbsp;<a href="#user-balances-collection"><i class="fa fa-link"></i></a></h4><p>Collection of all Debts that this User owes and is owed to another User.</p>
+<p>This is a read-only collection and the returned data already contains all the calculations (hence the name <em>balance</em>).</p>
+<p>The Balances Collection resource has the following attribute:</p>
+<ul>
+<li>total — Total number of Balances</li>
+<li>balances — Array of Balances</li>
+</ul>
+<section id="user-balances-collection-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">List all Balances of an User</span></div><div style="float:left"><a href="#user-balances-collection-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}/balances</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#5436fa3211b38875b990d682fb2be624" class="pull-right">Toggle</a></li><li id="5436fa3211b38875b990d682fb2be624" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">total</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+    "<span class="hljs-attribute">balances</span>": 
+    <span class="hljs-value">[
+        {
+            "<span class="hljs-attribute">balanceId</span>": <span class="hljs-value"><span class="hljs-number">1</span></span>,
+            "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span></span>,
+            "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">100</span></span>,
+            "<span class="hljs-attribute">history</span>":
+            <span class="hljs-value">[
+                { "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">5</span></span>, "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span></span>, "<span class="hljs-attribute">value</span>": <span class="hljs-value"><span class="hljs-number">150</span></span>, "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-14T11:29Z"</span> </span>},
+                { "<span class="hljs-attribute">debtId</span>": <span class="hljs-value"><span class="hljs-number">6</span></span>, "<span class="hljs-attribute">user</span>": <span class="hljs-value"><span class="hljs-string">"smith"</span></span>, "<span class="hljs-attribute">value</span>": <span class="hljs-value">-<span class="hljs-number">50</span></span>, "<span class="hljs-attribute">date</span>": <span class="hljs-value"><span class="hljs-string">"2014-04-15T08:30Z"</span> </span>}
+            ]
+        </span>}
+    ]
+</span>}
+</code></pre></li></ul></section><h4 id="user-friend">Friend&nbsp;<a href="#user-friend"><i class="fa fa-link"></i></a></h4><p>A single Friend object. The Friend resource represents a friend of an User.</p>
+<p>The Friend resource has the following attributes:</p>
+<ul>
+<li>id — Username of a Friend</li>
+</ul>
+<section id="user-friend-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Retrieve a single Friend</span></div><div style="float:left"><a href="#user-friend-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}/friends/{friendId}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd><dt>friendId</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>jane</span></span><p>ID of a Friend of an User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#cd7ddcf85f3db4f6683f95616a19fccb" class="pull-right">Toggle</a></li><li id="cd7ddcf85f3db4f6683f95616a19fccb" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span>
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#4026430e85325cc44b4060c462c91320" class="pull-right">Toggle</a></li><li id="4026430e85325cc44b4060c462c91320" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#3b9b148dd85003a0558d968d5474206f" class="pull-right">Toggle</a></li><li id="3b9b148dd85003a0558d968d5474206f" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "error": "User 'johndoe' does <span class="hljs-keyword">not</span> exist <span class="hljs-keyword">or</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> a friend." }
+</code></pre></li></ul></section><section id="user-friend-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete a single Friend</span></div><div style="float:left"><a href="#user-friend-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{id}/friends/{friendId}</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd><dt>friendId</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>jane</span></span><p>ID of a Friend of an User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#b8454679a2514baceab7fe0dff88e52d" class="pull-right">Toggle</a></li><li id="b8454679a2514baceab7fe0dff88e52d" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#7548ac5dc388a0cfb828207c021b6fe7" class="pull-right">Toggle</a></li><li id="7548ac5dc388a0cfb828207c021b6fe7" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "error": "User 'johndoe' does <span class="hljs-keyword">not</span> exist <span class="hljs-keyword">or</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> a friend." }
+</code></pre></li></ul></section><h4 id="user-friends-collection">Friends Collection&nbsp;<a href="#user-friends-collection"><i class="fa fa-link"></i></a></h4><p>Collection of all Users that are Friends of an User.</p>
+<p>This is a one-way only friendship and it is used to provide quick access to Users that are commonly used in the transactions.</p>
+<p>The Friends Collection resource has the following attributes:</p>
+<ul>
+<li>total — Total number of Friends</li>
+<li>friends — Array of Friends (not detailed)</li>
+</ul>
+<section id="user-friends-collection-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">List all Friends of an User</span></div><div style="float:left"><a href="#user-friends-collection-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users/{id}/friends</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#5bb5a6ed5ae16b6a20a75c74ce052201" class="pull-right">Toggle</a></li><li id="5bb5a6ed5ae16b6a20a75c74ce052201" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">total</span>": <span class="hljs-value"><span class="hljs-number">2</span></span>,
+    "<span class="hljs-attribute">friends</span>": 
+    <span class="hljs-value">[
+        { "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span> </span>},
+        { "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"smith"</span> </span>}
+    ]
+</span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#613c8e178f254a9a462a107fd32b4a10" class="pull-right">Toggle</a></li><li id="613c8e178f254a9a462a107fd32b4a10" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li></ul></section><section id="user-friends-collection-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Create a Friend of an User</span></div><div style="float:left"><a href="#user-friends-collection-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/users/{id}/friends</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#0abfff351fc4da9100e51431550eb6eb" class="pull-right">Toggle</a></li><li id="0abfff351fc4da9100e51431550eb6eb" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#79d0456569451fee0f433765f887c98c" class="pull-right">Toggle</a></li><li id="79d0456569451fee0f433765f887c98c" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#a61f59ca93be9b90817c0c791aab1363" class="pull-right">Toggle</a></li><li id="a61f59ca93be9b90817c0c791aab1363" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"User 'johndoe' already friended."</span> }
+<span class="hljs-keyword">or</span>
+{ <span class="hljs-string">"error"</span><span class="hljs-symbol">:</span> <span class="hljs-string">"No permission"</span> }
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>404</code></strong><a data-toggle="collapse" data-target="#e09a8428d2c97a393bb82cd39aee8ac7" class="pull-right">Toggle</a></li><li id="e09a8428d2c97a393bb82cd39aee8ac7" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"User 'johndoe' does not exist."</span> </span>}
+</code></pre></li></ul></section><section id="user-friends-collection-delete" class="panel panel-danger"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Delete all Friends of an User</span></div><div style="float:left"><a href="#user-friends-collection-delete" class="btn btn-xs btn-danger">DELETE</a></div><div style="overflow:hidden"><code>/users/{id}/friends</code></div></div><div class="panel-body"><p>This method is only available for the authenticated user.</p>
+</div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>id</dt><dd><code>string</code>&nbsp;<span class="required">(required)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>john</span></span><p>ID of the User</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>204</code></strong></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#d0c5044304de7fbd0423449a87dff2f6" class="pull-right">Toggle</a></li><li id="d0c5044304de7fbd0423449a87dff2f6" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">error</span>": <span class="hljs-value"><span class="hljs-string">"No permission"</span> </span>}
+</code></pre></li></ul></section><h4 id="user-users-collection">Users Collection&nbsp;<a href="#user-users-collection"><i class="fa fa-link"></i></a></h4><p>Collection of all Users.</p>
+<p>The User Collection resource has the following attribute:</p>
+<ul>
+<li>total — Total number of Users</li>
+<li>Users — Array of Users (not detailed)</li>
+</ul>
+<section id="user-users-collection-get" class="panel panel-info"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">List all Users</span></div><div style="float:left"><a href="#user-users-collection-get" class="btn btn-xs btn-info">GET</a></div><div style="overflow:hidden"><code>/users{?search}</code></div></div><ul class="list-group"><li class="list-group-item bg-default"><strong>Parameters</strong></li><li class="list-group-item"><dl class="dl-horizontal"><dt>search</dt><dd><code>string</code>&nbsp;<span>(optional)</span>&nbsp;<span class="text-muted example"><strong>Example:&nbsp;</strong><span>jo</span></span><p>Fuzzy search. Only users that have an <em>id</em> or <em>email</em> related to the <em>search</em> parameter are returned.</p>
+</dd></dl></li></ul><ul class="list-group"><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>200</code></strong><a data-toggle="collapse" data-target="#c38628d17b3aeb273abb68aa3a0b7340" class="pull-right">Toggle</a></li><li id="c38628d17b3aeb273abb68aa3a0b7340" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{
+    "<span class="hljs-attribute">total</span>": <span class="hljs-value"><span class="hljs-number">2</span></span>,
+    "<span class="hljs-attribute">users</span>": 
+    <span class="hljs-value">[
+        { "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"johndoe"</span> </span>},
+        { "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"janeroe"</span> </span>}
+    ]
+</span>}
+</code></pre></li></ul></section><section id="user-users-collection-post" class="panel panel-success"><div class="panel-heading"><div style="float:right"><span style="text-transform: lowercase">Create an User</span></div><div style="float:left"><a href="#user-users-collection-post" class="btn btn-xs btn-success">POST</a></div><div style="overflow:hidden"><code>/users{?search}</code></div></div><div class="panel-body"><p><strong>TODO</strong>: authentication and such</p>
+</div><ul class="list-group"><li class="list-group-item"><strong>Request</strong><a data-toggle="collapse" data-target="#0497a0dff7edc9a5a40cdd87f407d9ca" class="pull-right">Toggle</a></li><li id="0497a0dff7edc9a5a40cdd87f407d9ca" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"smith"</span></span>, "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"smith@example.com"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>201</code></strong><a data-toggle="collapse" data-target="#68aa40c94cca2e4a88b307f44264b28e" class="pull-right">Toggle</a></li><li id="68aa40c94cca2e4a88b307f44264b28e" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ "<span class="hljs-attribute">id</span>": <span class="hljs-value"><span class="hljs-string">"smith"</span></span>, "<span class="hljs-attribute">email</span>": <span class="hljs-value"><span class="hljs-string">"smith@example.com"</span> </span>}
+</code></pre></li><li class="list-group-item"><strong>Response&nbsp;&nbsp;<code>403</code></strong><a data-toggle="collapse" data-target="#2720f8e8c160a96cecb76d58dca98f47" class="pull-right">Toggle</a></li><li id="2720f8e8c160a96cecb76d58dca98f47" class="list-group-item panel-collapse collapse"><div class="description"></div><h5>Headers</h5><pre><code><span class="hljs-attribute">Content-Type</span>: <span class="hljs-string">application/json</span><br></code></pre><h5>Body</h5><pre><code>{ <span class="hljs-string">"error"</span>: <span class="hljs-string">"User 'smith' already exists."</span> }
+<span class="hljs-keyword">or</span>
+{ <span class="hljs-string">"error"</span>: <span class="hljs-string">"Email 'smith<span class="hljs-variable">@example</span>.com' already exists."</span> }
+</code></pre></li></ul></section></div></div></div></div></div></div><p style="text-align: center;" class="text-muted">Generated by&nbsp;<a href="https://github.com/danielgtaylor/aglio" class="aglio">aglio</a>&nbsp;on 15 Apr 2014</p><div id="localFile" style="display: none; position: absolute; top: 0; left: 0; width: 100%; color: white; background: red; font-size: 150%; text-align: center; padding: 1em;">This page may not display correctly when opened as a local file. Instead, view it from a web server.
+
+</div></body><script src="//code.jquery.com/jquery-1.11.0.min.js"></script><script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script>(function() {
+  if (location.protocol === 'file:') {
+    document.getElementById('localFile').style.display = 'block';
+  }
+
+}).call(this);
+</script><script>(function() {
+  $('table').addClass('table');
+
+}).call(this);
+</script></html>
