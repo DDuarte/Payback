@@ -1,0 +1,13 @@
+{
+  "name": "PaybackServer",
+  "version": "0.0.0",
+  "description": "PaybackServer",
+  "main": "server.js",
+  "author": {
+    "name": "Duarte",
+    "email": ""
+  },
+  "dependencies": {
+    "restify": "^2.7.0"
+  }
+}
