@@ -185,7 +185,7 @@ The Debts Collection resource has the following attribute:
                 "debtId": 2,
                 "user": "smith",
                 "value": -5.51,
-                "date": "2014-04-16T08:30Z"
+                "date": "2014-04-16T08:30Z",
                 "resolved": false
             }
         ]
@@ -270,6 +270,53 @@ This method is only available for the authenticated user.
 
     [Balances Collection][]
 
+## Friend [/users/{id}/friends/{friendId}]
+A single Friend object. The Friend resource represents a friend of an User.
+
+The User resource has the following attributes:
+
+- id -- Username of an User
+
++ Parameters
+    + id (string) ... ID of the User
+    + friendId (string) ... ID of a Friend of an User
+
++ Model (application/json)
+
+    ```js
+    {
+        "id": "johndoe",
+    }
+    ```
+
+### Retrieve a single Friend [GET]
+This method is only available for the authenticated user.
+
++ Response 200 (application/json)
+
+    [Friend][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist or is not a friend." }
+
+### Delete a single Friend [DELETE]
+This method is only available for the authenticated user.
+
++ Response 204
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist or is not a friend." }
+
 ## Friends Collection [/users/{id}/friends]
 Collection of all Users that are Friends of an User.
 
@@ -326,24 +373,14 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist." }
 
-### Delete a Friend of an User [DELETE]
+### Delete all Friends of an User [DELETE]
 This method is only available for the authenticated user.
-
-+ Request (application/json)
-
-        { "id": "janeroe" }
 
 + Response 204
 
 + Response 403 (application/json)
 
-        { "error": "User 'janeroe' already friended." }
-        or
         { "error": "No permission" }
-
-+ Response 404 (application/json)
-
-        { "error": "User 'janeroe' does not exist." }
 
 ## Users Collection [/users{?search}]
 Collection of all Users.
