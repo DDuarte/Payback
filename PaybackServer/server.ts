@@ -57,11 +57,13 @@ server.get("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Respo
 
 // PATCH /users/{id}/debts/{debtId}
 server.patch("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-    if (req.body === undefined)
+    if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
+    }
 
-    if (req.body.value === undefined && req.body.resolved === undefined)
+    if (req.body.value === undefined && req.body.resolved === undefined) {
         return next(new restify.MissingParameterError("Can only change 'value' or 'resolved' attributes of debts."));
+    }
 
     var obj = {
         "debtId": req.params.debtId,
@@ -71,11 +73,13 @@ server.patch("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Res
         "resolved": false
     };
 
-    if (req.body.value !== undefined)
+    if (req.body.value !== undefined) {
         obj.value = req.body.value;
+    }
 
-    if (req.body.resolved !== undefined)
+    if (req.body.resolved !== undefined) {
         obj.resolved = req.body.resolved;
+    }
 
     res.send(200, obj);
     return next();
@@ -116,17 +120,21 @@ server.get("/users/:id/debts", (req: restify.Request, res: restify.Response, nex
 
 // POST /users/{id}/debts
 server.post("/users/:id/debts", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-    if (req.body === undefined)
+    if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
+    }
 
-    if (req.body.user === undefined)
+    if (req.body.user === undefined) {
         return next(new restify.MissingParameterError("Attribute 'user' is missing."));
+    }
 
-    if (req.body.value === undefined)
+    if (req.body.value === undefined) {
         return next(new restify.MissingParameterError("Attribute 'value' is missing."));
+    }
 
-    if (isNaN(req.body.value))
+    if (isNaN(req.body.value)) {
         return next(new restify.InvalidArgumentError("Attribute 'value' needs to be a number."));
+    }
 
     var obj = {
         "debtId": 2,
@@ -183,7 +191,7 @@ server.del("/users/:id/friends/:friendId", (req: restify.Request, res: restify.R
 server.get("/users/:id/friends", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "total": 2,
-        "users": [
+        "friends": [
             { "id": "janeroe" },
             { "id": "smith" }
         ]
@@ -195,11 +203,13 @@ server.get("/users/:id/friends", (req: restify.Request, res: restify.Response, n
 
 // POST /users/{id}/friends
 server.post("/users/:id/friends", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-    if (req.body === undefined)
+    if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
+    }
 
-    if (req.body.id === undefined)
+    if (req.body.id === undefined) {
         return next(new restify.MissingParameterError("Attribute 'user' is missing."));
+    }
 
     var obj = {
         "id": req.body.id,
@@ -221,7 +231,11 @@ function fuzzy(what : string, s : string) : boolean
 {
     var hay = what.toLowerCase(), i = 0, n = -1, l;
     s = s.toLowerCase();
-    for (; l = s[i++];) if (!~(n = hay.indexOf(l, n + 1))) return false;
+    for (; l = s[i++];) {
+        if (!~(n = hay.indexOf(l, n + 1))) {
+            return false;
+        }
+    }
     return true;
 }
 
@@ -238,8 +252,9 @@ server.get("/users", (req: restify.Request, res: restify.Response, next: restify
         "users": [ ]
     };
 
-    for (var i = 0; i < users.length; ++i)
+    for (var i = 0; i < users.length; ++i) {
         obj.users.push({ "id": users[i] });
+    }
 
     res.json(200, obj);
     return next();
@@ -247,17 +262,21 @@ server.get("/users", (req: restify.Request, res: restify.Response, next: restify
 
 // POST /users
 server.post("/users", (req: restify.Request, res: restify.Response, next: restify.Next) => {
-    if (req.body === undefined)
+    if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
+    }
 
-    if (req.body.id === undefined)
+    if (req.body.id === undefined) {
         return next(new restify.MissingParameterError("Attribute 'id' is missing."));
+    }
 
-    if (req.body.email === undefined)
+    if (req.body.email === undefined) {
         return next(new restify.MissingParameterError("Attribute 'email' is missing."));
+    }
 
-    if (!/\S+@\S+\.\S+/.test(req.body.email))
+    if (!/\S+@\S+\.\S+/.test(req.body.email)) {
         return next(new restify.InvalidArgumentError("Attribute 'email' is not a valid email address."));
+    }
 
     var obj = {
         "id": req.body.id,

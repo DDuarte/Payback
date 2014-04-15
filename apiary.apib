@@ -101,7 +101,7 @@ The Debt resource has the following attributes:
         "value": 100,
         "date": "2014-04-14T11:29Z",
         "resolved": false
-    },
+    }
     ```
 
 ### Retrieve a single Debt [GET]
@@ -206,7 +206,7 @@ This method is only available for the authenticated user.
 
         {
             "user": "johndoe",
-            "value": 100,
+            "value": 100
         }
 
 + Response 201 (application/json)
@@ -285,7 +285,7 @@ The Friend resource has the following attributes:
 
     ```js
     {
-        "id": "johndoe",
+        "id": "johndoe"
     }
     ```
 
@@ -395,7 +395,7 @@ The User Collection resource has the following attribute:
 ### List all Users [GET]
 + Parameters
 
-    + search (string, optional, `smth`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
+    + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
 
 + Response 200 (application/json)
 
