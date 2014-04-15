@@ -36,7 +36,7 @@ The User resource has the following attributes:
 - email -- Email of the User
 
 + Parameters
-    + id (string) ... ID of the User
+    + id (string, required, `john`) ... ID of the User
 
 + Model (application/json)
 
@@ -89,8 +89,8 @@ The Debt resource has the following attributes:
 - resolved -- Boolean, true if the debt was paid, false otherwise
 
 + Parameters
-    + id (string) ... ID of the User
-    + debtId (number) ... ID of the Debt of an User
+    + id (string, required, `john`) ... ID of the User
+    + debtId (number, required, `1`) ... ID of the Debt of an User
 
 + Model (application/json)
 
@@ -165,7 +165,7 @@ The Debts Collection resource has the following attribute:
 - debts -- Array of Debts
 
 + Parameters
-    + id (string) ... ID of the User
+    + id (string, required, `john`) ... ID of the User
 
 + Model (application/json)
 
@@ -240,7 +240,7 @@ The Balances Collection resource has the following attribute:
 - balances -- Array of Balances
 
 + Parameters
-    + id (string) ... ID of the User
+    + id (string, required, `john`) ... ID of the User
 
 + Model (application/json)
 
@@ -278,8 +278,8 @@ The Friend resource has the following attributes:
 - id -- Username of a Friend
 
 + Parameters
-    + id (string) ... ID of the User
-    + friendId (string) ... ID of a Friend of an User
+    + id (string, required, `john`) ... ID of the User
+    + friendId (string, required, `jane`) ... ID of a Friend of an User
 
 + Model (application/json)
 
@@ -328,7 +328,7 @@ The Friends Collection resource has the following attributes:
 - friends -- Array of Friends (not detailed)
 
 + Parameters
-    + id (string) ... ID of the User
+    + id (string, required, `john`) ... ID of the User
 
 + Model (application/json)
 
@@ -395,7 +395,7 @@ The User Collection resource has the following attribute:
 ### List all Users [GET]
 + Parameters
 
-    + search (optional, string) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
+    + search (string, optional, `smth`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
 
 + Response 200 (application/json)
 
