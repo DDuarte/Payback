@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS RegisteredUser CASCADE;
+DROP TABLE IF EXISTS Debt CASCADE;
+DROP TABLE IF EXISTS Friendship CASCADE;
+
 CREATE TABLE IF NOT EXISTS RegisteredUser {
     id varchar(20) NOT NULL,
     passwordHash varchar(64) NOT NULL,
