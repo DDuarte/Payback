@@ -7,6 +7,9 @@ SDIS Debts API is a service to track and optimize debts between a group of frien
 ## Authentication
 Currently the SDIS Debts API does not provide authenticated access. **TODO**.
 
+## Digital Signature
+To prevent tampering of the data, a digital signature is included as a query parameter in the resources' URI.
+
 ## Media Types
 Where applicable this API uses the JSON media-type to represent resources states and affordances.
 
@@ -460,7 +463,7 @@ The User Collection resource has the following attribute:
 
 + Request (application/json)
 
-        { "id": "smith", "email": "smith@example.com" }
+        { "id": "smith", "email": "smith@example.com", "passwordHash": "abcdef" }
 
 + Response 201 (application/json)
 
