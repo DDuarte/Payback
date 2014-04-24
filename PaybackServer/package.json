@@ -1,13 +1,32 @@
 {
   "name": "PaybackServer",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "PaybackServer",
   "main": "server.js",
-  "author": {
-    "name": "Duarte",
-    "email": ""
-  },
+  "contributors": [
+    {
+      "name": "Duarte Duarte",
+      "email": "dnpd.dd@gmail.com",
+      "url": "https://github.com/DDuarte"
+    },
+    {
+      "name": "Francisco Maciel"
+    },
+    {
+      "name": "Lu�s Cleto"
+    },
+    {
+      "name": "Miguel Marques"
+    },
+    {
+      "name": "Ruben Cordeiro"
+    }
+  ],
   "dependencies": {
     "restify": "^2.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DDuarte/feup-sdis-debts.git"
   }
 }
