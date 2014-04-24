@@ -19,6 +19,48 @@ server.use(restify.bodyParser({
     mapParams: false
 }));
 
+
+var passport = require('passport'),
+    LocalStrategy = require('passport-local').Strategy,
+    FacebookStrategy = require('passport-facebook').Strategy;
+
+server.use(passport.initialize());
+
+
+passport.use(new FacebookStrategy({
+    clientID: "1489171211296988",
+    clientSecret: "e9a4c111a9ea355c02bd4f3bf4ea0653",
+    callbackURL: "http://payback-app.herokuapp.com/users"
+},
+     (accessToken, refreshToken, profile, done) => {
+            done(null, true);
+    }
+    ));
+
+passport.use(new LocalStrategy(
+    function (username, password, done) {
+        console.log("user: " + username + " password: " + password);
+        return done(null, true, { message: 'Hello authentication.' });
+    }
+    ));
+
+
+// GET /login
+server.get('/loginbook', passport.authenticate('facebook'));
+
+
+server.get("/login", (req: restify.Request, res: restify.Response, next: restify.Next) => {
+
+     passport.authenticate('local',  (err, user, info) => {
+        res.json(200, info);
+        return next();
+     })(req, res, next);
+
+   
+});
+
+
+
 // GET /
 server.get("/", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
@@ -287,6 +329,8 @@ server.post("/users", (req: restify.Request, res: restify.Response, next: restif
     return next();
 });
 
-server.listen(1337, () => {
+var port = process.env.PORT || 1337;
+
+server.listen(port, () => {
     console.log("%s listening at %s", server.name, server.url);
 });
