@@ -1,10 +1,14 @@
 FORMAT: 1A
 
-# SDIS Debts API
-SDIS Debts API is a service to track and optimize debts between a group of friends.
+# Payback API
+Payback API is a service to track and optimize debts between a group of friends.
 
 ## Authentication
-Currently the SDIS Debts API does not provide authenticated access. **TODO**.
+Currently the Payback API does not provide authenticated access.
+Authentication will be implemented using OAuth, with logins by username and password, Facebook, Google and other services.
+
+## Digital Signature
+To prevent tampering of the data, a digital signature is included as a query parameter in the resources' URI.
 
 ## Media Types
 Where applicable this API uses the JSON media-type to represent resources states and affordances.
@@ -14,8 +18,8 @@ Requests with a message-body are using plain JSON to set or update resource stat
 ## Error States
 The common [HTTP Response Status Codes](https://github.com/for-GET/know-your-http-well/blob/master/status-codes.md) are used.
 
-# SDIS Debts API Root [/]
-SDIS Debts API entry point.
+# Payback API Root [/]
+Payback API entry point.
 
 This resource does not have any attributes.
 
@@ -24,10 +28,10 @@ This resource does not have any attributes.
 + Response 204
 
 # Group User
-Users related resources of the **SDIS Debts API**
+Users related resources of the **Payback API**
 
-## User [/users/{id}]
-A single User object. The User resource is the central resource in the SDIS Debts API. It represents one user of the service.
+## User [/users/{id}{?checksum}]
+A single User object. The User resource is the central resource in the Payback API. It represents one user of the service.
 
 The User resource has the following attributes:
 
@@ -36,6 +40,7 @@ The User resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
+    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -56,6 +61,8 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
@@ -69,19 +76,21 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
         { "error": "User 'johndoe' does not exist." }
 
-## Debt [/users/{id}/debts/{debtId}]
-A single Debt object. The Debt resource represents a debt that an User has on another User.
+## Debt [/users/{id}/debts/{debtId}{?checksum}]
+A single Debt object. The Debt resource represents a debt that a User has on another User.
 
 A positive *value* means that this User owes something to another Used, a negative *value* means that this User is owed by another User.
 
 The Debt resource has the following attributes:
 
-- debtId -- Id of a Debt of an User (read-only)
+- debtId -- Id of a Debt of a User (read-only)
 - user -- User that we owe or are owed by (read-only)
 - value -- Money that we owe or are owed by the User above
 - date -- Date (ISO 8601) the Debt was created (read-only)
@@ -89,7 +98,8 @@ The Debt resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
-    + debtId (number, required, `1`) ... ID of the Debt of an User
+    + debtId (number, required, `1`) ... ID of the Debt of a User
+    + checksum (string, required, `abcd`) ... Digital signature of the id and debtId
 
 + Model (application/json)
 
@@ -113,6 +123,8 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
@@ -121,6 +133,10 @@ This method is only available for the authenticated user.
 ### Update a single Debt [PATCH]
 This method is only available for the authenticated user.
 Modifiable fields are *value* and *resolved*.
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the value and/or resolved
 
 + Request (application/json)
 
@@ -137,6 +153,8 @@ Modifiable fields are *value* and *resolved*.
         { "error": "No permission" }
         or
         { "error": "Cannot update field 'whatever'" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
@@ -150,12 +168,14 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
         { "error": "Debt '2' for user 'johndoe' does not exist." }
 
-## Debts Collection [/users/{id}/debts]
+## Debts Collection [/users/{id}/debts{?checksum}]
 Collection of all Debts that this User owes and is owed to another User.
 
 The Debts Collection resource has the following attribute:
@@ -165,6 +185,7 @@ The Debts Collection resource has the following attribute:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
+    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -191,15 +212,25 @@ The Debts Collection resource has the following attribute:
     }
     ```
 
-### List all Debts of an User [GET]
+### List all Debts of a User [GET]
 This method is only available for the authenticated user.
 
 + Response 200 (application/json)
 
     [Debts Collection][]
+    
++ Response 403 (application/json)
 
-### Create a new Debt of an User [POST]
+        { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
+
+### Create a new Debt of a User [POST]
 This method is only available for the authenticated user.
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the user and value
 
 + Request (application/json)
 
@@ -221,6 +252,8 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
@@ -228,8 +261,8 @@ This method is only available for the authenticated user.
         or
         { "error": "Value '0.0001' is invalid." }
 
-## Balances Collection [/users/{id}/balances]
-Collection of all Debts that this User owes and is owed to another User.
+## Balances Collection [/users/{id}/balances{?checksum}]
+Collection of all Debts that this User owes and is owed by other Users.
 
 This is a read-only collection and the returned data already contains all the calculations (hence the name *balance*).
 
@@ -240,6 +273,7 @@ The Balances Collection resource has the following attribute:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
+    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -262,15 +296,21 @@ The Balances Collection resource has the following attribute:
     }
     ```
 
-### List all Balances of an User [GET]
+### List all Balances of a User [GET]
 This method is only available for the authenticated user.
 
 + Response 200 (application/json)
 
     [Balances Collection][]
+    
++ Response 403 (application/json)
 
-## Friend [/users/{id}/friends/{friendId}]
-A single Friend object. The Friend resource represents a friend of an User.
+        { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
+
+## Friend [/users/{id}/friends/{friendId}{?checksum}]
+A single Friend object. The Friend resource represents a friend of a User.
 
 The Friend resource has the following attributes:
 
@@ -278,7 +318,8 @@ The Friend resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
-    + friendId (string, required, `jane`) ... ID of a Friend of an User
+    + friendId (string, required, `jane`) ... ID of a Friend of a User
+    + checksum (string, required, `abcd`) ... Digital signature of id and friendId
 
 + Model (application/json)
 
@@ -298,6 +339,8 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
@@ -311,13 +354,15 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
         { "error": "User 'johndoe' does not exist or is not a friend." }
 
-## Friends Collection [/users/{id}/friends]
-Collection of all Users that are Friends of an User.
+## Friends Collection [/users/{id}/friends{?checksum}]
+Collection of all Users that are Friends of a User.
 
 This is a one-way only friendship and it is used to provide quick access to Users that are commonly used in the transactions.
 
@@ -328,6 +373,7 @@ The Friends Collection resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
+    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -342,7 +388,7 @@ The Friends Collection resource has the following attributes:
     }
     ```
 
-### List all Friends of an User [GET]
+### List all Friends of a User [GET]
 This method is only available for the authenticated user.
 
 + Response 200 (application/json)
@@ -352,8 +398,10 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
-### Create a Friend of an User [POST]
+### Create a Friend of a User [POST]
 This method is only available for the authenticated user.
 
 + Request (application/json)
@@ -369,12 +417,14 @@ This method is only available for the authenticated user.
         { "error": "User 'johndoe' already friended." }
         or
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
 
         { "error": "User 'johndoe' does not exist." }
 
-### Delete all Friends of an User [DELETE]
+### Delete all Friends of a User [DELETE]
 This method is only available for the authenticated user.
 
 + Response 204
@@ -382,8 +432,10 @@ This method is only available for the authenticated user.
 + Response 403 (application/json)
 
         { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
 
-## Users Collection [/users{?search}]
+## Users Collection [/users{?search, checksum}]
 Collection of all Users.
 
 The User Collection resource has the following attribute:
@@ -395,6 +447,7 @@ The User Collection resource has the following attribute:
 + Parameters
 
     + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
+    + checksum (string, optional, `abcd`) ... Digital signature of the search if it exists
 
 + Response 200 (application/json)
 
@@ -406,13 +459,22 @@ The User Collection resource has the following attribute:
                 { "id": "janeroe" }
             ]
         }
+        
++ Response 403 (application/json)
 
-### Create an User [POST]
-**TODO**: authentication and such
+        { "error": "No permission" }
+        or
+        { "error": "Invalid checksum" }
+
+### Create a User [POST]
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the id, email and passwordHash
 
 + Request (application/json)
 
-        { "id": "smith", "email": "smith@example.com" }
+        { "id": "smith", "email": "smith@example.com", "passwordHash": "abcdef" }
 
 + Response 201 (application/json)
 
@@ -423,3 +485,5 @@ The User Collection resource has the following attribute:
         { "error": "User 'smith' already exists." }
         or
         { "error": "Email 'smith@example.com' already exists." }
+        or
+        { "error": "Invalid checksum" }
