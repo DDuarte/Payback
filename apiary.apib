@@ -5,7 +5,8 @@ HOST: http://api.sdisdebts.com
 SDIS Debts API is a service to track and optimize debts between a group of friends.
 
 ## Authentication
-Currently the SDIS Debts API does not provide authenticated access. **TODO**.
+Currently the SDIS Debts API does not provide authenticated access.
+Authentication will be implemented using OAuth, with logins by username and password, Facebook, Google and other services.
 
 ## Digital Signature
 To prevent tampering of the data, a digital signature is included as a query parameter in the resources' URI.
@@ -134,6 +135,10 @@ This method is only available for the authenticated user.
 This method is only available for the authenticated user.
 Modifiable fields are *value* and *resolved*.
 
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the value and/or resolved
+
 + Request (application/json)
 
         {
@@ -223,6 +228,10 @@ This method is only available for the authenticated user.
 
 ### Create a new Debt of a User [POST]
 This method is only available for the authenticated user.
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the user and value
 
 + Request (application/json)
 
@@ -439,7 +448,7 @@ The User Collection resource has the following attribute:
 + Parameters
 
     + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
-    + checksum (string, required, `abcd`) ... Digital signature of the search
+    + checksum (string, optional, `abcd`) ... Digital signature of the search if it exists
 
 + Response 200 (application/json)
 
@@ -459,7 +468,10 @@ The User Collection resource has the following attribute:
         { "error": "Invalid checksum" }
 
 ### Create a User [POST]
-**TODO**: authentication and such
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the id, email and passwordHash
 
 + Request (application/json)
 
