@@ -1,11 +1,10 @@
 FORMAT: 1A
-HOST: http://api.sdisdebts.com
 
-# SDIS Debts API
-SDIS Debts API is a service to track and optimize debts between a group of friends.
+# Payback API
+Payback API is a service to track and optimize debts between a group of friends.
 
 ## Authentication
-Currently the SDIS Debts API does not provide authenticated access.
+Currently the Payback API does not provide authenticated access.
 Authentication will be implemented using OAuth, with logins by username and password, Facebook, Google and other services.
 
 ## Digital Signature
@@ -19,8 +18,8 @@ Requests with a message-body are using plain JSON to set or update resource stat
 ## Error States
 The common [HTTP Response Status Codes](https://github.com/for-GET/know-your-http-well/blob/master/status-codes.md) are used.
 
-# SDIS Debts API Root [/]
-SDIS Debts API entry point.
+# Payback API Root [/]
+Payback API entry point.
 
 This resource does not have any attributes.
 
@@ -29,10 +28,10 @@ This resource does not have any attributes.
 + Response 204
 
 # Group User
-Users related resources of the **SDIS Debts API**
+Users related resources of the **Payback API**
 
 ## User [/users/{id}{?checksum}]
-A single User object. The User resource is the central resource in the SDIS Debts API. It represents one user of the service.
+A single User object. The User resource is the central resource in the Payback API. It represents one user of the service.
 
 The User resource has the following attributes:
 
