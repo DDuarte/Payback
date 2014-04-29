@@ -1,5 +1,6 @@
-﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
-var restify = require("restify");
+﻿/// <reference path="../Scripts/typings/restify/restify.d.ts"/>
+
+import restify = require("restify");
 
 var server = restify.createServer({ name: "payback" });
 
@@ -12,50 +13,21 @@ server.use(restify.queryParser({ mapParams: false }));
 // if possible compress with gzip
 server.use(restify.gzipResponse());
 
+
 // parse the HTTP entity body, data available in res.body
 server.use(restify.bodyParser({
     maxBodySize: 65535,
     mapParams: false
 }));
 
-var passport = require('passport'), LocalStrategy = require('passport-local').Strategy, FacebookStrategy = require('passport-facebook').Strategy;
-
-server.use(passport.initialize());
-server.use(passport.session());
-
-passport.use(new FacebookStrategy({
-    clientID: "1489171211296988",
-    clientSecret: "e9a4c111a9ea355c02bd4f3bf4ea0653",
-    callbackURL: "http://localhost:1337/users"
-}, function (accessToken, refreshToken, profile, done) {
-    console.log(profile);
-
-    done(null, profile);
-}));
-
-passport.use(new LocalStrategy(function (username, password, done) {
-    console.log("user: " + username + " password: " + password);
-    return done(null, true, { message: 'Hello authentication.' });
-}));
-
-// GET /login
-server.get('/loginbook', passport.authenticate('facebook'));
-
-server.get("/login", function (req, res, next) {
-    passport.authenticate('local', function (err, user, info) {
-        res.json(200, info);
-        return next();
-    })(req, res, next);
-});
-
 // GET /
-server.get("/", function (req, res, next) {
+server.get("/", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
     return next();
 });
 
 // GET /users/{id}
-server.get("/users/:id", function (req, res, next) {
+server.get("/users/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "id": req.params.id,
         "email": req.params.id + "@example.com"
@@ -65,13 +37,13 @@ server.get("/users/:id", function (req, res, next) {
 });
 
 // DELETE /users/{id}
-server.del("/users/:id", function (req, res, next) {
+server.del("/users/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
     return next();
 });
 
 // GET /users/{id}/debts/{debtId}
-server.get("/users/:id/debts/:debtId", function (req, res, next) {
+server.get("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "debtId": req.params.debtId,
         "user": "janeroe",
@@ -85,7 +57,7 @@ server.get("/users/:id/debts/:debtId", function (req, res, next) {
 });
 
 // PATCH /users/{id}/debts/{debtId}
-server.patch("/users/:id/debts/:debtId", function (req, res, next) {
+server.patch("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -115,16 +87,17 @@ server.patch("/users/:id/debts/:debtId", function (req, res, next) {
 });
 
 // DELETE /users/{id}/debts/{debtId}
-server.del("/users/:id/debts/:debtId", function (req, res, next) {
+server.del("/users/:id/debts/:debtId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
     return next();
 });
 
 // GET /users/{id}/debts
-server.get("/users/:id/debts", function (req, res, next) {
+server.get("/users/:id/debts", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "total": 2,
-        "debts": [
+        "debts":
+        [
             {
                 "debtId": 1,
                 "user": "janeroe",
@@ -147,7 +120,7 @@ server.get("/users/:id/debts", function (req, res, next) {
 });
 
 // POST /users/{id}/debts
-server.post("/users/:id/debts", function (req, res, next) {
+server.post("/users/:id/debts", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -177,15 +150,17 @@ server.post("/users/:id/debts", function (req, res, next) {
 });
 
 // GET /users/{id}/balances
-server.get("/users/:id/balances", function (req, res, next) {
+server.get("/users/:id/balances", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "total": 1,
-        "balances": [
+        "balances":
+        [
             {
                 "balanceId": 1,
                 "user": "janeroe",
                 "value": 100,
-                "history": [
+                "history":
+                [
                     { "debtId": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
                     { "debtId": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
                 ]
@@ -198,23 +173,23 @@ server.get("/users/:id/balances", function (req, res, next) {
 });
 
 // GET /users/{id}/friends/{friendId}
-server.get("/users/:id/friends/:friendId", function (req, res, next) {
+server.get("/users/:id/friends/:friendId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
-        "id": req.params.friendId
-    };
+        "id": req.params.friendId,
+    }
 
     res.json(200, obj);
     return next();
 });
 
 // GET /users/{id}/friends/{friendId}
-server.del("/users/:id/friends/:friendId", function (req, res, next) {
+server.del("/users/:id/friends/:friendId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
     return next();
 });
 
 // GET /users/{id}/friends
-server.get("/users/:id/friends", function (req, res, next) {
+server.get("/users/:id/friends", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
         "total": 2,
         "friends": [
@@ -228,7 +203,7 @@ server.get("/users/:id/friends", function (req, res, next) {
 });
 
 // POST /users/{id}/friends
-server.post("/users/:id/friends", function (req, res, next) {
+server.post("/users/:id/friends", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -238,7 +213,7 @@ server.post("/users/:id/friends", function (req, res, next) {
     }
 
     var obj = {
-        "id": req.body.id
+        "id": req.body.id,
     };
 
     res.json(201, obj);
@@ -246,14 +221,15 @@ server.post("/users/:id/friends", function (req, res, next) {
 });
 
 // DELETE /users/{id}/friends
-server.del("/users/:id/friends", function (req, res, next) {
+server.del("/users/:id/friends", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     res.send(204);
     return next();
 });
 
 // from Stackoverflow, example fuzzy test
 // "loop through needle letters and check if they occur in the same order in the haystack"
-function fuzzy(what, s) {
+function fuzzy(what : string, s : string) : boolean
+{
     var hay = what.toLowerCase(), i = 0, n = -1, l;
     s = s.toLowerCase();
     for (; l = s[i++];) {
@@ -265,19 +241,16 @@ function fuzzy(what, s) {
 }
 
 // GET /users
-server.get("/users", function (req, res, next) {
-    passport.authenticate('facebook')(req, res, next);
+server.get("/users", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var users = ["johndoe", "janeroe", "smith"];
 
     if (req.query.search !== undefined) {
-        users = users.filter(function (val) {
-            return fuzzy(val, req.query.search);
-        });
+        users = users.filter((val) => fuzzy(val, req.query.search));
     }
 
     var obj = {
         "total": users.length,
-        "users": []
+        "users": [ ]
     };
 
     for (var i = 0; i < users.length; ++i) {
@@ -289,7 +262,7 @@ server.get("/users", function (req, res, next) {
 });
 
 // POST /users
-server.post("/users", function (req, res, next) {
+server.post("/users", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -317,7 +290,6 @@ server.post("/users", function (req, res, next) {
 
 var port = process.env.PORT || 1337;
 
-server.listen(port, function () {
+server.listen(port, () => {
     console.log("%s listening at %s", server.name, server.url);
 });
-//# sourceMappingURL=server.js.map
