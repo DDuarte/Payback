@@ -225,7 +225,7 @@ server.del("/users/:id/friends", (req: restify.Request, res: restify.Response, n
     return next();
 });
 
-// from Stackoverflow, example fuzzy test
+// from StackOverflow, example fuzzy test
 // "loop through needle letters and check if they occur in the same order in the haystack"
 function fuzzy(what : string, s : string) : boolean
 {

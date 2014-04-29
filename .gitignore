@@ -35,6 +35,9 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 
+# see https://intellij-support.jetbrains.com/entries/23393067
+.idea/gradle.xml
 .idea/dictionaries/*.xml
 .idea/watcherTasks.xml
 .idea/workspace.xml
+.idea/runConfigurations/*.xml
