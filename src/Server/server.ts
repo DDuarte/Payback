@@ -175,8 +175,8 @@ server.get("/users/:id/balances", (req: restify.Request, res: restify.Response, 
 // GET /users/{id}/friends/{friendId}
 server.get("/users/:id/friends/:friendId", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     var obj = {
-        "id": req.params.friendId,
-    }
+        "id": req.params.friendId
+    };
 
     res.json(200, obj);
     return next();
@@ -213,7 +213,7 @@ server.post("/users/:id/friends", (req: restify.Request, res: restify.Response, 
     }
 
     var obj = {
-        "id": req.body.id,
+        "id": req.body.id
     };
 
     res.json(201, obj);
