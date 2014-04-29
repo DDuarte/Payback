@@ -28,7 +28,8 @@
     "restify": "^2.7.0",
     "passport": "0.1.x",
     "passport-local": "0.1.x",
-    "passport-facebook": "0.1.x"
+    "passport-facebook": "0.1.x",
+    "orm": "2.1.8"
   },
   "repository": {
     "type": "git",
