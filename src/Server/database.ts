@@ -2,30 +2,30 @@
 
 import orm = require('orm');
 
-export module database {
-    export class DebtsModel {
-        public static init(db:orm.ORM, models:{ [key: string]: orm.Model }) {
+export class DebtsModel {
+    public static init(db: orm.ORM, models:{ [key: string]: orm.Model }) {
 
-            models["user"] = db.define('User', {
-                id: String,
-                passwordHash: String,
-                email: String
-            });
+        models["user"] = db.define('user', {
+            id: String,
+            passwordHash: String,
+            email: String
+        });
 
-            models["debt"] = db.define('Debt', {
-                id: Number,
-                idCreditor: String,
-                idDebtor: String,
-                date: Date,
-                value: Number,
-                resolved: Boolean
-            });
+        models["debt"] = db.define('debt', {
+            id: Number,
+            idCreditor: String,
+            idDebtor: String,
+            date: Date,
+            value: Number,
+            resolved: Boolean
+        });
 
-            models["friendship"] = db.define('Friendship', {
-                idMember1: Number,
-                idMember2: Number,
-                date: Date
-            });
-        }
+        models["friendship"] = db.define('friendship', {
+            idMember1: Number,
+            idMember2: Number,
+            date: Date
+        });
+
+        db.sync((err) => { console.log("sync: %s", err)});
     }
 }

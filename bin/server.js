@@ -1,32 +1,15 @@
 ﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
 /// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
+/// <reference path="database.ts" />
 var restify = require("restify");
 var orm = require("orm");
+var database = require("./database");
 
 var server = restify.createServer({ name: "payback" });
 
-server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l?ssl=true", { define: function (db, models) {
-        models["user"] = db.define('User', {
-            id: String,
-            passwordHash: String,
-            email: String
-        });
-
-        models["debt"] = db.define('Debt', {
-            id: Number,
-            idCreditor: String,
-            idDebtor: String,
-            date: Date,
-            value: Number,
-            resolved: Boolean
-        });
-
-        models["friendship"] = db.define('Friendship', {
-            idMember1: Number,
-            idMember2: Number,
-            date: Date
-        });
-    } }));
+server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l?ssl=true&pool=true", {
+    define: database.DebtsModel.init
+}));
 
 // handle the Accept request header
 server.use(restify.acceptParser(server.acceptable));
@@ -51,12 +34,18 @@ server.get("/", function (req, res, next) {
 
 // GET /users/{id}
 server.get("/users/:id", function (req, res, next) {
-    var obj = {
-        "id": req.params.id,
-        "email": req.params.id + "@example.com"
-    };
-    res.json(200, obj);
-    return next();
+    // TODO: send 403 when not logged in or not current user
+    req["models"]["user"].get(req.params.id, function (err, user) {
+        if (err && err.code == orm.ErrorCodes.NOT_FOUND) {
+            res.json(404, { "error": "User " + req.params.id + " not found" });
+        } else {
+            res.json(200, user);
+        }
+
+        return next();
+    });
+    //res.json(200, user);
+    //return next();
 });
 
 // DELETE /users/{id}
