@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/feup-sdis-debts.iml" filepath="$PROJECT_DIR$/feup-sdis-debts.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/feup-sdis-debts.iml" filepath="$PROJECT_DIR$/.idea/feup-sdis-debts.iml" />
     </modules>
   </component>
 </project>
