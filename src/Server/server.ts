@@ -1,8 +1,36 @@
 ﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
+/// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
 
 import restify = require("restify");
+import orm = require("orm");
+import database = require("./database");
 
 var server = restify.createServer({ name: "payback" });
+
+server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l", {
+    define: (db: orm.ORM, models: { [key: string]: orm.Model }) => {
+
+    models["user"] = db.define('User', {
+        id: String,
+        passwordHash: String,
+        email: String
+    });
+
+    models["debt"] = db.define('Debt', {
+        id: Number,
+        idCreditor: String,
+        idDebtor: String,
+        date: Date,
+        value: Number,
+        resolved: Boolean
+    });
+
+    models["friendship"] = db.define('Friendship', {
+        idMember1: Number,
+        idMember2: Number,
+        date: Date
+    });
+}}));
 
 // handle the Accept request header
 server.use(restify.acceptParser(server.acceptable));

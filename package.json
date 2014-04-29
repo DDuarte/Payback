@@ -29,7 +29,8 @@
     "passport": "0.1.x",
     "passport-local": "0.1.x",
     "passport-facebook": "0.1.x",
-    "orm": "2.1.8"
+    "orm": "2.1.8",
+    "pg": "2.5.0"
   },
   "repository": {
     "type": "git",
