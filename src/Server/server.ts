@@ -1,4 +1,4 @@
-﻿/// <reference path="../Scripts/typings/restify/restify.d.ts"/>
+﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
 
 import restify = require("restify");
 
@@ -12,7 +12,6 @@ server.use(restify.queryParser({ mapParams: false }));
 
 // if possible compress with gzip
 server.use(restify.gzipResponse());
-
 
 // parse the HTTP entity body, data available in res.body
 server.use(restify.bodyParser({
