@@ -2,7 +2,7 @@
   "name": "PaybackServer",
   "version": "0.0.1",
   "description": "PaybackServer",
-  "main": "server.js",
+  "main": "bin/server.js",
   "contributors": [
     {
       "name": "Duarte Duarte",
@@ -24,9 +24,9 @@
   ],
   "dependencies": {
     "restify": "^2.7.0",
-	"passport": "0.1.x",
-	"passport-local": "0.1.x",
-	"passport-facebook": "0.1.x"
+    "passport": "0.1.x",
+    "passport-local": "0.1.x",
+    "passport-facebook": "0.1.x"
   },
   "repository": {
     "type": "git",
