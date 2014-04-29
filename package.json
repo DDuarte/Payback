@@ -19,7 +19,9 @@
       "name": "Miguel Marques"
     },
     {
-      "name": "Ruben Cordeiro"
+      "name": "Ruben Cordeiro",
+      "email": "ruben.cordeiro.eng@gmail.com",
+      "url": "https://github.com/SynapseR"
     }
   ],
   "dependencies": {
