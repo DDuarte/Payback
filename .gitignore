@@ -41,3 +41,4 @@ _ReSharper*/
 .idea/watcherTasks.xml
 .idea/workspace.xml
 .idea/runConfigurations/*.xml
+.idea/misc.xml
