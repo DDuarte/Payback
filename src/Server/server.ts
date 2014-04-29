@@ -7,7 +7,7 @@ import database = require("./database");
 
 var server = restify.createServer({ name: "payback" });
 
-server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l", {
+server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l?ssl=true", {
     define: (db: orm.ORM, models: { [key: string]: orm.Model }) => {
 
     models["user"] = db.define('User', {
