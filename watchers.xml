@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TaskOptions>
   <TaskOptions>
-    <option name="arguments" value="--sourcemap $FileName$ --outDir $ProjectFileDir$\bin --module CommonJS" />
-    <option name="checkSyntaxErrors" value="true" />
+    <option name="arguments" value="--sourcemap $FileName$ --outDir $ModuleFileDir$/bin -m commonjs" />
+    <option name="checkSyntaxErrors" value="false" />
     <option name="description" value="Compiles .ts files into .js files" />
     <option name="exitCodeBehavior" value="ERROR" />
     <option name="fileExtension" value="ts" />
-    <option name="immediateSync" value="true" />
+    <option name="immediateSync" value="false" />
     <option name="name" value="TypeScript" />
-    <option name="output" value="$FileNameWithoutExtension$.js:$FileNameWithoutExtension$.js.map" />
+    <option name="output" value="$ModuleFileDir$/bin/$FileNameWithoutExtension$.js:$ModuleFileDir$/bin/$FileNameWithoutExtension$.js.map" />
     <option name="outputFilters">
       <array>
         <FilterInfo>
@@ -20,10 +20,50 @@
     </option>
     <option name="outputFromStdout" value="false" />
     <option name="passParentEnvs" value="true" />
-    <option name="program" value="tsc.exe" />
+    <option name="program" value="tsc" />
     <option name="scopeName" value="Project Files" />
     <option name="trackOnlyRoot" value="false" />
     <option name="workingDir" value="$FileDir$" />
+    <envs />
+  </TaskOptions>
+  <TaskOptions>
+    <option name="arguments" value="update" />
+    <option name="checkSyntaxErrors" value="true" />
+    <option name="description" value="Update npm when package.json modified" />
+    <option name="exitCodeBehavior" value="ERROR" />
+    <option name="fileExtension" value="*" />
+    <option name="immediateSync" value="false" />
+    <option name="name" value="package.json" />
+    <option name="output" value="" />
+    <option name="outputFilters">
+      <array />
+    </option>
+    <option name="outputFromStdout" value="false" />
+    <option name="passParentEnvs" value="true" />
+    <option name="program" value="npm" />
+    <option name="scopeName" value="package.json" />
+    <option name="trackOnlyRoot" value="false" />
+    <option name="workingDir" value="$ProjectFileDir$" />
+    <envs />
+  </TaskOptions>
+  <TaskOptions>
+    <option name="arguments" value="prune" />
+    <option name="checkSyntaxErrors" value="true" />
+    <option name="description" value="Prune npm when package.json modified" />
+    <option name="exitCodeBehavior" value="ERROR" />
+    <option name="fileExtension" value="*" />
+    <option name="immediateSync" value="false" />
+    <option name="name" value="package.json prune" />
+    <option name="output" value="" />
+    <option name="outputFilters">
+      <array />
+    </option>
+    <option name="outputFromStdout" value="false" />
+    <option name="passParentEnvs" value="true" />
+    <option name="program" value="npm" />
+    <option name="scopeName" value="package.json" />
+    <option name="trackOnlyRoot" value="false" />
+    <option name="workingDir" value="$ProjectFileDir$" />
     <envs />
   </TaskOptions>
 </TaskOptions>
