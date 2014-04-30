@@ -3,22 +3,30 @@
 import orm = require('orm');
 
 export class DebtsModel {
-    public static init(db: orm.ORM, models:{ [key: string]: orm.Model }) {
+    public static init(db:orm.ORM, models:{ [key: string]: orm.Model }) {
 
         models["user"] = db.define('user', {
-            id: String,
-            passwordHash: String,
-            email: String
+            id: { type: "text", size: 20, required: true, unique: true },
+            passwordHash: { type: "text", size: 64, required: true },
+            email: { type: "text", size: 254, required: true, unique: true }
+        }, {
+            validations: {
+                passwordHash: orm.enforce["ranges"].length(64, 64, "invalid-password-length")
+            }
         });
 
         models["debt"] = db.define('debt', {
-            id: Number,
-            idCreditor: String,
-            idDebtor: String,
-            date: Date,
+            date: { type: "date", time: false }, // time: false, represents a DATE
             value: Number,
-            resolved: Boolean
+            resolved: { type: "boolean", default: false}
+        }, {
+            validations: {
+                value: orm.enforce["ranges"].number(0, undefined, "negative-value")
+            }
         });
+
+        models["debt"]["hasOne"]("creditor", models["user"], { required: true });
+        models["debt"]["hasOne"]("debtor", models["debtor"], { required: true });
 
         models["friendship"] = db.define('friendship', {
             idMember1: Number,
@@ -26,6 +34,8 @@ export class DebtsModel {
             date: Date
         });
 
-        db.sync((err) => { console.log("sync: %s", err)});
+        db.sync((err) => {
+            if (err) console.log("sync: %s", err)
+        });
     }
 }

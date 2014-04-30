@@ -38,7 +38,7 @@ server.get("/users/:id", (req: restify.Request, res: restify.Response, next: res
     // TODO: send 403 when not logged in or not current user
 
     req["models"]["user"].get(req.params.id, (err, user) => {
-        if (err && err.code == orm.ErrorCodes.NOT_FOUND) {
+        if (err /*&& err['code'] == orm.ErrorCodes.NOT_FOUND*/) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
         } else {
             res.json(200, user);
@@ -46,9 +46,6 @@ server.get("/users/:id", (req: restify.Request, res: restify.Response, next: res
 
         return next();
     });
-
-    //res.json(200, user);
-    //return next();
 });
 
 // DELETE /users/{id}
