@@ -36,7 +36,7 @@ server.get("/", function (req, res, next) {
 server.get("/users/:id", function (req, res, next) {
     // TODO: send 403 when not logged in or not current user
     req["models"]["user"].get(req.params.id, function (err, user) {
-        if (err && err.code == orm.ErrorCodes.NOT_FOUND) {
+        if (err) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
         } else {
             res.json(200, user);
@@ -44,8 +44,6 @@ server.get("/users/:id", function (req, res, next) {
 
         return next();
     });
-    //res.json(200, user);
-    //return next();
 });
 
 // DELETE /users/{id}

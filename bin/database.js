@@ -1,31 +1,63 @@
 /// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
+var orm = require('orm');
+
 var DebtsModel = (function () {
     function DebtsModel() {
     }
     DebtsModel.init = function (db, models) {
-        models["user"] = db.define('user', {
-            id: String,
-            passwordHash: String,
-            email: String
+        var _this = this;
+        /** user table **/
+        models["user"] = db.define("user", {
+            id: { type: "text", size: 20, required: true, unique: true },
+            passwordHash: { type: "text", size: 64, required: true },
+            email: { type: "text", size: 254, required: true, unique: true }
+        }, {
+            validations: {
+                passwordHash: orm.enforce["ranges"].length(64, 64, "invalid-password-length")
+            }
         });
 
-        models["debt"] = db.define('debt', {
-            id: Number,
-            idCreditor: String,
-            idDebtor: String,
-            date: Date,
+        /** **/
+        /** debt table **/
+        models["debt"] = db.define("debt", {
+            date: { type: "date", time: false },
             value: Number,
-            resolved: Boolean
+            resolved: { type: "boolean", default: false }
+        }, {
+            hooks: {
+                beforeCreate: function (next) {
+                    _this["date"] = new Date();
+                    next();
+                }
+            },
+            validations: {
+                value: orm.enforce["ranges"].number(0, undefined, "negative-value")
+            }
         });
 
-        models["friendship"] = db.define('friendship', {
-            idMember1: Number,
-            idMember2: Number,
-            date: Date
+        models["debt"]["hasOne"]("creditor", models["user"], { required: true }); // idCreditor
+        models["debt"]["hasOne"]("debtor", models["debtor"], { required: true }); // idDebtor
+
+        /** **/
+        /** friendship table **/
+        models["friendship"] = db.define("friendship", {
+            date: { type: "date", time: true }
+        }, {
+            hooks: {
+                beforeCreate: function (next) {
+                    _this["date"] = +(new Date()); // fancy way of converting a date to a timestamp
+                    next();
+                }
+            }
         });
 
+        models["friendship"]["hasOne"]("member1", models["user"], { required: true }); // idMember1
+        models["friendship"]["hasOne"]("member2", models["user"], { required: true }); // idMember2
+
+        /** **/
         db.sync(function (err) {
-            console.log("sync: %s", err);
+            if (err)
+                console.log("sync: %s", err);
         });
     };
     return DebtsModel;
