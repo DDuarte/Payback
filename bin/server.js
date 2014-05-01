@@ -1,6 +1,7 @@
 ﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
 /// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
 /// <reference path="database.ts" />
+/// <reference path='Scripts/typings/cryptojs/cryptojs.d.ts'/>
 var restify = require("restify");
 var orm = require("orm");
 var database = require("./database");
@@ -35,6 +36,7 @@ server.get("/", function (req, res, next) {
 // GET /users/{id}
 server.get("/users/:id", function (req, res, next) {
     // TODO: send 403 when not logged in or not current user
+    // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
     req["models"]["user"].get(req.params.id, function (err, user) {
         if (err) {
             res.json(404, { "error": "User " + req.params.id + " not found" });

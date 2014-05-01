@@ -1,10 +1,12 @@
 ﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
 /// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
 /// <reference path="database.ts" />
+/// <reference path='Scripts/typings/cryptojs/cryptojs.d.ts'/>
 
 import restify = require("restify");
 import orm = require("orm");
 import database = require("./database");
+import crypto = require("crypto-js");
 
 var server = restify.createServer({ name: "payback" });
 
@@ -36,6 +38,7 @@ server.get("/", (req: restify.Request, res: restify.Response, next: restify.Next
 // GET /users/{id}
 server.get("/users/:id", (req: restify.Request, res: restify.Response, next: restify.Next) => {
     // TODO: send 403 when not logged in or not current user
+    // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
 
     req["models"]["user"].get(req.params.id, (err, user) => {
         if (err /*&& err['code'] == orm.ErrorCodes.NOT_FOUND*/) {

@@ -13,7 +13,9 @@
       "name": "Francisco Maciel"
     },
     {
-      "name": "Luís Cleto"
+      "name": "Luís Cleto",
+      "email": "luisccleto@gmail.com",
+      "url": "https://github.com/luiscleto"
     },
     {
       "name": "Miguel Marques"
@@ -30,7 +32,8 @@
     "passport-local": "0.1.x",
     "passport-facebook": "0.1.x",
     "orm": "2.1.8",
-    "pg": "2.5.0"
+    "pg": "2.5.0",
+    "crypto-js": "3.1.2-3"
   },
   "repository": {
     "type": "git",
