@@ -212,16 +212,37 @@ server.del("/users/:id/friends/:friendId", function (req, res, next) {
 
 // GET /users/{id}/friends
 server.get("/users/:id/friends", function (req, res, next) {
-    var obj = {
-        "total": 2,
-        "friends": [
-            { "id": "janeroe" },
-            { "id": "smith" }
-        ]
-    };
 
-    res.json(200, obj);
-    return next();
+    req.models.user.get(req.params.id, function(err, me) {
+        if (err) {
+            res.json(500, err);
+            return next();
+        } else if (!me) {
+            res.json(404, { error: "User (me) '" + req.body.id + "' does not exist." });
+            return next();
+        }
+
+        me.getFriends(function(err, friends) {
+            if (err) {
+                res.json(500, err);
+                return next();
+            } else if (!friends) {
+                res.json(404, { error: "Friends does not exist." });
+                return next();
+            }
+
+            friends = friends.map(function (user) {
+                return { id: user.id };
+            });
+
+            var obj = {
+                "total": friends.length,
+                "friends": friends
+            };
+
+            res.json(200, obj);
+        });
+    });
 });
 
 // POST /users/{id}/friends
@@ -231,34 +252,40 @@ server.post("/users/:id/friends", function (req, res, next) {
     }
 
     if (req.body.id === undefined) {
-        return next(new restify.MissingParameterError("Attribute 'user' is missing."));
+        return next(new restify.MissingParameterError("Attribute 'id' is missing."));
     }
 
-    // check if the friend exists
-    req.models.user.exists({id: req.body.id }, function (err, exists) {
+    req.models.user.get(req.params.id, function(err, me) {
 
         if (err) {
             res.json(500, err);
             return next();
-        } else if (!exists) {
-            res.json(404, {error: "User '" + req.body.id + "' does not exist."});
+        } else if (!me) {
+            res.json(404, { error: "User (me) '" + req.body.id + "' does not exist." });
             return next();
         }
-        else {
-            req.models.friendship.create({
-                member1_id: req.params.id,
-                member2_id: req.body.id
-            }, function (err, friendship) {
 
+        // check if the friend exists
+        req.models.user.get(req.body.id, function (err, friend) {
+
+            if (err) {
+                res.json(500, err);
+                return next();
+            } else if (!friend) {
+                res.json(404, {error: "User (friend) '" + req.body.id + "' does not exist."});
+                return next();
+            }
+
+            me.addFriends([friend], { date: new Date() }, function (err) {
                 if (err) {
                     res.json(500, err);
                     return next();
                 }
 
-                res.json(201, { id: friendship.getMember1() });
+                res.json(201, { id: friend.id });
                 return next();
             });
-        }
+        });
     });
 });
 
