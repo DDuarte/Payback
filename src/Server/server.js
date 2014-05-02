@@ -1,5 +1,5 @@
 
-//var crypto = require('crypto-js/');
+//var crypto = require('crypto-js');
 var restify = require("restify");
 var orm = require("orm");
 var database = require("./database");
@@ -33,7 +33,8 @@ server.get("/", function (req, res, next) {
 // GET /users/{id}
 server.get("/users/:id", function (req, res, next) {
     // TODO: send 403 when not logged in or not current user
-    // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
+    // TODO: implement checksum ( crypto.HmacSHA1( message , key ).toString() )
+
     req["models"]["user"].get(req.params.id, function (err, user) {
         if (err) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
