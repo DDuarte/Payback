@@ -2,7 +2,7 @@
   "name": "PaybackServer",
   "version": "0.0.1",
   "description": "PaybackServer",
-  "main": "bin/server.js",
+  "main": "src/Server/server.js",
   "contributors": [
     {
       "name": "Duarte Duarte",

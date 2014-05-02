@@ -1,15 +1,12 @@
-﻿/// <reference path="Scripts/typings/restify/restify.d.ts"/>
-/// <reference path="Scripts/typings/node-orm2/orm.d.ts" />
-/// <reference path="database.ts" />
-/// <reference path='Scripts/typings/cryptojs/cryptojs.d.ts'/>
+
+//var crypto = require('crypto-js/');
 var restify = require("restify");
 var orm = require("orm");
 var database = require("./database");
 
 var server = restify.createServer({ name: "payback" });
-
 server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l?ssl=true&pool=true", {
-    define: database.DebtsModel.init
+    define: database
 }));
 
 // handle the Accept request header
@@ -303,4 +300,3 @@ var port = process.env.PORT || 1337;
 server.listen(port, function () {
     console.log("%s listening at %s", server.name, server.url);
 });
-//# sourceMappingURL=server.js.map
