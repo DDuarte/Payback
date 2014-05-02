@@ -1,4 +1,3 @@
-
 //var crypto = require('crypto-js');
 var restify = require("restify");
 var orm = require("orm");
@@ -34,23 +33,39 @@ server.get("/", function (req, res, next) {
 server.get("/users/:id", function (req, res, next) {
     // TODO: send 403 when not logged in or not current user
     // TODO: implement checksum ( crypto.HmacSHA1( message , key ).toString() )
-
-    req["models"]["user"].get(req.params.id, function (err, user) {
+    // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
+    req.models.user.get(req.params.id, function (err, user) {
         if (err) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
         } else {
             res.json(200, user);
         }
-
         return next();
     });
 });
 
 // DELETE /users/{id}
 server.del("/users/:id", function (req, res, next) {
-    res.send(204);
-    return next();
+
+    req.models.user.get({id: req.params.id }, function (err, user) {
+
+        if (err)
+            res.json(404, { "error": "User " + req.param.id + " does not exist" });
+        else {
+
+            user.remove(function (err) {
+                if (err) {
+                    res.json(500, err);
+                    return next();
+                }
+
+                res.json(204);
+                return next();
+            });
+        }
+    });
 });
+
 
 // GET /users/{id}/debts/{debtId}
 server.get("/users/:id/debts/:debtId", function (req, res, next) {
@@ -219,12 +234,32 @@ server.post("/users/:id/friends", function (req, res, next) {
         return next(new restify.MissingParameterError("Attribute 'user' is missing."));
     }
 
-    var obj = {
-        "id": req.body.id
-    };
+    // check if the friend exists
+    req.models.user.exists({id: req.body.id }, function (err, exists) {
 
-    res.json(201, obj);
-    return next();
+        if (err) {
+            res.json(500, err);
+            return next();
+        } else if (!exists) {
+            res.json(404, {error: "User '" + req.body.id + "' does not exist."});
+            return next();
+        }
+        else {
+            req.models.friendship.create({
+                member1_id: req.params.id,
+                member2_id: req.body.id
+            }, function (err, friendship) {
+
+                if (err) {
+                    res.json(500, err);
+                    return next();
+                }
+
+                res.json(201, { id: friendship.getMember1() });
+                return next();
+            });
+        }
+    });
 });
 
 // DELETE /users/{id}/friends
@@ -248,29 +283,37 @@ function fuzzy(what, s) {
 
 // GET /users
 server.get("/users", function (req, res, next) {
-    var users = ["johndoe", "janeroe", "smith"];
 
-    if (req.query.search !== undefined) {
-        users = users.filter(function (val) {
-            return fuzzy(val, req.query.search);
+    req.models.user.find({}).run(function (err, users) {
+
+        if (err) {
+            res.json(500, err);
+            return next();
+        }
+
+        users = users.map(function (user) {
+            return {id: user.id};
         });
-    }
 
-    var obj = {
-        "total": users.length,
-        "users": []
-    };
+        if (!req.query.search)
+            res.json(200, users);
+        else {
 
-    for (var i = 0; i < users.length; ++i) {
-        obj.users.push({ "id": users[i] });
-    }
+            var filteredUsers = users.filter(function (user) {
+                return fuzzy(user.id, req.query.search);
+            });
 
-    res.json(200, obj);
-    return next();
+            res.json(200, filteredUsers);
+        }
+
+        return next();
+
+    });
 });
 
 // POST /users
 server.post("/users", function (req, res, next) {
+
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -287,13 +330,32 @@ server.post("/users", function (req, res, next) {
         return next(new restify.InvalidArgumentError("Attribute 'email' is not a valid email address."));
     }
 
-    var obj = {
-        "id": req.body.id,
-        "email": req.body.email
-    };
+    if (req.body.passwordHash === undefined) {
+        return next(new restify.InvalidArgumentError("Attribute 'passwordHash' is missing"));
+    }
 
-    res.json(201, obj);
-    return next();
+    req.models.user.create({
+        id: req.body.id,
+        passwordHash: req.body.passwordHash,
+        email: req.body.email
+    }, function (err, item) {
+
+        if (err) {
+
+            if (err.code == 23505) { // unique_violation
+                return next(new restify.InvalidArgumentError("Already exists"));
+            } else if (err.msg == "invalid-password-length" || err.msg == "invalid-email-format") {
+                return next(new restify.InvalidArgumentError(err.msg));
+            }
+            else {
+                res.json(500, err);
+                return next();
+            }
+        }
+
+        res.json(201, {id: item.id, email: item.email });
+        return next();
+    });
 });
 
 var port = process.env.PORT || 1337;
