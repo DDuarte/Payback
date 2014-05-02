@@ -11,7 +11,8 @@ function init(db, models) {
         email: { type: "text", size: 254, required: true, unique: true }
     }, {
         validations: {
-            passwordHash: orm.enforce.ranges.length(64, 64, "invalid-password-length")
+            passwordHash: orm.enforce.ranges.length(64, 64, "invalid-password-length"),
+            email: orm.enforce.patterns.email("invalid-email-format")
         }
     });
 
