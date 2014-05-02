@@ -2,10 +2,8 @@
 var orm = require('orm');
 
 function init(db, models) {
-    var _this = this;
 
-    /** user table **/
-    models["user"] = db.define("user", {
+    var user = db.define("user", {
         id: { type: "text", size: 20, required: true, unique: true },
         passwordHash: { type: "text", size: 64, required: true },
         email: { type: "text", size: 254, required: true, unique: true }
@@ -16,9 +14,9 @@ function init(db, models) {
         }
     });
 
-    /** **/
-    /** debt table **/
-    models["debt"] = db.define("debt", {
+    user.hasMany('friends', user, { date: Date });
+
+    var debt = db.define("debt", {
         date: { type: "date", time: false },
         value: Number,
         resolved: { type: "boolean", default: false }
@@ -34,30 +32,15 @@ function init(db, models) {
         }
     });
 
-    models.debt.hasOne("creditor", models.user, { required: true }); // idCreditor
-    models.debt.hasOne("debtor", models.user, { required: true }); // idDebtor
+    debt.hasOne("creditor", user, { required: true });
+    debt.hasOne("debtor", user, { required: true });
 
-    /** **/
-    /** friendship table **/
-    models["friendship"] = db.define("friendship", {
-        date: { type: "date", time: true }
-    }, {
-        hooks: {
-            beforeCreate: function (next) {
-                this.date = +(new Date()); // fancy way of converting a date to a timestamp
-                next();
-            }
-        }
-    });
-
-    models.friendship.hasOne("member1", models.user, { required: true }); // idMember1
-    models.friendship.hasOne("member2", models.user, { required: true }); // idMember2
-
-    /** **/
+    models["user"] = user;
+    models["debt"] = debt;
 
     db.sync(function (err) {
         if (err)
-            console.log("sync: %s", err);
+            console.log("Error when syncing db: %s", err);
     });
 };
 
