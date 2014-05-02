@@ -291,8 +291,20 @@ server.post("/users/:id/friends", function (req, res, next) {
 
 // DELETE /users/{id}/friends
 server.del("/users/:id/friends", function (req, res, next) {
-    res.send(204);
-    return next();
+    req.models.user.get(req.params.id, function(err, me) {
+        if (err) {
+            res.json(500, err);
+            return next();
+        } else if (!me) {
+            res.json(404, { error: "User (me) '" + req.body.id + "' does not exist." });
+            return next();
+        }
+
+        me.setFriends([]);
+
+        res.json(204);
+        return next();
+    });
 });
 
 // from StackOverflow, example fuzzy test
