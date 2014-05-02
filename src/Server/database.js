@@ -4,7 +4,7 @@ var orm = require('orm');
 function init(db, models) {
 
     var user = db.define("user", {
-        id: { type: "text", size: 20, required: true, unique: true },
+        id: { type: "text", size: 20, required: true },
         passwordHash: { type: "text", size: 64, required: true },
         email: { type: "text", size: 254, required: true, unique: true }
     }, {
