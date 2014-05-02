@@ -204,10 +204,41 @@ server.get("/users/:id/friends/:friendId", function (req, res, next) {
     return next();
 });
 
-// GET /users/{id}/friends/{friendId}
-server.del("/users/:id/friends/:friendId", function (req, res, next) {
-    res.send(204);
-    return next();
+// DELETE /users/{id}/friends/{friendId}
+server.del("/users/:id/friends/:friendId", function(req, res, next) {
+
+    req.models.user.get(req.params.id, function(err, me) {
+
+        if (err) {
+            res.json(500, err);
+            return next();
+        } else if (!me) {
+            res.json(404, { error: "User (me) '" + req.body.id + "' does not exist." });
+            return next();
+        }
+
+        // check if the friend exists
+        req.models.user.get(req.params.friendId, function(err, friend) {
+
+            if (err) {
+                res.json(500, err);
+                return next();
+            } else if (!friend) {
+                res.json(404, { error: "User (friend) '" + req.body.id + "' does not exist." });
+                return next();
+            }
+
+            me.removeFriends([friend], function(err) {
+                if (err) {
+                    res.json(500, err);
+                    return next();
+                }
+
+                res.send(204);
+                return next();
+            });
+        });
+    });
 });
 
 // GET /users/{id}/friends
@@ -300,9 +331,14 @@ server.del("/users/:id/friends", function (req, res, next) {
             return next();
         }
 
-        me.setFriends([]);
+        me.setFriends([], function(err) {
+            if (err) {
+                res.json(500, err);
+                return next();
+            }
+        });
 
-        res.json(204);
+        res.send(204);
         return next();
     });
 });
