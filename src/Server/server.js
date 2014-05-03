@@ -137,28 +137,43 @@ server.del("/users/:id/debts/:debtId", function (req, res, next) {
 
 // GET /users/{id}/debts
 server.get("/users/:id/debts", function (req, res, next) {
-    var obj = {
-        "total": 2,
-        "debts": [
-            {
-                "debtId": 1,
-                "user": "janeroe",
-                "value": 100,
-                "date": "2014-04-14T11:29Z",
-                "resolved": true
-            },
-            {
-                "debtId": 2,
-                "user": "smith",
-                "value": -5.51,
-                "date": "2014-04-16T08:30Z",
-                "resolved": false
-            }
-        ]
-    };
 
-    res.json(200, obj);
-    return next();
+    req.models.user.get(req.params.id, function (err, user) {
+
+        if (err || !user) {
+            res.json(404, { error: "User '" + req.params.id + "' does not exist" });
+            return next();
+        }
+
+        user.getDebts(function (err, debts) {
+
+            if (err || !debts) {
+                res.json(500, err);
+                return next();
+            }
+
+            var debts = debts.map(function (debt) {
+
+                return {
+                    debtId: debt.id,
+                    user: debt.creditor_id,
+                    value: debt.value,
+                    date: debt.date,
+                    resolved: debt.resolved
+                };
+
+            });
+
+            var ret = {
+                total: debts.length,
+                debts: debts
+            };
+
+            res.json(200, ret);
+            return next();
+        });
+    });
+
 });
 
 // POST /users/{id}/debts
