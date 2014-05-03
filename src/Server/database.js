@@ -32,8 +32,8 @@ function init(db, models) {
         }
     });
 
-    debt.hasOne("creditor", user, { required: true });
-    debt.hasOne("debtor", user, { required: true });
+    debt.hasOne("creditor", user, { reverse: "credits", required: true });
+    debt.hasOne("debtor", user, { reverse: "debts", required: true });
 
     models["user"] = user;
     models["debt"] = debt;
