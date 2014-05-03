@@ -196,12 +196,25 @@ server.get("/users/:id/balances", function (req, res, next) {
 
 // GET /users/{id}/friends/{friendId}
 server.get("/users/:id/friends/:friendId", function (req, res, next) {
-    var obj = {
-        "id": req.params.friendId
-    };
 
-    res.json(200, obj);
-    return next();
+    req.models.user.get(req.params.id, function(err, user) {
+        if (err) {
+            res.json(404, { error: "User '" + req.params.id + "' does not exist" });
+            return next();
+        }
+
+        user.getFriends({ id: req.params.friendId }, function(err, friends) {
+
+            if (err || friends.length === 0) {
+                res.json(404, { error: "User '" + req.params.friendId + "' is not a friend" });
+                return next();
+            }
+
+            res.json(200, { id: friends[0].id });
+            return next();
+        });
+    });
+
 });
 
 // DELETE /users/{id}/friends/{friendId}
