@@ -435,7 +435,7 @@ This method is only available for the authenticated user.
         or
         { "error": "Invalid checksum" }
 
-## Users Collection [/users{?search, checksum}]
+## Users Collection [/users{?search,checksum}]
 Collection of all Users.
 
 The User Collection resource has the following attribute:
@@ -470,20 +470,21 @@ The User Collection resource has the following attribute:
 
 + Parameters
 
+    + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
     + checksum (string, required, `abcd`) ... Digital signature of the id, email and passwordHash
 
 + Request (application/json)
 
-        { "id": "smith", "email": "smith@example.com", "passwordHash": "abcdef" }
+        { "id": "john", "email": "john@example.com", "passwordHash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd" }
 
 + Response 201 (application/json)
 
-        { "id": "smith", "email": "smith@example.com" }
+        { "id": "john", "email": "john@example.com" }
 
 + Response 403 (application/json)
 
-        { "error": "User 'smith' already exists." }
+        { "error": "User 'john' already exists." }
         or
-        { "error": "Email 'smith@example.com' already exists." }
+        { "error": "Email 'john@example.com' already exists." }
         or
         { "error": "Invalid checksum" }

@@ -77,7 +77,7 @@ server.get("/users/:id/debts/:debtId", function (req, res, next) {
     req.models.user.get(req.params.id, function (err, user) {
 
         if (err || !user) {
-            req.json(404, {error: "User '" + req.params.id + "' does not exist" });
+            res.json(404, {error: "User '" + req.params.id + "' does not exist" });
             return next();
         }
 
