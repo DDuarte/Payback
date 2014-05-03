@@ -74,14 +74,14 @@ server.del("/users/:id", function (req, res, next) {
 // GET /users/{id}/debts/{debtId}
 server.get("/users/:id/debts/:debtId", function (req, res, next) {
 
-    req.models.user.get(req.params.id, function(err, user) {
+    req.models.user.get(req.params.id, function (err, user) {
 
         if (err || !user) {
             req.json(404, {error: "User '" + req.params.id + "' does not exist" });
             return next();
         }
 
-        user.getDebts().find({ id: req.params.debtId }, function(err, debts) {
+        user.getDebts().find({ id: req.params.debtId }, function (err, debts) {
 
             if (err || debts.length === 0) {
                 res.json(404, { error: "Debt '" + req.params.debtId + "' does not exist" });
@@ -182,6 +182,7 @@ server.get("/users/:id/debts", function (req, res, next) {
 
 // POST /users/{id}/debts
 server.post("/users/:id/debts", function (req, res, next) {
+
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -281,13 +282,13 @@ server.get("/users/:id/balances", function (req, res, next) {
 // GET /users/{id}/friends/{friendId}
 server.get("/users/:id/friends/:friendId", function (req, res, next) {
 
-    req.models.user.get(req.params.id, function(err, user) {
+    req.models.user.get(req.params.id, function (err, user) {
         if (err) {
             res.json(404, { error: "User '" + req.params.id + "' does not exist" });
             return next();
         }
 
-        user.getFriends({ id: req.params.friendId }, function(err, friends) {
+        user.getFriends({ id: req.params.friendId }, function (err, friends) {
 
             if (err || friends.length === 0) {
                 res.json(404, { error: "User '" + req.params.friendId + "' is not a friend" });
@@ -302,9 +303,9 @@ server.get("/users/:id/friends/:friendId", function (req, res, next) {
 });
 
 // DELETE /users/{id}/friends/{friendId}
-server.del("/users/:id/friends/:friendId", function(req, res, next) {
+server.del("/users/:id/friends/:friendId", function (req, res, next) {
 
-    req.models.user.get(req.params.id, function(err, me) {
+    req.models.user.get(req.params.id, function (err, me) {
 
         if (err) {
             res.json(500, err);
@@ -315,7 +316,7 @@ server.del("/users/:id/friends/:friendId", function(req, res, next) {
         }
 
         // check if the friend exists
-        req.models.user.get(req.params.friendId, function(err, friend) {
+        req.models.user.get(req.params.friendId, function (err, friend) {
 
             if (err) {
                 res.json(500, err);
@@ -325,7 +326,7 @@ server.del("/users/:id/friends/:friendId", function(req, res, next) {
                 return next();
             }
 
-            me.removeFriends([friend], function(err) {
+            me.removeFriends([friend], function (err) {
                 if (err) {
                     res.json(500, err);
                     return next();
@@ -341,7 +342,7 @@ server.del("/users/:id/friends/:friendId", function(req, res, next) {
 // GET /users/{id}/friends
 server.get("/users/:id/friends", function (req, res, next) {
 
-    req.models.user.get(req.params.id, function(err, me) {
+    req.models.user.get(req.params.id, function (err, me) {
         if (err) {
             res.json(500, err);
             return next();
@@ -350,7 +351,7 @@ server.get("/users/:id/friends", function (req, res, next) {
             return next();
         }
 
-        me.getFriends(function(err, friends) {
+        me.getFriends(function (err, friends) {
             if (err) {
                 res.json(500, err);
                 return next();
@@ -383,7 +384,7 @@ server.post("/users/:id/friends", function (req, res, next) {
         return next(new restify.MissingParameterError("Attribute 'id' is missing."));
     }
 
-    req.models.user.get(req.params.id, function(err, me) {
+    req.models.user.get(req.params.id, function (err, me) {
 
         if (err) {
             res.json(500, err);
@@ -419,7 +420,7 @@ server.post("/users/:id/friends", function (req, res, next) {
 
 // DELETE /users/{id}/friends
 server.del("/users/:id/friends", function (req, res, next) {
-    req.models.user.get(req.params.id, function(err, me) {
+    req.models.user.get(req.params.id, function (err, me) {
         if (err) {
             res.json(500, err);
             return next();
@@ -428,7 +429,7 @@ server.del("/users/:id/friends", function (req, res, next) {
             return next();
         }
 
-        me.setFriends([], function(err) {
+        me.setFriends([], function (err) {
             if (err) {
                 res.json(500, err);
                 return next();
