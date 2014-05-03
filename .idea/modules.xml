@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/feup-sdis-debts.iml" filepath="$PROJECT_DIR$/feup-sdis-debts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Payback.iml" filepath="$PROJECT_DIR$/Payback.iml" />
     </modules>
   </component>
 </project>

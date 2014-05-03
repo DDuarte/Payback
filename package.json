@@ -37,7 +37,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/DDuarte/feup-sdis-debts.git"
+    "url": "https://github.com/DDuarte/Payback.git"
   },
   "engines": {
     "node": "0.10.x",

@@ -51,7 +51,7 @@ server.get("/users/:id", function (req, res, next) {
 // DELETE /users/{id}
 server.del("/users/:id", function (req, res, next) {
 
-    req.models.user.get({id: req.params.id }, function (err, user) {
+    req.models.user.get(req.params.id, function (err, user) {
 
         if (err)
             res.json(404, { "error": "User " + req.param.id + " does not exist" });
