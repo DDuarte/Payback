@@ -32,14 +32,18 @@ server.get("/", function (req, res, next) {
 // GET /users/{id}
 server.get("/users/:id", function (req, res, next) {
     // TODO: send 403 when not logged in or not current user
-    // TODO: implement checksum ( crypto.HmacSHA1( message , key ).toString() )
     // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
     req.models.user.get(req.params.id, function (err, user) {
+
         if (err) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
         } else {
-            res.json(200, user);
+            res.json(200, {
+               id: user.id,
+               email: user.email
+            });
         }
+
         return next();
     });
 });
