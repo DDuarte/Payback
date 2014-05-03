@@ -194,16 +194,63 @@ server.post("/users/:id/debts", function (req, res, next) {
         return next(new restify.InvalidArgumentError("Attribute 'value' needs to be a number."));
     }
 
-    var obj = {
-        "debtId": 2,
-        "user": req.body.user,
-        "value": req.body.value,
-        "date": new Date().toISOString(),
-        "resolved": true
-    };
+    var valueStr = req.body.value.toString();
+    var splitValueStr = valueStr.split(".");
 
-    res.json(201, obj);
-    return next();
+    if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
+        return next(new restify.InvalidArgumentError("Attribute 'value' can't exceed 2 decimal digits."));
+    }
+
+    req.models.user.exists({ id: req.params.id }, function (err, exists) {
+
+        if (err) {
+            res.json(500, err);
+            return next();
+        }
+
+        if (!exists) {
+            res.json(404, {error: "User '" + req.params.id + "' does not exist" });
+            return next();
+        }
+
+        req.models.user.exists({ id: req.body.user }, function (err, exists) {
+
+            if (err) {
+                res.json(500, err);
+                return next();
+            }
+
+            if (!exists) {
+                res.json(404, {error: "User '" + req.body.user + "' does not exist" });
+                return next();
+            }
+
+            req.models.debt.create({
+
+                creditor_id: req.body.user,
+                debtor_id: req.params.id,
+                value: req.body.value
+
+            }, function (err, debtItem) {
+
+                if (err || !debtItem) {
+                    res.json(500, err);
+                    return next();
+                }
+
+                res.json(201, {
+                    debtId: debtItem.id,
+                    user: debtItem.creditor_id,
+                    value: debtItem.value,
+                    date: debtItem.date,
+                    resolved: debtItem.resolved
+                });
+
+                return next();
+            });
+        });
+    });
+
 });
 
 // GET /users/{id}/balances
