@@ -19,7 +19,7 @@ function init(db, models) {
     var debt = db.define("debt", {
         date: { type: "date", time: false },
         value: Number,
-        resolved: { type: "boolean", default: false }
+        resolved: { type: "boolean", defaultValue: false }
     }, {
         hooks: {
             beforeCreate: function (next) {
