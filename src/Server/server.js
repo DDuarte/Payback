@@ -68,6 +68,7 @@ server.del("/users/:id", function (req, res, next) {
             });
         }
     });
+
 });
 
 
@@ -105,6 +106,7 @@ server.get("/users/:id/debts/:debtId", function (req, res, next) {
 
 // PATCH /users/{id}/debts/{debtId}
 server.patch("/users/:id/debts/:debtId", function (req, res, next) {
+
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -131,12 +133,31 @@ server.patch("/users/:id/debts/:debtId", function (req, res, next) {
 
     res.send(200, obj);
     return next();
+
 });
 
 // DELETE /users/{id}/debts/{debtId}
 server.del("/users/:id/debts/:debtId", function (req, res, next) {
-    res.send(204);
-    return next();
+
+    req.models.user.exists({ id: req.params.id }, function (err, exists) {
+
+        if (err || !exists) {
+            res.json(404, { error: "User '" + req.params.id +"' does not exist"});
+            return next();
+        }
+
+        req.models.debt.remove({ id: req.params.debtId }, function (err) {
+
+            if (err) {
+                res.json(404, { error: "Debt '" + req.params.debtId +"' does not exist" });
+                return next();
+            }
+
+            res.send(204);
+            return next();
+        });
+    });
+
 });
 
 // GET /users/{id}/debts
@@ -337,6 +358,7 @@ server.del("/users/:id/friends/:friendId", function (req, res, next) {
             });
         });
     });
+
 });
 
 // GET /users/{id}/friends
@@ -372,10 +394,12 @@ server.get("/users/:id/friends", function (req, res, next) {
             res.json(200, obj);
         });
     });
+
 });
 
 // POST /users/{id}/friends
 server.post("/users/:id/friends", function (req, res, next) {
+
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -416,10 +440,12 @@ server.post("/users/:id/friends", function (req, res, next) {
             });
         });
     });
+
 });
 
 // DELETE /users/{id}/friends
 server.del("/users/:id/friends", function (req, res, next) {
+
     req.models.user.get(req.params.id, function (err, me) {
         if (err) {
             res.json(500, err);
@@ -439,6 +465,7 @@ server.del("/users/:id/friends", function (req, res, next) {
         res.send(204);
         return next();
     });
+
 });
 
 // from StackOverflow, example fuzzy test
@@ -480,8 +507,8 @@ server.get("/users", function (req, res, next) {
         }
 
         return next();
-
     });
+
 });
 
 // POST /users
@@ -529,6 +556,7 @@ server.post("/users", function (req, res, next) {
         res.json(201, {id: item.id, email: item.email });
         return next();
     });
+
 });
 
 var port = process.env.PORT || 1337;
