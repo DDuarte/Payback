@@ -104,7 +104,6 @@ server.del("/users/:id", function (req, res, next) {
 
 });
 
-
 // GET /users/{id}/debts/{debtId}
 server.get("/users/:id/debts/:debtId", function (req, res, next) {
 
@@ -140,7 +139,6 @@ server.get("/users/:id/debts/:debtId", function (req, res, next) {
 // PATCH /users/{id}/debts/{debtId}
 server.patch("/users/:id/debts/:debtId", function (req, res, next) {
 
-    // TODO
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -149,24 +147,43 @@ server.patch("/users/:id/debts/:debtId", function (req, res, next) {
         return next(new restify.MissingParameterError("Can only change 'value' or 'resolved' attributes of debts."));
     }
 
-    var obj = {
-        "debtId": req.params.debtId,
-        "user": "janeroe",
-        "value": 100,
-        "date": "2014-04-14T11:29Z",
-        "resolved": false
-    };
+    req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
-    if (req.body.value !== undefined) {
-        obj.value = req.body.value;
-    }
+        if (err || !exists) {
+            res.json(404, { error: "User '" + req.params.id + "' does not exist" });
+            return next();
+        }
 
-    if (req.body.resolved !== undefined) {
-        obj.resolved = req.body.resolved;
-    }
+        req.models.debt.get(req.params.debtId, function (err, Debt) { // get the debt instance
 
-    res.send(200, obj);
-    return next();
+            if (err) {
+                res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
+                return next();
+            }
+
+            if (req.body.value)
+                Debt.value = req.body.value;
+
+            if (req.body.resolved)
+                Debt.resolved = req.body.resolved;
+
+            Debt.save(function (err) { // update the debt instance
+
+                if (err)
+                    res.json(500, err);
+                else
+                    res.json(200, {
+                        debtId: Debt.id,
+                        user: Debt.creditor_id,
+                        value: Debt.value,
+                        date: Debt.date,
+                        resolved: Debt.resolved
+                    });
+
+                return next();
+            });
+        });
+    });
 
 });
 
