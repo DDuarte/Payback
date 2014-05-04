@@ -23,6 +23,9 @@ server.use(restify.bodyParser({
     mapParams: false
 }));
 
+// TODO: send 403 when not logged in or not current user
+// TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
+
 // GET /
 server.get("/", function (req, res, next) {
     res.send(204);
@@ -31,11 +34,10 @@ server.get("/", function (req, res, next) {
 
 // GET /users/{id}
 server.get("/users/:id", function (req, res, next) {
-    // TODO: send 403 when not logged in or not current user
-    // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
+
     req.models.user.get(req.params.id, function (err, user) {
 
-        if (err) {
+        if (err || !user) {
             res.json(404, { "error": "User " + req.params.id + " not found" });
         } else {
             res.json(200, {
@@ -48,12 +50,43 @@ server.get("/users/:id", function (req, res, next) {
     });
 });
 
+// PATCH /users/{id}
+server.patch("/users/:id", function (req, res, next) {
+
+    if (req.body === undefined) {
+        return next(new restify.InvalidContentError("No body defined."));
+    }
+
+    if (req.body.email === undefined) {
+        return next(new restify.MissingParameterError("Can only change 'email' attribute of the user."));
+    }
+
+    req.models.user.get(req.params.id, function (err, user) {
+        if (err || !user) {
+            res.json(404, { "error": "User " + req.params.id + " not found" });
+            return next();
+        }
+
+        user.save({ email: req.body.email }, function(err) {
+            if (err || !user) {
+                res.json(403, err);
+                return next();
+            }
+
+            res.json(200, {
+                id: user.id,
+                email: req.body.email
+            });
+        });
+    });
+});
+
 // DELETE /users/{id}
 server.del("/users/:id", function (req, res, next) {
 
     req.models.user.get(req.params.id, function (err, user) {
 
-        if (err)
+        if (err || !user)
             res.json(404, { "error": "User " + req.param.id + " does not exist" });
         else {
 
@@ -107,6 +140,7 @@ server.get("/users/:id/debts/:debtId", function (req, res, next) {
 // PATCH /users/{id}/debts/{debtId}
 server.patch("/users/:id/debts/:debtId", function (req, res, next) {
 
+    // TODO
     if (req.body === undefined) {
         return next(new restify.InvalidContentError("No body defined."));
     }
@@ -281,6 +315,7 @@ server.post("/users/:id/debts", function (req, res, next) {
 
 // GET /users/{id}/balances
 server.get("/users/:id/balances", function (req, res, next) {
+    // TODO
     var obj = {
         "total": 1,
         "balances": [
