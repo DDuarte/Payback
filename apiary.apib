@@ -68,6 +68,38 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist." }
 
+### Update a single User [PATCH]
+This method is only available for the authenticated user.
+*email* is the only modifiable field.
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the *email*
+
++ Request (application/json)
+
+        {
+            "email": "newemail@example.com"
+        }
+
++ Response 200 (application/json)
+
+    [User][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+        or
+        { "error": "Cannot update field 'whatever'" }
+        or
+        { "error": "Invalid checksum" }
+        or
+        { "error": "Email 'john@example.com' already exists." }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist." }
+
 ### Delete a User [DELETE]
 This method is only available for the authenticated user.
 
@@ -86,7 +118,7 @@ This method is only available for the authenticated user.
 ## Debt [/users/{id}/debts/{debtId}{?checksum}]
 A single Debt object. The Debt resource represents a debt that a User has on another User.
 
-A positive *value* means that this User owes something to another Used, a negative *value* means that this User is owed by another User.
+A positive *value* means that this User owes something to another User, a negative *value* means that this User is owed by another User.
 
 The Debt resource has the following attributes:
 
@@ -435,7 +467,7 @@ This method is only available for the authenticated user.
         or
         { "error": "Invalid checksum" }
 
-## Users Collection [/users{?search, checksum}]
+## Users Collection [/users{?search,checksum}]
 Collection of all Users.
 
 The User Collection resource has the following attribute:
@@ -470,20 +502,21 @@ The User Collection resource has the following attribute:
 
 + Parameters
 
+    + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
     + checksum (string, required, `abcd`) ... Digital signature of the id, email and passwordHash
 
 + Request (application/json)
 
-        { "id": "smith", "email": "smith@example.com", "passwordHash": "abcdef" }
+        { "id": "john", "email": "john@example.com", "passwordHash": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd" }
 
 + Response 201 (application/json)
 
-        { "id": "smith", "email": "smith@example.com" }
+        { "id": "john", "email": "john@example.com" }
 
 + Response 403 (application/json)
 
-        { "error": "User 'smith' already exists." }
+        { "error": "User 'john' already exists." }
         or
-        { "error": "Email 'smith@example.com' already exists." }
+        { "error": "Email 'john@example.com' already exists." }
         or
         { "error": "Invalid checksum" }
