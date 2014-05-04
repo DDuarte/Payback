@@ -68,6 +68,38 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist." }
 
+### Update a single User [PATCH]
+This method is only available for the authenticated user.
+*email* is the only modifiable field.
+
++ Parameters
+
+    + checksum (string, required, `abcd`) ... Digital signature of the *email*
+
++ Request (application/json)
+
+        {
+            "email": "newemail@example.com"
+        }
+
++ Response 200 (application/json)
+
+    [User][]
+
++ Response 403 (application/json)
+
+        { "error": "No permission" }
+        or
+        { "error": "Cannot update field 'whatever'" }
+        or
+        { "error": "Invalid checksum" }
+        or
+        { "error": "Email 'john@example.com' already exists." }
+
++ Response 404 (application/json)
+
+        { "error": "User 'johndoe' does not exist." }
+
 ### Delete a User [DELETE]
 This method is only available for the authenticated user.
 
