@@ -3,7 +3,6 @@
 // set up ======================================================================
 // get all the tools we need
 //var crypto = require('crypto-js');
-var restify = require("restify");
 
 var express = require('express');
 var compress = require('compression');
