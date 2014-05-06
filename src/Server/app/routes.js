@@ -50,12 +50,12 @@ module.exports = function (server, passport) {
     });
 
     // GET /
-    server.get("/", function (req, res, next) {
+    server.get("/", function (req, res) {
         res.send(204);
     });
 
     // GET /users/{id}
-    server.get("/users/:id", isLoggedIn, function (req, res, next) {
+    server.get("/users/:id", isLoggedIn, function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -105,7 +105,7 @@ module.exports = function (server, passport) {
     });
 
     // DELETE /users/{id}
-    server.del("/users/:id", function (req, res, next) {
+    server.del("/users/:id", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -128,7 +128,7 @@ module.exports = function (server, passport) {
     });
 
     // GET /users/{id}/debts/{debtId}
-    server.get("/users/:id/debts/:debtId", function (req, res, next) {
+    server.get("/users/:id/debts/:debtId", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -218,7 +218,7 @@ module.exports = function (server, passport) {
     });
 
     // DELETE /users/{id}/debts/{debtId}
-    server.del("/users/:id/debts/:debtId", function (req, res, next) {
+    server.del("/users/:id/debts/:debtId", function (req, res) {
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -241,7 +241,7 @@ module.exports = function (server, passport) {
     });
 
     // GET /users/{id}/debts
-    server.get("/users/:id/debts", function (req, res, next) {
+    server.get("/users/:id/debts", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -380,7 +380,7 @@ module.exports = function (server, passport) {
     });
 
     // GET /users/{id}/friends/{friendId}
-    server.get("/users/:id/friends/:friendId", function (req, res, next) {
+    server.get("/users/:id/friends/:friendId", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
             if (err) {
@@ -402,7 +402,7 @@ module.exports = function (server, passport) {
     });
 
     // DELETE /users/{id}/friends/{friendId}
-    server.del("/users/:id/friends/:friendId", function (req, res, next) {
+    server.del("/users/:id/friends/:friendId", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
 
@@ -439,7 +439,7 @@ module.exports = function (server, passport) {
     });
 
     // GET /users/{id}/friends
-    server.get("/users/:id/friends", function (req, res, next) {
+    server.get("/users/:id/friends", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
             if (err) {
@@ -520,7 +520,7 @@ module.exports = function (server, passport) {
     });
 
     // DELETE /users/{id}/friends
-    server.del("/users/:id/friends", function (req, res, next) {
+    server.del("/users/:id/friends", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
             if (err) {
@@ -544,7 +544,7 @@ module.exports = function (server, passport) {
     });
 
     // GET /users
-    server.get("/users", function (req, res, next) {
+    server.get("/users", function (req, res) {
 
         req.models.user.find({}).run(function (err, users) {
 
