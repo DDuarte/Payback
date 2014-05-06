@@ -168,6 +168,17 @@ module.exports = function (server, passport) {
             return next("Can only change 'value' or 'resolved' attributes of debts.");
         }
 
+        if (isNaN(req.body.value)) {
+            return next("Attribute 'value' needs to be a number.");
+        }
+
+        var valueStr = req.body.value.toString();
+        var splitValueStr = valueStr.split(".");
+
+        if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
+            return next("Attribute 'value' can't exceed 2 decimal digits.");
+        }
+
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
             if (err || !exists) {
