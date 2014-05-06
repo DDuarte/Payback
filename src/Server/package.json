@@ -31,9 +31,10 @@
         "body-parser": "~1.0.2",
         "compression": "~1.0.2",
         "cookie-parser": "~1.0.1",
-        "passport": "0.1.x",
-        "passport-local": "0.1.x",
-        "passport-facebook": "0.1.x",
+        "express-session": "~1.0.4",
+        "passport": "~0.2.0",
+        "passport-local": "~1.0.0",
+        "passport-facebook": "~1.0.0",
         "orm": "2.1.8",
         "pg": "2.5.0",
         "crypto-js": "3.1.2-3"
