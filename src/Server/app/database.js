@@ -4,13 +4,18 @@ var orm = require('orm');
 function init(db, models) {
 
     var user = db.define("user", {
+        provider: { type: "text", required: true },
+        idProvider: { type: "text", unique: true },
+        token: { type: "text" },
         id: { type: "text", size: 20, required: true },
-        passwordHash: { type: "text", size: 64, required: true },
-        email: { type: "text", size: 254, required: true, unique: true }
+        passwordHash: { type: "text", size: 64 },
+        email: { type: "text", size: 254, required: true, unique: true },
+        imgUrl: { type: "text" }
     }, {
         validations: {
             passwordHash: orm.enforce.ranges.length(64, 64, "invalid-password-length"),
-            email: orm.enforce.patterns.email("invalid-email-format")
+            email: orm.enforce.patterns.email("invalid-email-format"),
+            provider: orm.enforce.lists.inside(["facebook", "google", "twitter", "local"], "invalid-provider")
         }
     });
 
