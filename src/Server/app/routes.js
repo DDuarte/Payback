@@ -53,16 +53,15 @@ module.exports = function (server, passport) {
     server.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
 
     // handle the callback after facebook has authenticated the user
-    server.get('/auth/facebook/callback',
+    /*server.get('/auth/facebook/callback',
         passport.authenticate('facebook', {
             successRedirect : '/users',
             failureRedirect : '/login'
         }));
-
+*/
     // handle the callback after facebook has authenticated the user
-    /*server.get('/auth/facebook/callback', function (req, res) {
+    server.get('/auth/facebook/callback', function (req, res) {
 
-        console.log("here");
         passport.authenticate('facebook', function (err, user, info) {
 
             if (!user)
@@ -78,8 +77,57 @@ module.exports = function (server, passport) {
         })(req, res);
 
     });
+
+    server.get('/auth/twitter', passport.authenticate('twitter'));
+
+    // handle the callback after twitter has authenticated the user
+    server.get('/auth/twitter/callback', function (req, res) {
+
+        passport.authenticate('twitter', function (err, user, info) {
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+
+    //server.get('/auth/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
+
+    // the callback after google has authenticated the user
+    /*server.get('/auth/google/callback',
+        passport.authenticate('google', {
+            successRedirect : '/profile',
+            failureRedirect : '/'
+        }));
+
     */
 
+    // handle the callback after google has authenticated the user
+    /*server.get('/auth/google/callback', function (req, res) {
+
+        passport.authenticate('google', function (err, user, info) {
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });*/
 
     // GET /
     server.get("/", function (req, res) {

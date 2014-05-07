@@ -47,6 +47,6 @@ function init(db, models) {
         if (err)
             console.log("Error when syncing db: %s", err);
     });
-};
+}
 
 module.exports = init;
