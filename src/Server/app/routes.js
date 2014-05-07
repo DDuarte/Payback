@@ -49,13 +49,45 @@ module.exports = function (server, passport) {
         res.send(200);
     });
 
+    // GET /auth/facebook
+    server.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
+
+    // handle the callback after facebook has authenticated the user
+    server.get('/auth/facebook/callback',
+        passport.authenticate('facebook', {
+            successRedirect : '/users',
+            failureRedirect : '/login'
+        }));
+
+    // handle the callback after facebook has authenticated the user
+    /*server.get('/auth/facebook/callback', function (req, res) {
+
+        console.log("here");
+        passport.authenticate('facebook', function (err, user, info) {
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+    */
+
+
     // GET /
     server.get("/", function (req, res) {
         res.send(204);
     });
 
     // GET /users/{id}
-    server.get("/users/:id", isLoggedIn, function (req, res) {
+    server.get("/users/:id", function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
