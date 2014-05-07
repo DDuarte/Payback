@@ -36,6 +36,9 @@ server.use(bodyParser({
     mapParams: false
 }));
 
+// static
+server.use(express.static(__dirname + '/public'));
+
 // session secret
 server.use(session({ secret: 'ilovekittiessomuch' }));
 
