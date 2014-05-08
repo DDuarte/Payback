@@ -30,9 +30,18 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="app\database.js" />
+    <Compile Include="app\routes.js" />
+    <Compile Include="config\auth.js" />
+    <Compile Include="config\passport.js" />
     <Compile Include="database.js" />
     <Compile Include="server.js" />
     <Content Include="package.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="app\" />
+    <Folder Include="app\models\" />
+    <Folder Include="config\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
   <ProjectExtensions>
