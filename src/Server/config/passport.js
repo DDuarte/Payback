@@ -2,8 +2,7 @@
 
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
-var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-var GooglePlusStrategy = require('passport-google-plus');
+var GoogleStrategy = require('passport-google').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
 
 // load the auth variables
@@ -12,13 +11,13 @@ var configAuth = require('./auth');
 module.exports = function (passport) {
 
     passport.serializeUser(function (user, done) {
-        done(null, user.id);
+        done(null, user);
     });
 
-    passport.deserializeUser(function (req, id, done) {
+    passport.deserializeUser(function (req, user, done) {
 
-        req.models.user.get(id, function (err, user) {
-            done(err, user.id);
+        req.models.user.get(user.id, function (err, user) {
+            done(err, user);
         });
 
     });
@@ -93,42 +92,48 @@ module.exports = function (passport) {
             // asynchronous
             process.nextTick(function () {
 
-                req.models.user.find({ idProvider: profile.id }, function (err, users) {
+                req.models.user.create({
+                        id: req.body.id,
+                        email: req.body.email
+                    },
+                    function (err, newLocalUser) {
 
-                    if (err) {
-                        return done(err);
-                    }
+                        if (err)
+                            return done(err);
 
-                    // if a user is found
-                    if (users.length > 0) {
-                        return done(null, users[0]);
-                    }
+                        req.models.twitter.create({
+                                id: profile.id,
+                                token: token,
+                                displayName: profile.username,
+                                localAccount_id: newLocalUser.id
+                            },
+                            function (err, newTwitterUser) {
 
-                    req.models.user.create({
-                            provider: "twitter",
-                            idProvider: profile.id,
-                            token: token,
-                            id: profile.username,
-                            email: "test-email@something.com"
-                        },
-                        function (err, newUser) {
+                                if (err)
+                                    return done(err);
 
-                            if (err) {
-                                console.log(err);
-                                return done(err);
-                            }
+                                newLocalUser.setTwitterAccount(newTwitterUser, function (err) {
 
-                            return done(null, newUser);
-                        });
-                });
+                                    if (err)
+                                        return done(err);
+
+                                    return done(null, newLocalUser);
+                                });
+
+                            });
+                    });
             });
 
-}));
+        }));
 
-    passport.use(new FacebookStrategy({
+
+    // Facebook strategies =============================================================================================
+
+    // signup with facebook account
+    passport.use("facebook-signup", new FacebookStrategy({
             clientID: configAuth.facebookAuth.clientID,
             clientSecret: configAuth.facebookAuth.clientSecret,
-            callbackURL: configAuth.facebookAuth.callbackURL,
+            callbackURL: configAuth.facebookAuth.signupCallbackURL,
             passReqToCallback: true
         },
         function (req, token, refreshToken, profile, done) {
@@ -136,78 +141,224 @@ module.exports = function (passport) {
             // asynchronous
             process.nextTick(function () {
 
-                req.models.user.find({ idProvider: profile.id }, function (err, users) {
+                if (req.query.state) { // if set, it's a signup request
+
+                    req.models.user.create({
+                            id: req.query.state
+                        },
+                        function (err, newLocalUser) {
+
+                            if (err) {
+                                return done(err);
+                            }
+
+                            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                                if (err)
+                                    return done(err);
+
+                                if (exists)
+                                    return done(null, false);
+
+                                req.models.facebook.create({
+                                        id: profile.id,
+                                        token: token,
+                                        displayName: profile.displayName,
+                                        email: profile.emails[0].value,
+                                        localaccount_id: newLocalUser.id
+                                    },
+                                    function (err, newFacebookUser) {
+
+                                        if (err) {
+                                            return done(err);
+                                        }
+
+                                        newLocalUser.setFacebookAccount(newFacebookUser, function (err) {
+                                            if (err) {
+                                                return done(err);
+                                            }
+
+                                            return done(null, newLocalUser);
+                                        });
+
+                                    });
+                            });
+                        });
+                }});
+    }));
+
+    // login with facebook account
+    passport.use("facebook-login", new FacebookStrategy({
+            clientID: configAuth.facebookAuth.clientID,
+            clientSecret: configAuth.facebookAuth.clientSecret,
+            callbackURL: configAuth.facebookAuth.loginCallbackURL,
+            passReqToCallback: true
+        },
+        function (req, token, refreshToken, profile, done) {
+
+            req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
+
+                if (err)
+                    return done(err);
+
+                if (!facebookUser)
+                    return done(null, false);
+
+                facebookUser.getLocalAccount(function (err, localUser) {
+
+                    if (err)
+                        return done(err);
+
+                    return done(null, localUser);
+                });
+            });
+
+    }));
+
+    // connect with facebook account
+    passport.use("facebook-connect", new FacebookStrategy({
+                clientID: configAuth.facebookAuth.clientID,
+                clientSecret: configAuth.facebookAuth.clientSecret,
+                callbackURL: configAuth.facebookAuth.connectCallbackURL,
+                passReqToCallback: true
+            },
+            function (req, token, refreshToken, profile, done) {
+
+                if (!req.user)
+                    return done(null, false);
+
+                var user = req.user;
+
+                req.models.facebook.create({
+                    id: profile.id,
+                    token: token,
+                    displayName: profile.displayName,
+                    email: profile.emails[0].value,
+                    localaccount_id: user.id
+
+                }, function (err, newFacebookUser) {
 
                     if (err) {
                         return done(err);
                     }
 
-                    // if a user is found
-                    if (users.length > 0) {
-                        return done(null, users[0]);
-                    }
+                    user.setFacebookAccount(newFacebookUser, function (err) {
+                        if (err) {
+                            return done(err);
+                        }
 
-                    req.models.user.create({
-                            provider: "facebook",
-                            idProvider: profile.id,
-                            token: token,
-                            id: profile.displayName,
-                            email: profile.emails[0].value
-                        },
-                        function (err, newUser) {
+                        return done(null, user);
+                    });
 
-                            if (err) {
-                                console.log(err);
-                                return done(err);
-                            }
-
-                            return done(null, newUser);
-                        });
                 });
-            });
+            })
+    );
 
-        }));
+    // Google strategies ===============================================================================================
 
-    passport.use(new GoogleStrategy({
-            clientID: configAuth.googleAuth.clientID,
-            clientSecret: configAuth.googleAuth.clientSecret,
-            callbackURL: configAuth.googleAuth.callbackURL,
-            passReqToCallback: true,
-            realm: configAuth.googleAuth.realm // set to: http://localhost:8080
-        }),
-        function (req, token, refreshToken, profile, done) {
+    // signup with google account
+    passport.use("google-signup", new GoogleStrategy({
+            returnURL: configAuth.googleAuth.signupCallbackURL,
+            realm: configAuth.googleAuth.realm,
+            passReqToCallback: true
+        },
+        function (req, identifier, profile, done) {
 
-            console.log("here1");
             // asynchronous
             process.nextTick(function () {
 
-                req.models.user.find({ idProvider: profile.id }, function (err, users) {
-                    console.log("here2");
+                req.models.user.create({
+                        id: req.query.state
+                    },
+                    function (err, newLocalUser) {
+
+                        if (err) {
+                            return done(err);
+                        }
+
+                        req.models.google.create({
+                                id: identifier,
+                                displayName: profile.displayName,
+                                email: profile.emails[0].value,
+                                localaccount_id: newLocalUser.id
+                            },
+                            function (err, newGoogleUser) {
+
+                                if (err) {
+                                    return done(err);
+                                }
+
+                                newLocalUser.setGoogleAccount(newGoogleUser, function (err) {
+                                    if (err) {
+                                        return done(err);
+                                    }
+
+                                    return done(null, newLocalUser);
+                                });
+
+                            });
+                    });
+            });
+    }));
+
+    // login with google account
+    passport.use("google-login", new GoogleStrategy({
+            returnURL: configAuth.googleAuth.loginCallbackURL,
+            realm: configAuth.googleAuth.realm,
+            passReqToCallback: true
+        },
+        function (req, identifier, profile, done) {
+
+            req.models.google.get(identifier, function (err, googleUser) {
+
+                if (err)
+                    return done(err);
+
+                if (!googleUser)
+                    return done(null, false);
+
+                googleUser.getLocalAccount(function (err, localUser) {
 
                     if (err)
                         return done(err);
 
-                    if (users.length > 0)
-                        return done(null, users[0]);
-
-                    req.models.user.create({
-                            provider: "google",
-                            idProvider: profile.id,
-                            token: token,
-                            id: profile.displayName,
-                            email: profile.emails[0].value
-                        },
-                        function (err, newUser) {
-
-                            if (err) {
-                                console.log(err);
-                                return done(err);
-                            }
-
-                            return done(null, newUser);
-                        });
+                    return done(null, localUser);
                 });
-
             });
-        });
+    }));
+
+    // connect google account
+    passport.use("google-connect", new GoogleStrategy({
+            returnURL: configAuth.googleAuth.connectCallbackURL,
+            realm: configAuth.googleAuth.realm,
+            passReqToCallback: true
+        },
+        function (req, identifier, profile, done) {
+
+            if (!req.user)
+                return done(null, false);
+
+            var user = req.user;
+            console.log(user.id);
+
+            req.models.google.create({
+                id: identifier,
+                displayName: profile.displayName,
+                email: profile.emails[0].value,
+                localaccount_id: user.id
+            },
+            function (err, newGoogleUser) {
+
+                if (err)
+                    return done(err);
+
+                user.setGoogleAccount(newGoogleUser, function (err) {
+
+                    if (err)
+                        return done(err);
+
+                    return done(null, user);
+                });
+            });
+    }));
 };

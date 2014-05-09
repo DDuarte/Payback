@@ -5,27 +5,13 @@ module.exports = function (server, passport) {
     server.all("/users", isLoggedIn);
     server.all("/users/*", isLoggedIn);
 
-    // POST /signup
-    server.post('/signup', function (req, res) {
-
-        passport.authenticate('local-signup', function (err, user, info) {
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
+    // GET /
+    server.get("/", function (req, res) {
+        res.send(204);
     });
 
     // POST /login
-    server.post('/login', function (req, res) {
+    server.post('/login/local', function (req, res) {
 
         passport.authenticate('local-login', function (err, user, info) {
 
@@ -43,95 +29,206 @@ module.exports = function (server, passport) {
 
     });
 
+    // POST /signup/local
+    server.post("/signup/local", function (req, res) {
+
+        passport.authenticate('local-signup', function (err, user, info) {
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+
+    // GET /login/facebook
+    server.get("/login/facebook", function (req, res, next) {
+        passport.authenticate('facebook-login', { scope: 'email' })(req, res, next);
+    });
+
+    // GET /login/facebook/callback
+    server.get("/login/facebook/callback", function (req, res) {
+
+        passport.authenticate('facebook-login', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+
+    // GET /signup/facebook/{id}
+    server.get("/signup/facebook/:id", function (req, res, next) {
+
+        if (!req.params.id)
+            return next("Attribute 'id' is missing.");
+
+        req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
+
+            if (err || exists)
+                return res.json(403, "User '" + req.params.id + "' already exists.");
+
+            passport.authenticate('facebook-signup', { scope: 'email', state: req.params.id })(req, res, next);
+        });
+
+    });
+
+    // GET /signup/facebook/callback
+    server.get('/signup/facebook/callback', function (req, res) {
+
+        passport.authenticate('facebook-signup', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+
+    // GET /connect/facebook
+    server.get('/connect/facebook', passport.authorize('facebook-connect', { scope : 'email' }));
+
+    // GET /connect/facebook/callback
+    server.get('/connect/facebook/callback', function (req, res) {
+
+        passport.authorize('facebook-connect', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+    });
+
+    // GET /login/google
+    server.get("/login/google", function (req, res, next) {
+        passport.authenticate('google-login')(req, res, next);
+    });
+
+    // GET /login/google/callback
+    server.get("/login/google/callback", function (req, res, next) {
+
+        passport.authenticate('google-login', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res, next);
+
+    });
+
+    // GET /signup/google/{id}
+    server.get('/signup/google/:id', function (req, res, next) {
+
+        if (!req.params.id)
+            return next("Attribute 'id' is missing.");
+
+        req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
+
+            if (err || exists)
+                return res.json(403, "User '" + req.params.id + "' already exists.");
+
+            passport.authenticate('google-signup', {state: req.params.id })(req, res, next);
+        });
+    });
+
+    // GET /signup/google/callback
+    server.get('/signup/google/callback', function (req, res) {
+
+        passport.authenticate('google-signup', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+
+    });
+
+    // GET /connect/google
+    server.get('/connect/google', passport.authorize('google-connect'));
+
+    // GET /connect/google/callback
+    server.get('/connect/google/callback', function (req, res) {
+
+        passport.authorize('google-connect', function (err, user, info) {
+
+            if (err)
+                return res.json(500, err);
+
+            if (!user)
+                return res.json(401, info);
+
+            req.logIn(user, function (err) {
+
+                if (err)
+                    return res.send(401);
+
+                res.send(200);
+            });
+        })(req, res);
+    });
+
     // GET /logout
     server.get('/logout', function (req, res) {
         req.logout();
         res.send(200);
-    });
-
-    // GET /auth/facebook
-    server.get('/auth/facebook', passport.authenticate('facebook', { scope: 'email' }));
-
-    // handle the callback after facebook has authenticated the user
-    /*server.get('/auth/facebook/callback',
-        passport.authenticate('facebook', {
-            successRedirect : '/users',
-            failureRedirect : '/login'
-        }));
-*/
-    // handle the callback after facebook has authenticated the user
-    server.get('/auth/facebook/callback', function (req, res) {
-
-        passport.authenticate('facebook', function (err, user, info) {
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
-    });
-
-    server.get('/auth/twitter', passport.authenticate('twitter'));
-
-    // handle the callback after twitter has authenticated the user
-    server.get('/auth/twitter/callback', function (req, res) {
-
-        passport.authenticate('twitter', function (err, user, info) {
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
-    });
-
-    //server.get('/auth/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
-
-    // the callback after google has authenticated the user
-    /*server.get('/auth/google/callback',
-        passport.authenticate('google', {
-            successRedirect : '/profile',
-            failureRedirect : '/'
-        }));
-
-    */
-
-    // handle the callback after google has authenticated the user
-    /*server.get('/auth/google/callback', function (req, res) {
-
-        passport.authenticate('google', function (err, user, info) {
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
-    });*/
-
-    // GET /
-    server.get("/", function (req, res) {
-        res.send(204);
     });
 
     // GET /users/{id}
@@ -431,7 +528,6 @@ module.exports = function (server, passport) {
                         resolved: debtItem.resolved
                     });
 
-                    return;
                 });
             });
         });
@@ -616,9 +712,9 @@ module.exports = function (server, passport) {
                     res.json(500, err);
                     return;
                 }
-            });
 
-            res.send(204);
+                res.send(204);
+            });
         });
 
     });
