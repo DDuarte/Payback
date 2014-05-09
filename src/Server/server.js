@@ -5,6 +5,7 @@
 //var crypto = require('crypto-js');
 
 var express = require('express'),
+    morgan  = require('morgan'),
     compress = require('compression'),
     bodyParser = require('body-parser'),
     cookieParser = require('cookie-parser'),
@@ -18,6 +19,8 @@ var database = require("./app/database");
 
 // create and configure server =================================================
 var server = express();
+
+server.use(morgan({ format: 'dev', immediate: true }));
 
 // database connection
 server.use(orm.express("pg://abhihnahgxvxim:WTaDQYg7roQaOx0ieKNDoKZ-V-@ec2-54-197-238-242.compute-1.amazonaws.com:5432/d4ielacnr2v55l?ssl=true&pool=true", {

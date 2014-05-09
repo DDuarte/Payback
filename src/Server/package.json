@@ -28,6 +28,7 @@
     ],
     "dependencies": {
         "express": "~4.1.1",
+        "morgan": "~1.0.1",
         "body-parser": "~1.0.2",
         "compression": "~1.0.2",
         "cookie-parser": "~1.0.1",
@@ -35,7 +36,7 @@
         "passport": "~0.2.0",
         "passport-local": "~1.0.0",
         "passport-facebook": "~1.0.0",
-        "passport-google-oauth": "~0.1.5",
+        "passport-google": "~0.3.0",
         "passport-twitter": "~1.0.2",
         "orm": "2.1.8",
         "pg": "2.5.0",
