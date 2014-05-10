@@ -304,6 +304,58 @@ module.exports = function (server, passport) {
 
     });
 
+    // GET /users/{id}/facebook
+    server.get("/users/:id/facebook", function (req, res) {
+
+        req.models.user.get(req.params.id, function (err, user) {
+
+            if (err || !user)
+                return res.json(404, { error: "User '" + req.params.id + "' does not exist" });
+
+            user.getFacebookAccount(function (err, facebookAccount) {
+
+                if (err)
+                    return res.json(500, err);
+
+                if (!facebookAccount)
+                    return res.json(404, { error: "User '" + req.params.id + "' does not have a linked facebook account" });
+
+                console.log(facebookAccount);
+
+                return res.json(200, {
+                    provider: "facebook",
+                    email: facebookAccount.email,
+                    displayName: facebookAccount.displayName
+                });
+            })
+        })
+    });
+
+    // GET /users/{id}/google
+    server.get("/users/:id/google", function (req, res) {
+
+        req.models.user.get(req.params.id, function (err, user) {
+
+            if (err || !user)
+                return res.json(404, { error: "User '" + req.params.id + "' does not exist" });
+
+            user.getGoogleAccount(function (err, googleAccount) {
+
+                if (err)
+                    return res.json(500, err);
+
+                if (!googleAccount)
+                    return res.json(404, { error: "User '" + req.params.id + "' does not have a linked google account" });
+
+                return res.json(200, {
+                    provider: "google",
+                    email: googleAccount.email,
+                    displayName: googleAccount.displayName
+                });
+            })
+        })
+    });
+
     // GET /users/{id}/debts/{debtId}
     server.get("/users/:id/debts/:debtId", function (req, res) {
 
