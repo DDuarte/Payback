@@ -1,6 +1,7 @@
 // app/routes.js
+var async = require("async");
 
-module.exports = function (server, passport) {
+module.exports = function (server, passport, fx) {
 
     server.all("/users", isLoggedIn);
     server.all("/users/*", isLoggedIn);
@@ -231,6 +232,16 @@ module.exports = function (server, passport) {
         res.send(200);
     });
 
+    // GET /exchangeRates
+    server.get("/exchangeRates", function(req, res) {
+
+        return res.json(200, {
+            rates: fx.rates,
+            base: fx.base
+        });
+
+    });
+
     // GET /users/{id}
     server.get("/users/:id", function (req, res) {
 
@@ -320,8 +331,6 @@ module.exports = function (server, passport) {
                 if (!facebookAccount)
                     return res.json(404, { error: "User '" + req.params.id + "' does not have a linked facebook account" });
 
-                console.log(facebookAccount);
-
                 return res.json(200, {
                     provider: "facebook",
                     email: facebookAccount.email,
@@ -374,13 +383,22 @@ module.exports = function (server, passport) {
                 }
 
                 var debt = debts[0];
-                res.json(200, {
+                var ret = {
                     debtId: debt.id,
                     user: debt.creditor_id,
-                    value: debt.value,
                     date: debt.date,
                     resolved: debt.resolved
-                });
+                };
+
+                if (req.query.currency) {
+                    ret.value = fx(debt.value).from(debt.currency).to(req.query.currency);
+                    ret.currency = req.query.currency;
+                } else {
+                    ret.value = debt.value;
+                    ret.currency = debt.currency;
+                }
+
+                res.json(200, ret);
             });
         });
 
@@ -417,9 +435,8 @@ module.exports = function (server, passport) {
 
             req.models.debt.get(req.params.debtId, function (err, Debt) { // get the debt instance
 
-                if (err) {
-                    res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
-                    return;
+                if (err || !Debt) {
+                    return res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
                 }
 
                 if (req.body.value)
@@ -430,15 +447,16 @@ module.exports = function (server, passport) {
 
                 Debt.save(function (err) { // update the debt instance
 
-                    if (err) {
-                        res.json(500, err);
-                    }
+                    if (err)
+                        return res.json(500, err);
+
                     res.json(200, {
                         debtId: Debt.id,
                         user: Debt.creditor_id,
                         value: Debt.value,
                         date: Debt.date,
-                        resolved: Debt.resolved
+                        resolved: Debt.resolved,
+                        currency: Debt.currency
                     });
                 });
             });
@@ -458,10 +476,8 @@ module.exports = function (server, passport) {
 
             req.models.debt.remove({ id: req.params.debtId }, function (err) {
 
-                if (err) {
-                    res.json(404, { error: "Debt '" + req.params.debtId + "' does not exist" });
-                    return;
-                }
+                if (err)
+                    return res.json(404, { error: "Debt '" + req.params.debtId + "' does not exist" });
 
                 res.send(204);
             });
@@ -474,36 +490,26 @@ module.exports = function (server, passport) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
-            if (err || !user) {
-                res.json(404, { error: "User '" + req.params.id + "' does not exist" });
-                return;
-            }
+            if (err || !user)
+                return res.json(404, { error: "User '" + req.params.id + "' does not exist" });
 
             user.getDebts(function (err, debts) {
 
-                if (err || !debts) {
-                    res.json(500, err);
-                    return;
-                }
+                if (err || !debts)
+                    return res.json(500, err);
 
-                var debts = debts.map(function (debt) {
+                async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function(err, result) {
 
-                    return {
-                        debtId: debt.id,
-                        user: debt.creditor_id,
-                        value: debt.value,
-                        date: debt.date,
-                        resolved: debt.resolved
-                    };
+                    if (err)
+                        return res.json(500, err);
+
+                    res.json(200, {
+                        total: result.length,
+                        debts: result
+                    });
 
                 });
 
-                var ret = {
-                    total: debts.length,
-                    debts: debts
-                };
-
-                res.json(200, ret);
             });
         });
 
@@ -523,6 +529,9 @@ module.exports = function (server, passport) {
         if (req.body.value === undefined) {
             return next("Attribute 'value' is missing.");
         }
+
+        if (!req.body.currency)
+            return next("Attribute 'currency' is missing");
 
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
@@ -549,35 +558,31 @@ module.exports = function (server, passport) {
 
             req.models.user.exists({ id: req.body.user }, function (err, exists) {
 
-                if (err) {
-                    res.json(500, err);
-                    return;
-                }
+                if (err)
+                    return res.json(500, err);
 
-                if (!exists) {
-                    res.json(404, {error: "User '" + req.body.user + "' does not exist" });
-                    return;
-                }
+                if (!exists)
+                    return res.json(404, {error: "User '" + req.body.user + "' does not exist" });
 
                 req.models.debt.create({
 
                     creditor_id: req.body.user,
                     debtor_id: req.params.id,
-                    value: req.body.value
+                    value: req.body.value,
+                    currency: req.body.currency
 
                 }, function (err, debtItem) {
 
-                    if (err || !debtItem) {
-                        res.json(500, err);
-                        return;
-                    }
+                    if (err || !debtItem)
+                        return res.json(500, err);
 
                     res.json(201, {
                         debtId: debtItem.id,
                         user: debtItem.creditor_id,
                         value: debtItem.value,
                         date: debtItem.date,
-                        resolved: debtItem.resolved
+                        resolved: debtItem.resolved,
+                        currency: debtItem.currency
                     });
 
                 });
@@ -789,11 +794,10 @@ module.exports = function (server, passport) {
                 res.json(200, users);
             else {
 
-                var filteredUsers = users.filter(function (user) {
-                    return fuzzy(user.id, req.query.search);
+                var fuzzyTest = asyncFuzzyTest.bind(undefined, req.query.search);
+                async.filter(users, fuzzyTest, function(results) { // asynchronous search
+                    res.json(200, results);
                 });
-
-                res.json(200, filteredUsers);
             }
         });
 
@@ -859,13 +863,47 @@ function isLoggedIn(req, res, next) {
 
 // from StackOverflow, example fuzzy test
 // "loop through needle letters and check if they occur in the same order in the haystack"
-function fuzzy(what, s) {
+function fuzzy(what, s, callback) {
     var hay = what.toLowerCase(), i = 0, n = -1, l;
     s = s.toLowerCase();
     for (; l = s[i++];) {
         if (!~(n = hay.indexOf(l, n + 1))) {
-            return false;
+            return callback(false);
         }
     }
-    return true;
+    return callback(true);
+}
+
+// asynchronous version of the fuzzy evaluation function defined above
+function asyncFuzzyTest(searchTerm, user, callback) {
+    var hay = user.id.toLowerCase(), i = 0, n = -1, l;
+    searchTerm = searchTerm.toLowerCase();
+    for (; l = searchTerm[i++];) {
+        if (!~(n = hay.indexOf(l, n + 1))) {
+            return callback(false);
+        }
+    }
+    return callback(true);
+}
+
+function asyncDebtConversion(currency, debt, callback) {
+
+    if (currency)
+        return callback(null, {
+            debtId: debt.id,
+            user: debt.creditor_id,
+            value: fx(debt.value).from(debt.currency).to(currency),
+            date: debt.date,
+            resolved: debt.resolved,
+            currency: currency
+        });
+    else
+        return callback(null, {
+            debtId: debt.id,
+            user: debt.creditor_id,
+            value: debt.value,
+            date: debt.date,
+            resolved: debt.resolved,
+            currency: debt.currency
+        });
 }

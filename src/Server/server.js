@@ -65,7 +65,7 @@ server.use(passport.session());
 require("./config/scheduler")(schedule, fx);
 
 // load our routes and pass in our server and fully configured passport
-require('./app/routes.js')(server, passport);
+require('./app/routes.js')(server, passport, fx);
 
 // launch ==========================================
 var port = process.env.PORT || 1337;
