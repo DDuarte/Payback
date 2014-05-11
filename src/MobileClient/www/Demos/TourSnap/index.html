@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8" />
+    <title>Tour Snap</title>
+    <link rel="stylesheet" type="text/css" href="./css/dx.common.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dx.ios.default.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dx.android.holo-dark.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dx.tizen.black.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dx.generic.light.css" />
+    <link rel="stylesheet" type="text/css" href="./css/dx.win8.black.css" />
+    <script type="text/javascript" src="gwt-oauth2.js"></script>
+    <script type="text/javascript" src="./js/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript" src="./js/knockout-3.0.0.js"></script>
+    <script type="text/javascript" src="./js/globalize.min.js"></script>
+    <script type="text/javascript" src="./js/dx.phonejs.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+</head>
+<body>
+    <div data-options="dxLayout : { name: 'default' } " >
+        <div data-bind="dxToolbar: { items: [ { text: 'TourSnap', align: 'center' } ]} " ></div>
+        <div data-options="dxContentPlaceholder  : { name: 'content', transition: 'slide' } "></div>
+    </div>
+    <div data-options="dxView : { name: 'home' } " >
+        <div data-options="dxContent : { targetPlaceholder: 'content' } " >
+            <h1 data-bind="text: message"></h1>
+            Caption: <div data-bind="dxTextBox: { value: name }" style="width: 200px"></div>
+            <div data-bind="dxButton: { text: 'Post Photo', clickAction: postPhoto }"></div>
+            <div><img src="" id="myPic" width="320" ></div>
+            <input type="file" capture="camera" accept="image/*" id="snap">
+        </div>
+    </div>    
+</body>
+</html>
