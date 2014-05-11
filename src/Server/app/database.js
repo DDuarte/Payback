@@ -1,4 +1,3 @@
-
 var orm = require('orm');
 
 function init(db, models) {
@@ -56,7 +55,8 @@ function init(db, models) {
     var debt = db.define("debt", {
         date: { type: "date", time: false },
         value: Number,
-        resolved: { type: "boolean", defaultValue: false }
+        resolved: { type: "boolean", defaultValue: false },
+        currency: { type: "text", required: true}
     }, {
         hooks: {
             beforeCreate: function (next) {
@@ -65,7 +65,43 @@ function init(db, models) {
             }
         },
         validations: {
-            value: orm.enforce.ranges.number(0, undefined, "negative-value")
+            value: orm.enforce.ranges.number(0, undefined, "negative-value"),
+            currency: orm.enforce.lists.inside([
+
+                "AUD",
+                "BGN",
+                "BRL",
+                "CAD",
+                "CHF",
+                "CNY",
+                "CZK",
+                "DKK",
+                "GBP",
+                "HKD",
+                "HRK",
+                "HUF",
+                "IDR",
+                "ILS",
+                "INR",
+                "JPY",
+                "KRW",
+                "LTL",
+                "MXN",
+                "MYR",
+                "NOK",
+                "NZD",
+                "PHP",
+                "PLN",
+                "RON",
+                "RUB",
+                "SEK",
+                "SGD",
+                "THB",
+                "TRY",
+                "USD",
+                "ZAR"
+
+            ], "invalid-currency")
         }
     });
 

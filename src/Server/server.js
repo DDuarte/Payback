@@ -16,10 +16,14 @@ var passport = require('passport');
 var orm = require("orm");
 var database = require("./app/database");
 
+var schedule = require('node-schedule');
+
+var fx = require("money");
 
 // create and configure server =================================================
 var server = express();
 
+// morgan logger in dev format
 server.use(morgan({ format: 'dev', immediate: true }));
 
 // database connection
@@ -57,6 +61,8 @@ server.use(passport.session());
 // routes ==========================================
 // TODO: send 403 when not logged in or not current user
 // TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
+
+require("./config/scheduler")(schedule, fx);
 
 // load our routes and pass in our server and fully configured passport
 require('./app/routes.js')(server, passport);
