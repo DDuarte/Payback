@@ -34,7 +34,6 @@
     <Compile Include="app\routes.js" />
     <Compile Include="config\auth.js" />
     <Compile Include="config\passport.js" />
-    <Compile Include="database.js" />
     <Compile Include="server.js" />
     <Content Include="package.json" />
   </ItemGroup>
