@@ -465,7 +465,7 @@ This method is only available for the authenticated user.
 ## Users Collection [/users{?search,checksum}]
 Collection of all Users.
 
-The User Collection resource has the following attribute:
+The User Collection resource has the following attributes:
 
 - total -- Total number of Users
 - Users -- Array of Users (not detailed)
@@ -515,3 +515,31 @@ The User Collection resource has the following attribute:
         { "error": "Email 'john@example.com' already exists." }
         or
         { "error": "Invalid checksum" }
+
+## Exchange Rates Collection [/exchangeRates]
+Collection of all exchange rates.
+
+The Exchange Rates resource has the following attributes:
+
+- base -- Currency used as base for the rates
+- rates -- Exchange rates
+
++ Model (application/json)
+
+    ```js
+    {
+        "base": "EUR",
+        "rates": {
+            "AUD": 1.4684,
+            "BGN": 1.9558,
+            "BRL": 3.0485,
+            "CAD": 1.4976,
+            "CHF": 1.2211
+        }
+    }
+
+### List all Exchange Rates [GET]
+
++ Response 200 (application/json)
+
+    [Exchange Rates Collection][]
