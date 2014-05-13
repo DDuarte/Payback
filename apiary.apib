@@ -115,7 +115,7 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist." }
 
-## Debt [/users/{id}/debts/{debtId}{?checksum}]
+## Debt [/users/{id}/debts/{debtId}{?checksum,currency}]
 A single Debt object. The Debt resource represents a debt that a User has on another User.
 
 A positive *value* means that this User owes something to another User, a negative *value* means that this User is owed by another User.
@@ -154,6 +154,9 @@ The Debt resource has the following attributes:
 ### Retrieve a single Debt [GET]
 This method is only available for the authenticated user.
 
++ Parameters
+    + currency (string, optional, `EUR`) ... Currency
+
 + Response 200 (application/json)
 
     [Debt][]
@@ -180,7 +183,6 @@ The only modifiable field is *value*.
 
         {
             "value": 0,
-            "currency": "EUR"
         }
 
 + Response 200 (application/json)
@@ -192,7 +194,7 @@ The only modifiable field is *value*.
         { "error": "No permission" }
         or
         { "error": "Cannot update field 'whatever'" }
-        or
+        orcurrency
         { "error": "Invalid checksum" }
 
 + Response 404 (application/json)
@@ -214,7 +216,7 @@ This method is only available for the authenticated user.
 
         { "error": "Debt '2' for user 'johndoe' does not exist." }
 
-## Debts Collection [/users/{id}/debts{?checksum}]
+## Debts Collection [/users/{id}/debts{?checksum,currency}]
 Collection of all Debts that another User owes this User.
 
 The Debts Collection resource has the following attribute:
@@ -268,6 +270,9 @@ The Debts Collection resource has the following attribute:
 
 ### List all Debts of a User [GET]
 This method is only available for the authenticated user.
+
++ Parameters
+    + currency (string, optional, `EUR`) ... Currency
 
 + Response 200 (application/json)
 
