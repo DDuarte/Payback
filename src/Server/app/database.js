@@ -53,14 +53,19 @@ function init(db, models) {
     google.hasOne("localAccount", user, { required: true }); // every google account has to be linked to a local account
 
     var debt = db.define("debt", {
-        date: { type: "date", time: false },
-        value: Number,
-        resolved: { type: "boolean", defaultValue: false },
+        created: { type: "date"  },
+        modified: { type: "date"  },
+        originalValue: { type: "number", rational: true, required: true  },
+        value: { type: "number", rational: true, required: true  },
         currency: { type: "text", required: true}
     }, {
         hooks: {
             beforeCreate: function (next) {
-                this.date = new Date();
+                this.created = new Date();
+                next();
+            },
+            beforeSave: function (next) {
+                this.modified = new Date();
                 next();
             }
         },

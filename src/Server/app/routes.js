@@ -236,8 +236,8 @@ module.exports = function (server, passport, fx) {
     server.get("/exchangeRates", function(req, res) {
 
         return res.json(200, {
-            rates: fx.rates,
-            base: fx.base
+            base: fx.base,
+            rates: fx.rates
         });
 
     });
@@ -385,15 +385,18 @@ module.exports = function (server, passport, fx) {
                 var debt = debts[0];
                 var ret = {
                     debtId: debt.id,
-                    user: debt.creditor_id,
-                    date: debt.date,
-                    resolved: debt.resolved
+                    creditor: debt.creditor_id,
+                    debtor: debt.debtor_id,
+                    created: debt.created,
+                    modified: debt.modified
                 };
 
                 if (req.query.currency) {
+                    ret.originalValue = fx(debt.originalValue).from(debt.currency).to(req.query.currency);
                     ret.value = fx(debt.value).from(debt.currency).to(req.query.currency);
                     ret.currency = req.query.currency;
                 } else {
+                    ret.originalValue = debt.originalValue;
                     ret.value = debt.value;
                     ret.currency = debt.currency;
                 }
@@ -411,20 +414,20 @@ module.exports = function (server, passport, fx) {
             return next("No body defined.");
         }
 
-        if (req.body.value === undefined && req.body.resolved === undefined) {
-            return next("Can only change 'value' or 'resolved' attributes of debts.");
+        if (req.body.value === undefined) {
+            return next("Can only change 'value' attribute of debts.");
         }
 
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
         }
 
-        var valueStr = req.body.value.toString();
-        var splitValueStr = valueStr.split(".");
+        //var valueStr = req.body.value.toString();
+        //var splitValueStr = valueStr.split(".");
 
-        if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-            return next("Attribute 'value' can't exceed 2 decimal digits.");
-        }
+        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
+        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
+        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -433,30 +436,29 @@ module.exports = function (server, passport, fx) {
                 return;
             }
 
-            req.models.debt.get(req.params.debtId, function (err, Debt) { // get the debt instance
+            req.models.debt.get(req.params.debtId, function (err, debt) { // get the debt instance
 
-                if (err || !Debt) {
+                if (err || !debt) {
                     return res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
                 }
 
                 if (req.body.value)
-                    Debt.value = req.body.value;
+                    debt.value = req.body.value;
 
-                if (req.body.resolved)
-                    Debt.resolved = req.body.resolved;
-
-                Debt.save(function (err) { // update the debt instance
+                debt.save(function (err) { // update the debt instance
 
                     if (err)
                         return res.json(500, err);
 
                     res.json(200, {
-                        debtId: Debt.id,
-                        user: Debt.creditor_id,
-                        value: Debt.value,
-                        date: Debt.date,
-                        resolved: Debt.resolved,
-                        currency: Debt.currency
+                        debtId: debt.id,
+                        creditor: debt.creditor_id,
+                        debtor: debt.debtor_id,
+                        originalValue: debt.originalValue,
+                        value: debt.value,
+                        currency: debt.currency,
+                        created: debt.created,
+                        modified: debt.modified
                     });
                 });
             });
@@ -498,6 +500,17 @@ module.exports = function (server, passport, fx) {
                 if (err || !debts)
                     return res.json(500, err);
 
+                var values = { credit: 0, debit: 0};
+                async.reduce(debts, values, function (memo, debt, cb) {
+                    if (user.id === debt.creditor_id) {
+                        memo.credit += debt.value;
+                    } else {
+                        memo.debit += debt.value;
+                    }
+
+                    cb(null, memo);
+                });
+
                 async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function(err, result) {
 
                     if (err)
@@ -505,6 +518,9 @@ module.exports = function (server, passport, fx) {
 
                     res.json(200, {
                         total: result.length,
+                        balance: values.credit - values.debit,
+                        credit: values.credit,
+                        debit: values.debit,
                         debts: result
                     });
 
@@ -537,12 +553,12 @@ module.exports = function (server, passport, fx) {
             return next("Attribute 'value' needs to be a number.");
         }
 
-        var valueStr = req.body.value.toString();
-        var splitValueStr = valueStr.split(".");
+        //var valueStr = req.body.value.toString();
+        //var splitValueStr = valueStr.split(".");
 
-        if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-            return next("Attribute 'value' can't exceed 2 decimal digits.");
-        }
+        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
+        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
+        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -568,48 +584,30 @@ module.exports = function (server, passport, fx) {
 
                     creditor_id: req.body.user,
                     debtor_id: req.params.id,
+                    originalValue: req.body.value,
                     value: req.body.value,
                     currency: req.body.currency
 
-                }, function (err, debtItem) {
+                }, function (err, debt) {
 
-                    if (err || !debtItem)
+                    if (err || !debt)
                         return res.json(500, err);
 
                     res.json(201, {
-                        debtId: debtItem.id,
-                        user: debtItem.creditor_id,
-                        value: debtItem.value,
-                        date: debtItem.date,
-                        resolved: debtItem.resolved,
-                        currency: debtItem.currency
+                        debtId: debt.id,
+                        creditor: debt.creditor_id,
+                        debtor: debt.debtor_id,
+                        originalValue: debt.originalValue,
+                        value: debt.value,
+                        currency: debt.currency,
+                        created: debt.created,
+                        modified: debt.modified
                     });
 
                 });
             });
         });
 
-    });
-
-    // GET /users/{id}/balances
-    server.get("/users/:id/balances", function (req, res, next) {
-        // TODO
-        var obj = {
-            "total": 1,
-            "balances": [
-                {
-                    "balanceId": 1,
-                    "user": "janeroe",
-                    "value": 100,
-                    "history": [
-                        { "debtId": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
-                        { "debtId": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
-                    ]
-                }
-            ]
-        };
-
-        res.json(200, obj);
     });
 
     // GET /users/{id}/friends/{friendId}
@@ -888,22 +886,17 @@ function asyncFuzzyTest(searchTerm, user, callback) {
 
 function asyncDebtConversion(currency, debt, callback) {
 
-    if (currency)
-        return callback(null, {
-            debtId: debt.id,
-            user: debt.creditor_id,
-            value: fx(debt.value).from(debt.currency).to(currency),
-            date: debt.date,
-            resolved: debt.resolved,
-            currency: currency
-        });
-    else
-        return callback(null, {
-            debtId: debt.id,
-            user: debt.creditor_id,
-            value: debt.value,
-            date: debt.date,
-            resolved: debt.resolved,
-            currency: debt.currency
-        });
+    if (!currency)
+        currency = debt.currency;
+
+    return callback(null, {
+        debtId: debt.id,
+        creditor: debt.creditor_id,
+        debtor: debt.debtor_id,
+        originalValue: fx(debt.originalValue).from(debt.currency).to(currency),
+        value: fx(debt.value).from(debt.currency).to(currency),
+        currency: currency,
+        created: debt.created,
+        modified: debt.modified
+    });
 }
