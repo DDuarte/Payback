@@ -123,25 +123,31 @@ A positive *value* means that this User owes something to another User, a negati
 The Debt resource has the following attributes:
 
 - debtId -- Id of a Debt of a User (read-only)
-- user -- User that we owe or are owed by (read-only)
+- creditor -- User that credits the debt (read-only)
+- debtor -- User that owes the creditor (read-only)
+- originalValue -- Money that we owe or are owed by the User above (read-only)
 - value -- Money that we owe or are owed by the User above
-- date -- Date (ISO 8601) the Debt was created (read-only)
-- resolved -- Boolean, true if the debt was paid, false otherwise
+- currency -- Money currency of the value (read-only)
+- created -- Date (ISO 8601) the Debt was created (read-only)
+- modified -- Date (ISO 8601) the Debt was last modified (read-only, not const)
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
     + debtId (number, required, `1`) ... ID of the Debt of a User
-    + checksum (string, required, `abcd`) ... Digital signature of the id and debtId
+    + checksum (string, required, `abcd`) ... Digital signature of the *id* and *debtId*
 
 + Model (application/json)
 
     ```js
     {
         "debtId": 1,
-        "user": "janeroe",
-        "value": 100,
-        "date": "2014-04-14T11:29Z",
-        "resolved": false
+        "creditor": "john",
+        "debtor": "janeroe",
+        "originalValue": 100,
+        "value": 0,
+        "currency": "EUR",
+        "created": "2014-04-14T11:29Z",
+        "modified": "2014-04-15T09:10Z"
     }
     ```
 
@@ -164,16 +170,17 @@ This method is only available for the authenticated user.
 
 ### Update a single Debt [PATCH]
 This method is only available for the authenticated user.
-Modifiable fields are *value* and *resolved*.
+The only modifiable field is *value*.
 
 + Parameters
 
-    + checksum (string, required, `abcd`) ... Digital signature of the value and/or resolved
+    + checksum (string, required, `abcd`) ... Digital signature of the *value* and *currency*
 
 + Request (application/json)
 
         {
-            "resolved": false
+            "value": 0,
+            "currency": "EUR"
         }
 
 + Response 200 (application/json)
@@ -208,11 +215,15 @@ This method is only available for the authenticated user.
         { "error": "Debt '2' for user 'johndoe' does not exist." }
 
 ## Debts Collection [/users/{id}/debts{?checksum}]
-Collection of all Debts that this User owes and is owed to another User.
+Collection of all Debts that another User owes this User.
 
 The Debts Collection resource has the following attribute:
 
-- total -- Total number of Balances
+- total -- Total number of Debts
+- balance -- Total balance between owed money
+- credit -- Money owed to this User
+- debit -- Money that this User owes to the other Users
+- currency -- Currency of *balance*, *debit* and *credit*
 - debts -- Array of Debts
 
 + Parameters
@@ -224,21 +235,32 @@ The Debts Collection resource has the following attribute:
     ```js
     {
         "total": 2,
-        "debts": 
+        "balance": -3.4,
+        "credit": 0,
+        "debit": 3.4,
+        "currency": "EUR",
+        "debts":
         [
             {
                 "debtId": 1,
-                "user": "janeroe",
-                "value": 100,
-                "date": "2014-04-14T11:29Z",
-                "resolved": true
+                "creditor": "john",
+                "debtor": "janeroe",
+                "originalValue": 100,
+                "value": 0,
+                "currency": "EUR",
+                "created": "2014-04-14T11:29Z",
+                "modified": "2014-04-15T09:10Z"
             },
             {
                 "debtId": 2,
+                "creditor": "smith",
+                "debtor": "john",
                 "user": "smith",
-                "value": -5.51,
-                "date": "2014-04-16T08:30Z",
-                "resolved": false
+                "originalValue": 5.4,
+                "value": 3.4,
+                "currency": "EUR",
+                "created": "2014-04-16T08:30Z",
+                "modified": "2014-04-17T10:30Z"
             }
         ]
     }
@@ -257,28 +279,49 @@ This method is only available for the authenticated user.
         or
         { "error": "Invalid checksum" }
 
-### Create a new Debt of a User [POST]
+### Create a new Debt between a User and single User [POST]
 This method is only available for the authenticated user.
 
 + Parameters
 
-    + checksum (string, required, `abcd`) ... Digital signature of the user and value
+    + checksum (string, required, `abcd`) ... Digital signature of the *user*, *value* and *currency*.
 
 + Request (application/json)
 
         {
             "user": "johndoe",
-            "value": 100
+            "value": 100,
+            "currency": "EUR"
         }
 
 + Response 201 (application/json)
 
         {
-            "debtId": 2,
-            "user": "johndoe",
-            "value": 100,
-            "date": "2014-04-14T11:29Z",
-            "resolved": true
+            "created": [
+                {
+                    "debtId": 2,
+                    "creditor": "smith",
+                    "debtor": "john",
+                    "user": "smith",
+                    "originalValue": 5.4,
+                    "value": 3.4,
+                    "currency": "EUR",
+                    "created": "2014-04-16T08:30Z",
+                    "modified": "2014-04-17T10:30Z"
+                }
+            ],
+            "updated": [
+                {
+                    "debtId": 1,
+                    "creditor": "john",
+                    "debtor": "janeroe",
+                    "originalValue": 100,
+                    "value": 0,
+                    "currency": "EUR",
+                    "created": "2014-04-14T11:29Z",
+                    "modified": "2014-04-15T09:10Z"
+                }
+            ]
         }
 
 + Response 403 (application/json)
@@ -292,54 +335,6 @@ This method is only available for the authenticated user.
         { "error": "User 'johndoe' does not exist." }
         or
         { "error": "Value '0.0001' is invalid." }
-
-## Balances Collection [/users/{id}/balances{?checksum}]
-Collection of all Debts that this User owes and is owed by other Users.
-
-This is a read-only collection and the returned data already contains all the calculations (hence the name *balance*).
-
-The Balances Collection resource has the following attribute:
-
-- total -- Total number of Balances
-- balances -- Array of Balances
-
-+ Parameters
-    + id (string, required, `john`) ... ID of the User
-    + checksum (string, required, `abcd`) ... Digital signature of the id
-
-+ Model (application/json)
-
-    ```js
-    {
-        "total": 1,
-        "balances": 
-        [
-            {
-                "balanceId": 1,
-                "user": "janeroe",
-                "value": 100,
-                "history":
-                [
-                    { "debtId": 5, "user": "janeroe", "value": 150, "date": "2014-04-14T11:29Z" },
-                    { "debtId": 6, "user": "smith", "value": -50, "date": "2014-04-15T08:30Z" }
-                ]
-            }
-        ]
-    }
-    ```
-
-### List all Balances of a User [GET]
-This method is only available for the authenticated user.
-
-+ Response 200 (application/json)
-
-    [Balances Collection][]
-    
-+ Response 403 (application/json)
-
-        { "error": "No permission" }
-        or
-        { "error": "Invalid checksum" }
 
 ## Friend [/users/{id}/friends/{friendId}{?checksum}]
 A single Friend object. The Friend resource represents a friend of a User.
