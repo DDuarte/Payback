@@ -76,6 +76,7 @@ function init(db, models) {
                 "CNY",
                 "CZK",
                 "DKK",
+                "EUR",
                 "GBP",
                 "HKD",
                 "HRK",
