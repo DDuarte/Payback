@@ -6,8 +6,8 @@ var url = process.env.URL || "http://localhost:" + port + "/";
 module.exports = {
 
     facebookAuth: {
-        clientID: "279961542177568",
-        clientSecret: "72f23d486592a7af12a79c0020457a54",
+        clientID: process.env.FB_CLIENT_ID || "279961542177568",
+        clientSecret: process.env.FB_CLIENT_SECRET || "72f23d486592a7af12a79c0020457a54",
         signupCallbackURL: url + "signup/facebook/callback",
         loginCallbackURL: url + "login/facebook/callback",
         connectCallbackURL: url + "connect/facebook/callback"
