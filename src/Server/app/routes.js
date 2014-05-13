@@ -1,5 +1,6 @@
 // app/routes.js
 var async = require("async");
+var accounting = require("accounting");
 
 module.exports = function (server, passport, fx) {
 
@@ -391,15 +392,11 @@ module.exports = function (server, passport, fx) {
                     modified: debt.modified
                 };
 
-                if (req.query.currency) {
-                    ret.originalValue = fx(debt.originalValue).from(debt.currency).to(req.query.currency);
-                    ret.value = fx(debt.value).from(debt.currency).to(req.query.currency);
-                    ret.currency = req.query.currency;
-                } else {
-                    ret.originalValue = debt.originalValue;
-                    ret.value = debt.value;
-                    ret.currency = debt.currency;
-                }
+                var currency = req.query.currency ? req.query.currency : debt.currency;
+
+                ret.originalValue = convertMoney(debt.originalValue, debt.currency, currency);
+                ret.value = convertMoney(debt.value, debt.currency, currency);
+                ret.currency = req.query.currency;
 
                 res.json(200, ret);
             });
@@ -490,43 +487,58 @@ module.exports = function (server, passport, fx) {
     // GET /users/{id}/debts
     server.get("/users/:id/debts", function (req, res) {
 
+        var currency = req.query.currency ? req.query.currency : "EUR";
+
         req.models.user.get(req.params.id, function (err, user) {
 
             if (err || !user)
                 return res.json(404, { error: "User '" + req.params.id + "' does not exist" });
 
-            user.getDebts(function (err, debts) {
-
-                if (err || !debts)
+            user.getCredits(function (err, credits) {
+                if (err || !credits)
                     return res.json(500, err);
 
-                var values = { credit: 0, debit: 0};
-                async.reduce(debts, values, function (memo, debt, cb) {
-                    if (user.id === debt.creditor_id) {
-                        memo.credit += debt.value;
-                    } else {
-                        memo.debit += debt.value;
-                    }
+                user.getDebts(function (err, debts) {
 
-                    cb(null, memo);
-                });
-
-                async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function(err, result) {
-
-                    if (err)
+                    if (err || !debts)
                         return res.json(500, err);
 
-                    res.json(200, {
-                        total: result.length,
-                        balance: values.credit - values.debit,
-                        credit: values.credit,
-                        debit: values.debit,
-                        debts: result
+                    debts = credits.concat(debts);
+
+                    async.reduce(debts, { credit: 0, debit: 0}, function (memo, debt, cb) {
+                        var val = convertMoney(debt.value, debt.currency, currency);;
+                        if (user.id === debt.creditor_id) {
+                            memo.credit += val;
+                        } else {
+                            memo.debit += val;
+                        }
+
+                        cb(null, memo);
+                    }, function (err, values) {
+
+                        var balance = values.credit - values.debit;
+
+                        async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function (err, result) {
+
+                            if (err)
+                                return res.json(500, err);
+
+                            res.json(200, {
+                                total: result.length,
+                                balance: balance,
+                                credit: values.credit,
+                                debit: values.debit,
+                                currency: currency,
+                                debts: result
+                            });
+
+                        });
+
                     });
-
                 });
-
             });
+
+
         });
 
     });
@@ -582,8 +594,8 @@ module.exports = function (server, passport, fx) {
 
                 req.models.debt.create({
 
-                    creditor_id: req.body.user,
-                    debtor_id: req.params.id,
+                    creditor_id: req.params.id,
+                    debtor_id: req.body.user,
                     originalValue: req.body.value,
                     value: req.body.value,
                     currency: req.body.currency
@@ -846,57 +858,49 @@ module.exports = function (server, passport, fx) {
         });
 
     });
+
+    // make sure user is authenticated
+    function isLoggedIn(req, res, next) {
+
+        // if user is authenticated in the session, carry on
+        if (req.isAuthenticated())
+            return next();
+
+        // if not, then stop the chain flow
+        res.json(403, { error: "No permission" });
+    }
+
+    // asynchronous version of the fuzzy evaluation function defined above
+    function asyncFuzzyTest(searchTerm, user, callback) {
+        var hay = user.id.toLowerCase(), i = 0, n = -1, l;
+        searchTerm = searchTerm.toLowerCase();
+        for (; l = searchTerm[i++];) {
+            if (!~(n = hay.indexOf(l, n + 1))) {
+                return callback(false);
+            }
+        }
+        return callback(true);
+    }
+
+    function asyncDebtConversion(currency, debt, callback) {
+
+        if (!currency)
+            currency = debt.currency;
+
+        return callback(null, {
+            debtId: debt.id,
+            creditor: debt.creditor_id,
+            debtor: debt.debtor_id,
+            originalValue: convertMoney(debt.originalValue, debt.currency, currency),
+            value: convertMoney(debt.value, debt.currency, currency),
+            currency: currency,
+            created: debt.created,
+            modified: debt.modified
+        });
+    }
+
+    function convertMoney(value, srcCurrency, destCurrency) {
+        // TODO: remove use of parseFloat
+        return parseFloat(accounting.toFixed(fx(value).from(srcCurrency).to(destCurrency), 4));
+    }
 };
-
-// make sure user is authenticated
-function isLoggedIn(req, res, next) {
-
-    // if user is authenticated in the session, carry on
-    if (req.isAuthenticated())
-        return next();
-
-    // if not, then stop the chain flow
-    res.json(403, { error: "No permission" });
-}
-
-// from StackOverflow, example fuzzy test
-// "loop through needle letters and check if they occur in the same order in the haystack"
-function fuzzy(what, s, callback) {
-    var hay = what.toLowerCase(), i = 0, n = -1, l;
-    s = s.toLowerCase();
-    for (; l = s[i++];) {
-        if (!~(n = hay.indexOf(l, n + 1))) {
-            return callback(false);
-        }
-    }
-    return callback(true);
-}
-
-// asynchronous version of the fuzzy evaluation function defined above
-function asyncFuzzyTest(searchTerm, user, callback) {
-    var hay = user.id.toLowerCase(), i = 0, n = -1, l;
-    searchTerm = searchTerm.toLowerCase();
-    for (; l = searchTerm[i++];) {
-        if (!~(n = hay.indexOf(l, n + 1))) {
-            return callback(false);
-        }
-    }
-    return callback(true);
-}
-
-function asyncDebtConversion(currency, debt, callback) {
-
-    if (!currency)
-        currency = debt.currency;
-
-    return callback(null, {
-        debtId: debt.id,
-        creditor: debt.creditor_id,
-        debtor: debt.debtor_id,
-        originalValue: fx(debt.originalValue).from(debt.currency).to(currency),
-        value: fx(debt.value).from(debt.currency).to(currency),
-        currency: currency,
-        created: debt.created,
-        modified: debt.modified
-    });
-}
