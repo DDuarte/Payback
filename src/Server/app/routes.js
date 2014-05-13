@@ -411,8 +411,8 @@ module.exports = function (server, passport, fx) {
             return next("No body defined.");
         }
 
-        if (req.body.value === undefined) {
-            return next("Can only change 'value' attribute of debts.");
+        if (req.body.value === undefined && req.body.currency == undefined) {
+            return next("Attributes value and currency are required.");
         }
 
         if (isNaN(req.body.value)) {
@@ -439,8 +439,8 @@ module.exports = function (server, passport, fx) {
                     return res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
                 }
 
-                if (req.body.value)
-                    debt.value = req.body.value;
+                debt.value = req.body.value;
+                debt.currency = req.body.currency;
 
                 debt.save(function (err) { // update the debt instance
 
