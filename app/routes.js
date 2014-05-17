@@ -1,11 +1,15 @@
 // app/routes.js
 var async = require("async");
 var accounting = require("accounting");
+var crypto = require('crypto-js');
 
 module.exports = function (server, passport, fx) {
 
     server.all("/users", isLoggedIn);
     server.all("/users/*", isLoggedIn);
+
+    //server.all("/", validChecksum);
+    //server.all("/*", validChecksum);
 
     // GET /
     server.get("/", function (req, res) {
@@ -897,6 +901,23 @@ module.exports = function (server, passport, fx) {
             created: debt.created,
             modified: debt.modified
         });
+    }
+
+    function validChecksum(req, res, next) {
+
+        var checksum = req.get("X-Checksum");
+        if (!checksum) {
+            return next("Missing X-Checksum header");
+        }
+
+        var obj = { url: req.params[0] || "/", query: req.query, body: req.body };
+
+        var sign = crypto.HmacSHA1(JSON.stringify(obj), "all your base are belong to us").toString();
+        if (sign !== checksum) {
+            return next("Wrong X-Checksum");
+        }
+
+        return next();
     }
 
     function convertMoney(value, srcCurrency, destCurrency) {
