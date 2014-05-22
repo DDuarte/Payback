@@ -20,6 +20,8 @@ var schedule = require('node-schedule');
 
 var fx = require("money");
 
+var jwt = require("jwt-simple");
+
 // create and configure server =================================================
 var server = express();
 
@@ -64,8 +66,10 @@ server.use(passport.session());
 
 require("./config/scheduler")(schedule, fx);
 
+require("./config/jwtAuth.js")(server);
+
 // load our routes and pass in our server and fully configured passport
-require('./app/routes.js')(server, passport, fx);
+require('./app/routes.js')(server, passport, fx, jwt);
 
 // launch ==========================================
 var port = process.env.PORT || 1337;

@@ -2,11 +2,12 @@
 var async = require("async");
 var accounting = require("accounting");
 var crypto = require('crypto-js');
+var moment = require('moment');
 
-module.exports = function (server, passport, fx) {
+module.exports = function (server, passport, fx, jwt) {
 
-    server.all("/users", isLoggedIn);
-    server.all("/users/*", isLoggedIn);
+    /*server.all("/users", isLoggedIn);
+    server.all("/users/*", isLoggedIn);*/
 
     //server.all("/", validChecksum);
     //server.all("/*", validChecksum);
@@ -16,7 +17,7 @@ module.exports = function (server, passport, fx) {
         res.send(204);
     });
 
-    // POST /login
+    // POST /login/local
     server.post('/login/local', function (req, res) {
 
         passport.authenticate('local-login', function (err, user, info) {
@@ -29,7 +30,16 @@ module.exports = function (server, passport, fx) {
                 if (err)
                     return res.send(401);
 
-                res.send(200);
+                var expires = moment().add('days', 7).valueOf();
+                var token = generateToken(user.id, expires);
+                res.send(200, {
+                    token: token,
+                    exp: expires,
+                    user: {
+                        id: user.id,
+                        email: user.email
+                    }
+                });
             });
         })(req, res);
 
@@ -48,7 +58,16 @@ module.exports = function (server, passport, fx) {
                 if (err)
                     return res.send(401);
 
-                res.send(200);
+                var expires = moment().add('days', 7).valueOf();
+                var token = generateToken(user.id, expires);
+                res.send(200, {
+                    token: token,
+                    exp: expires,
+                    user: {
+                        id: user.id,
+                        email: user.email
+                    }
+                });
             });
         })(req, res);
 
@@ -923,5 +942,14 @@ module.exports = function (server, passport, fx) {
     function convertMoney(value, srcCurrency, destCurrency) {
         // TODO: remove use of parseFloat
         return parseFloat(accounting.toFixed(fx(value).from(srcCurrency).to(destCurrency), 4));
+    }
+
+    function generateToken(userId, expirationDate) {
+        var token = jwt.encode({
+            iss: userId,
+            exp: expirationDate
+        }, server.get('jwtTokenSecret'));
+
+        return token;
     }
 };
