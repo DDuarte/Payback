@@ -1,6 +1,6 @@
 angular.module('starter.controllers', [])
 
-    .controller('AppCtrl', function ($scope, $ionicSideMenuDelegate, AuthService) {
+    .controller('AppCtrl', function ($scope, $state, $ionicSideMenuDelegate, AuthService) {
 
         $scope.toggleLeft = function () {
             $ionicSideMenuDelegate.toggleLeft();
@@ -10,17 +10,37 @@ angular.module('starter.controllers', [])
         $scope.$watch( AuthService.isLoggedIn, function ( isLoggedIn ) {
             $scope.isLoggedIn = isLoggedIn;
             $scope.currentUser = AuthService.currentUser();
+
+            if (!$scope.isLoggedIn) {
+                $state.go('login');
+            }
         });
 
+        $scope.logout = function() {
+            AuthService.logout();
+            $state.go('login');
+        }
     })
 
-    .controller('LoginCtrl', function ($scope, $state) {
+    .controller('LoginCtrl', function ($scope, $state, Restangular, AuthService) {
         $scope.login = function () {
             $state.go('app.search');
         };
 
-        $scope.signin = function() {
-            $state.go('app.search');
+        $scope.localLogin = function(user) {
+
+            Restangular.all('login').all('local').post({
+                id: user.id,
+                password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
+            }).then(function (data) {
+                console.log(data);
+                AuthService.login(data.user.id, data.user.email, data.access_token);
+                $state.go('app.search');
+            }, function (response) {
+                console.log("Error: " + response.toLocaleString());
+                $scope.error = response;
+            });
+
         }
     })
 
@@ -40,6 +60,10 @@ angular.module('starter.controllers', [])
                 $scope.error = response;
             });
         }
+    })
+
+    .controller('UserCtrl', function($scope, $state, $stateParams, Restangular) {
+        $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
     .controller('FriendsCtrl', function ($scope) {

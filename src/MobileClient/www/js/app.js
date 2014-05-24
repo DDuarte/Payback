@@ -98,6 +98,16 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 controller: 'AppCtrl'
             })
 
+            .state('app.user', {
+                url: "/users/:userId",
+                views: {
+                    'app': {
+                        templateUrl: "templates/user.html",
+                        controller: "UserCtrl"
+                    }
+                }
+            })
+
             .state('app.search', {
                 url: "/search",
                 views: {

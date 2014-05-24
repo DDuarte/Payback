@@ -14,22 +14,35 @@
                 <h1 class="title">Payback</h1>
             </header>
             <ion-content class="has-header" has_header="true">
-                <a class="item item-thumbnail text-center" href="#">
-                    <img src="http://www.gravatar.com/avatar/6d00776d10f24a30b0874918eee5ed54">
-                    <p></p>
-                    <h2>Duarte</h2>
-                </a>
-                <ion-list>
-                    <ion-item nav-clear menu-close href="#/app/search">
-                        Search
-                    </ion-item>
-                    <ion-item nav-clear menu-close href="#/app/browse">
-                        Browse
-                    </ion-item>
-                    <ion-item nav-clear menu-close href="#/app/friends">
+                <div class="list">
+                    <a class="item item-thumbnail-left" href="#">
+                        <img src="http://www.gravatar.com/avatar/6d00776d10f24a30b0874918eee5ed54">
+                        {{currentUser.id}}<br><br>
+                        {{currentUser.email}}
+                    </a>
+                    <a class="item item-icon-left item-icon-right" nav-clear menu-close
+                       ui-sref="app.user({userId: currentUser.id})" href="#">
+                        <i class="icon ion-person"></i>
+                        Your Profile
+                        <i class="icon ion-chevron-right icon-accessory"></i>
+                    </a>
+                    <a class="item item-icon-left item-icon-right" nav-clear menu-close
+                       ui-sref="app.user({id: currentUser.id})" href="#">
+                        <i class="icon ion-card"></i>
+                        Debts
+                        <i class="icon ion-chevron-right icon-accessory"></i>
+                    </a>
+                    <a class="item item-icon-left item-icon-right" nav-clear menu-close href="#/app/friends">
+                        <i class="icon ion-person-stalker"></i>
                         Friends
-                    </ion-item>
-                </ion-list>
+                        <i class="icon ion-chevron-right icon-accessory"></i>
+                    </a>
+                    <a class="item item-icon-left item-icon-right" nav-clear menu-close ng-click="logout()">
+                        <i class="icon ion-power"></i>
+                        Logout
+                        <i class="icon ion-chevron-right icon-accessory"></i>
+                    </a>
+                </div>
             </ion-content>
         </ion-side-menu>
     </ion-side-menus>
