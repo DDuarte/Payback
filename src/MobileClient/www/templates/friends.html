@@ -1,0 +1,13 @@
+<ion-view title="Friends">
+  <ion-content class="has-header">
+    <ion-list can-swipe="true">
+      <ion-item ng-repeat="friend in friends" href="#/app/friends/{{friend.id}}" class="item-thumbnail-left">
+        <img ng-src="{{friend.avatar_url}}">
+        <h2>{{friend.id}}</h2>
+        <ion-option-button class="button-assertive" ng-click="friends.splice($index, 1)">
+            Delete
+        </ion-option-button>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>

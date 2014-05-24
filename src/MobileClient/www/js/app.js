@@ -115,22 +115,22 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                     }
                 }
             })
-            .state('app.playlists', {
-                url: "/playlists",
+            .state('app.friends', {
+                url: "/friends",
                 views: {
                     'app': {
-                        templateUrl: "templates/playlists.html",
-                        controller: 'PlaylistsCtrl'
+                        templateUrl: "templates/friends.html",
+                        controller: 'FriendsCtrl'
                     }
                 }
             })
 
             .state('app.single', {
-                url: "/playlists/:playlistId",
+                url: "/friends/:friendId",
                 views: {
                     'app': {
-                        templateUrl: "templates/playlist.html",
-                        controller: 'PlaylistCtrl'
+                        templateUrl: "templates/friend.html",
+                        controller: 'FriendCtrl'
                     }
                 }
             });

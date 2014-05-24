@@ -42,17 +42,17 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('PlaylistsCtrl', function ($scope) {
-        $scope.playlists = [
-            { title: 'Reggae', id: 1 },
-            { title: 'Chill', id: 2 },
-            { title: 'Dubstep', id: 3 },
-            { title: 'Indie', id: 4 },
-            { title: 'Rap', id: 5 },
-            { title: 'Cowbell', id: 6 }
+    .controller('FriendsCtrl', function ($scope) {
+        $scope.friends = [
+            { id: 'Reggae',  avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y' },
+            { id: 'Chill',   avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon&f=y' },
+            { id: 'Dubstep', avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=monsterid&f=y' },
+            { id: 'Indie',   avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=wavatar&f=y' },
+            { id: 'Rap',     avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=retro&f=y' },
+            { id: 'Cowbell', avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=blank&f=y' }
         ];
     })
 
-    .controller('PlaylistCtrl', function ($scope, $stateParams) {
+    .controller('FriendCtrl', function ($scope, $stateParams) {
 
     });
