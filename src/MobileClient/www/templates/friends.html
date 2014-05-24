@@ -1,12 +1,20 @@
+<ion-nav-buttons side="right">
+    <button class="button button-icon icon ion-ios7-minus-outline"
+            ng-click="data.showDelete = !data.showDelete"></button>
+</ion-nav-buttons>
 <ion-view title="Friends">
   <ion-content class="has-header">
-    <ion-list can-swipe="true">
+    <ion-list can-swipe="true" show-delete="data.showDelete">
       <ion-item ng-repeat="friend in friends" href="#/app/friends/{{friend.id}}" class="item-thumbnail-left">
         <img ng-src="{{friend.avatar_url}}">
         <h2>{{friend.id}}</h2>
-        <ion-option-button class="button-assertive" ng-click="friends.splice($index, 1)">
-            Delete
+        <ion-option-button class="button-calm"
+                           ng-click="">
+            + Debt
         </ion-option-button>
+        <ion-delete-button class="ion-minus-circled"
+                           ng-click="onFriendDelete($index)">
+        </ion-delete-button>
       </ion-item>
     </ion-list>
   </ion-content>

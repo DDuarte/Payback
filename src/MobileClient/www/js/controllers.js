@@ -43,6 +43,14 @@ angular.module('starter.controllers', [])
     })
 
     .controller('FriendsCtrl', function ($scope) {
+        $scope.data = {
+            showDelete: false
+        };
+
+        $scope.onFriendDelete = function(idx) {
+            $scope.friends.splice(idx, 1);
+        };
+
         $scope.friends = [
             { id: 'Reggae',  avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y' },
             { id: 'Chill',   avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon&f=y' },
