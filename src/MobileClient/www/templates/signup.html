@@ -8,21 +8,34 @@
             <div class="item text-center item-divider">
                 Register a local account
             </div>
-            <div class="item item-text-wrap">
-                <div class="list">
-                    <label class="item item-input item-stacked-label">
-                        <span class="input-label">User ID</span>
-                        <input type="text" placeholder="John">
-                    </label>
-                    <label class="item item-input item-stacked-label">
-                        <span class="input-label">Email</span>
-                        <input type="email" placeholder="john@suhr.com">
-                    </label>
-                    <button class="button button-block button-positive" ng-click="signup()">
-                        Signup
-                    </button>
+            <form name="localSignupForm">
+                <div class="item item-text-wrap">
+                    <div class="list">
+                        <label class="item item-input item-stacked-label">
+                            <span class="input-label">User ID</span>
+                            <input type="text" placeholder="Enter your User ID here" name="userId" ng-init="user.id"
+                                   ng-model="user.id" ng-Minlength="5" ng-Maxlength="20" required>
+                        </label>
+                        <label class="item item-input item-stacked-label">
+                            <span class="input-label">Password</span>
+                            <input type="password" placeholder="Enter your password here" ng-init="user.password"
+                                   ng-model="user.password" required>
+                        </label>
+                        <label class="item item-input item-stacked-label">
+                            <span class="input-label">E-mail</span>
+                            <input type="email" placeholder="Enter your E-mail here" ng-model="user.email" required>
+                        </label>
+                        <button class="button button-block button-positive"
+                                ng-class="{disabled: localSignupForm.$invalid}" ng-click="signup(user)">
+                            Signup
+                        </button>
+                        <p>{{user.id}}</p>
+                        <p>{{error}}</p>
+                    </div>
                 </div>
-            </div>
+            </form>
+        </div>
+        </div>
         </div>
     </ion-content>
 </ion-view>

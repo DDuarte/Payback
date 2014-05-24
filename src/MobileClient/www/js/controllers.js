@@ -1,24 +1,44 @@
 angular.module('starter.controllers', [])
 
-    .controller('AppCtrl', function ($scope, $ionicSideMenuDelegate) {
+    .controller('AppCtrl', function ($scope, $ionicSideMenuDelegate, AuthService) {
+
         $scope.toggleLeft = function () {
             $ionicSideMenuDelegate.toggleLeft();
-        }
+        };
+
+        // watch for any changes in the loggedIn status
+        $scope.$watch( AuthService.isLoggedIn, function ( isLoggedIn ) {
+            $scope.isLoggedIn = isLoggedIn;
+            $scope.currentUser = AuthService.currentUser();
+        });
+
     })
 
     .controller('LoginCtrl', function ($scope, $state) {
         $scope.login = function () {
             $state.go('app.search');
-        }
+        };
 
         $scope.signin = function() {
             $state.go('app.search');
         }
     })
 
-    .controller('SignupCtrl', function($scope, $state) {
-        $scope.signup = function() {
-            $state.go('app.search');
+    .controller('SignupCtrl', function($scope, $state, Restangular, AuthService) {
+
+        $scope.signup = function (user) {
+            Restangular.all('signup').all('local').post({
+                id: user.id,
+                password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
+                email: user.email
+            }).then(function (data) {
+                console.log(data);
+                AuthService.login(data.user.id, data.user.email, data.access_token);
+                $state.go('app.search');
+            }, function (response) {
+                console.log("Error: " + response.toLocaleString());
+                $scope.error = response;
+            });
         }
     })
 
@@ -34,5 +54,5 @@ angular.module('starter.controllers', [])
     })
 
     .controller('PlaylistCtrl', function ($scope, $stateParams) {
-        //$scope.header_title = "Playlist";
+
     });

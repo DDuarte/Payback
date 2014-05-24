@@ -4,7 +4,7 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular'])
+angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ngStorage'])
 
     .run(function ($ionicPlatform) {
         $ionicPlatform.ready(function () {
@@ -20,7 +20,63 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular'])
         });
     })
 
-    .config(function ($stateProvider, $urlRouterProvider) {
+    // singleton, this service can be injected into any route in order to check the current user session information
+    .provider('AuthService', function AuthServiceProvider() {
+
+        var currentUser;
+
+        function token() {
+            if (currentUser && currentUser.access_token)
+                return currentUser.access_token;
+            else
+                return null;
+        }
+
+        function CurrentUser() {
+            this.login = function (id, email, access_token) {
+
+                if (id && access_token) {
+                    currentUser = {};
+                    currentUser.id = id;
+                    currentUser.email = email;
+                    currentUser.access_token = access_token;
+                }
+
+            };
+
+            this.logout = function () {
+                currentUser = null;
+            };
+
+            this.isLoggedIn = function () {
+                return currentUser != null;
+            };
+
+            this.currentUser = function () {
+                return currentUser;
+            };
+
+            this.token = token;
+        }
+
+        this.$get = function() {
+            return new CurrentUser();
+        }
+    })
+
+    .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
+
+        // base API Url
+        RestangularProvider.setBaseUrl('http://localhost:1337');
+        //RestangularProvider.setDefaultHeaders({"x-access-token": $sessionStorage.access_token});
+
+        RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, queryParameters) {
+            return {
+                headers: _.extend(headers, {'x-access-token': AuthServiceProvider.$get().token()})
+            }
+        });
+
+        // configure states
         $stateProvider
 
             .state('login', {
