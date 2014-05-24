@@ -12,6 +12,26 @@ module.exports = function (server, passport, fx, jwt) {
     //server.all("/", validChecksum);
     //server.all("/*", validChecksum);
 
+    // Add headers in order to circumvent the javascript same origin policy (to be removed in production)
+    server.use(function (req, res, next) {
+
+        // Website you wish to allow to connect
+        res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8000');
+
+        // Request methods you wish to allow
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+        // Request headers you wish to allow
+        res.setHeader('Access-Control-Allow-Headers', ['X-Requested-With,content-type', 'x-access-token']);
+
+        // Set to true if you need the website to include cookies in the requests sent
+        // to the API (e.g. in case you use sessions)
+        res.setHeader('Access-Control-Allow-Credentials', true);
+
+        // Pass to next layer of middleware
+        next();
+    });
+
     // GET /
     server.get("/", function (req, res) {
         res.send(204);
@@ -33,7 +53,7 @@ module.exports = function (server, passport, fx, jwt) {
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
-                    token: token,
+                    access_token: token,
                     exp: expires,
                     user: {
                         id: user.id,
@@ -61,7 +81,7 @@ module.exports = function (server, passport, fx, jwt) {
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
-                    token: token,
+                    access_token: token,
                     exp: expires,
                     user: {
                         id: user.id,
