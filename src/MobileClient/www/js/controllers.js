@@ -52,12 +52,24 @@ angular.module('starter.controllers', [])
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
                 email: user.email
             }).then(function (data) {
-                console.log(data);
                 AuthService.login(data.user.id, data.user.email, data.access_token);
                 $state.go('app.search');
             }, function (response) {
-                console.log("Error: " + response.toLocaleString());
                 $scope.error = response;
+            });
+        }
+    })
+
+    .controller('SearchCtrl', function($scope, $state, Restangular) {
+        $scope.searchUsers = function(textSearch) {
+
+            if (textSearch.length === 0) {
+                $scope.users = [];
+                return;
+            }
+
+            Restangular.one('users').get({"search": textSearch}).then(function(data) {
+                $scope.users = data.users;
             });
         }
     })
@@ -66,7 +78,8 @@ angular.module('starter.controllers', [])
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
-    .controller('FriendsCtrl', function ($scope) {
+    .controller('FriendsCtrl', function ($scope, $stateParams, Restangular) {
+
         $scope.data = {
             showDelete: false
         };
@@ -83,6 +96,8 @@ angular.module('starter.controllers', [])
             { id: 'Rap',     avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=retro&f=y' },
             { id: 'Cowbell', avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=blank&f=y' }
         ];
+
+        //$scope.friends = Restangular.one('users', $stateParams.userId).one('friends').get().$object.friends;
     })
 
     .controller('FriendCtrl', function ($scope, $stateParams) {

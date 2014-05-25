@@ -112,7 +112,8 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 url: "/search",
                 views: {
                     'app': {
-                        templateUrl: "templates/search.html"
+                        templateUrl: "templates/search.html",
+                        controller: "SearchCtrl"
                     }
                 }
             })
@@ -125,6 +126,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                     }
                 }
             })
+
             .state('app.friends', {
                 url: "/users/:userId/friends",
                 views: {
@@ -144,6 +146,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                     }
                 }
             });
+
         // if none of the above states are matched, use this as the fallback
         $urlRouterProvider.otherwise('/login');
     });
