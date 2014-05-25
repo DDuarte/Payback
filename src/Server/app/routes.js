@@ -22,7 +22,7 @@ module.exports = function (server, passport, fx, jwt) {
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
         // Request headers you wish to allow
-        res.setHeader('Access-Control-Allow-Headers', ['X-Requested-With,content-type', 'x-access-token']);
+        res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, x-access-token');
 
         // Set to true if you need the website to include cookies in the requests sent
         // to the API (e.g. in case you use sessions)
@@ -844,12 +844,18 @@ module.exports = function (server, passport, fx, jwt) {
             });
 
             if (!req.query.search)
-                res.json(200, users);
+                res.json(200, {
+                    total: users.length,
+                    users: users
+                });
             else {
 
                 var fuzzyTest = asyncFuzzyTest.bind(undefined, req.query.search);
-                async.filter(users, fuzzyTest, function(results) { // asynchronous search
-                    res.json(200, results);
+                async.filter(users, fuzzyTest, function (results) { // asynchronous search
+                    res.json(200, {
+                        total: results.length,
+                        users: results
+                    });
                 });
             }
         });
