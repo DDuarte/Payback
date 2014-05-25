@@ -5,9 +5,15 @@
             ng-click="data.showDelete = !data.showDelete"></button>
 </ion-nav-buttons>
 <ion-view title="Friends">
+    <ion-header-bar class="bar-light bar-subheader">
+        <input type="search"
+               placeholder="Filter friends..."
+               ng-model="searchText.id">
+    </ion-header-bar>
     <ion-content class="has-header">
         <ion-list can-swipe="true" show-delete="data.showDelete">
-            <ion-item ng-repeat="friend in friends" href="#/app/friends/{{friend.id}}" class="item-thumbnail-left">
+            <ion-item ng-repeat="friend in friends | filter:searchText:strict" href="#/app/friends/{{friend.id}}"
+                      class="item-thumbnail-left">
                 <ion-option-button class="button-calm"
                                    ng-click="">
                     + Debt
