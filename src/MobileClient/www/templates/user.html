@@ -3,16 +3,11 @@
 
         <div class="details">
             <h4>{{ user.id }}</h4>
-            <p><i class="icon ion-ios7-email"></i> Email: {{ user.email }}<br/>
-                {{ contact.Department }}</p>
+            <p><i class="icon ion-ios7-email"></i> Email: {{ user.email }}</p>
         </div>
 
         <div class="list card">
-            <!--<a class="item item-icon-left" href="tel:{{contact.Phone}}"><i class="icon ion-ios7-telephone"></i>Call Office<p>{{contact.Phone}}</p></a>
-            <a class="item item-icon-left" href="tel:{{contact.MobilePhone}}"><i class="icon ion-ios7-telephone"></i>Call Cell<p>{{contact.MobilePhone}}</p></a>
-            <a class="item item-icon-left" href="sms:{{contact.MobilePhone}}"><i class="icon ion-chatbox-working"></i>SMS<p>{{contact.MobilePhone}}</p></a>
-            <a class="item item-icon-left" href="mailto:{{contact.Email}}"><i class="icon ion-ios7-email"></i>Email<p>{{contact.Email}}</p></a>
-            -->
+            <a class="item item-icon-left item-icon-right" ui-sref="app.friends({userId: user.id})"><i class="icon ion-person-stalker"></i>Friends <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
 
     </ion-content>
