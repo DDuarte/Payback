@@ -126,7 +126,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 }
             })
             .state('app.friends', {
-                url: "/friends",
+                url: "/users/:userId/friends",
                 views: {
                     'app': {
                         templateUrl: "templates/friends.html",
