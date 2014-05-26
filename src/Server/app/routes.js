@@ -4,6 +4,8 @@ var accounting = require("accounting");
 var crypto = require('crypto-js');
 var moment = require('moment');
 
+var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+
 module.exports = function (server, passport, fx, jwt) {
 
     /*server.all("/users", isLoggedIn);
@@ -30,6 +32,8 @@ module.exports = function (server, passport, fx, jwt) {
                 if (err)
                     return res.send(401);
 
+                var avatar = user.avatar || defaultAvatar;
+
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
@@ -37,7 +41,9 @@ module.exports = function (server, passport, fx, jwt) {
                     exp: expires,
                     user: {
                         id: user.id,
-                        email: user.email
+                        email: user.email,
+                        currency: user.currency,
+                        avatar: avatar
                     }
                 });
             });
@@ -58,6 +64,8 @@ module.exports = function (server, passport, fx, jwt) {
                 if (err)
                     return res.send(401);
 
+                var avatar = user.avatar || defaultAvatar;
+
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
@@ -65,7 +73,9 @@ module.exports = function (server, passport, fx, jwt) {
                     exp: expires,
                     user: {
                         id: user.id,
-                        email: user.email
+                        email: user.email,
+                        currency: user.currency,
+                        avatar: avatar
                     }
                 });
             });
@@ -265,8 +275,6 @@ module.exports = function (server, passport, fx, jwt) {
         });
 
     });
-
-    var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 
     // GET /users/{id}
     server.get("/users/:id", function (req, res) {

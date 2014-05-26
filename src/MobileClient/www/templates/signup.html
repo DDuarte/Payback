@@ -23,8 +23,17 @@
                         </label>
                         <label class="item item-input item-stacked-label">
                             <span class="input-label">E-mail</span>
-                            <input type="email" placeholder="Enter your E-mail here" ng-model="user.email" required>
+                            <input type="email" placeholder="Enter your E-mail here" ng-model="user.email" ng-init='"EUR"' required>
                         </label>
+                        <div class="list">
+                            <label class="item item-input item-select">
+                                <div class="input-label">
+                                    Preferred Currency
+                                </div>
+                                <select ng-model="currency" ng-options="o as o for o in currencies">
+                                </select>
+                            </label>
+                        </div>
                         <button class="button button-block button-positive"
                                 ng-class="{disabled: localSignupForm.$invalid}" ng-click="signup(user)">
                             Signup

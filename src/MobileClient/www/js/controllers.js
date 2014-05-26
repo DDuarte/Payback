@@ -46,11 +46,26 @@ angular.module('starter.controllers', [])
 
     .controller('SignupCtrl', function($scope, $state, Restangular, AuthService) {
 
+        $scope.currencies = [
+            "AUD", "BGN", "BRL", "CAD",
+            "CHF", "CNY", "CZK", "DKK",
+            "EUR", "GBP", "HKD", "HRK",
+            "HUF", "IDR", "ILS", "INR",
+            "JPY", "KRW", "LTL", "MXN",
+            "MYR", "NOK", "NZD", "PHP",
+            "PLN", "RON", "RUB", "SEK",
+            "SGD", "THB", "TRY", "USD",
+            "ZAR"
+        ];
+
+        $scope.currency = $scope.currencies[$scope.currencies.indexOf("EUR")];
+
         $scope.signup = function (user) {
             Restangular.all('signup').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
-                email: user.email
+                email: user.email,
+                currency: $scope.currency
             }).then(function (data) {
                 AuthService.login(data.user.id, data.user.email, data.access_token);
                 $state.go('app.search');
