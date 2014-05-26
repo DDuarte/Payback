@@ -1,7 +1,7 @@
 <ion-nav-buttons side="right">
-    <button class="button button-icon icon ion-android-add-contact"
-            ng-click=""></button>
-    <button class="button button-icon icon ion-ios7-minus-outline"
+    <button ng-if="isOwner(currentUserId)" class="button button-icon icon ion-android-add-contact"
+            ng-click="openModal()"></button>
+    <button ng-if="isOwner(currentUserId)" class="button button-icon icon ion-ios7-minus-outline"
             ng-click="data.showDelete = !data.showDelete"></button>
 </ion-nav-buttons>
 <ion-view title="Friends">
@@ -12,7 +12,7 @@
     </ion-header-bar>
     <ion-content class="has-header">
         <ion-list can-swipe="true" show-delete="data.showDelete">
-            <ion-item ng-repeat="friend in friends | filter:searchText:strict" href="#/app/friends/{{friend.id}}"
+            <ion-item ng-repeat="friend in friends | filter:searchText:strict" href="#/app/users/{{friend.id}}"
                       class="item-thumbnail-left">
                 <ion-option-button class="button-calm"
                                    ng-click="">

@@ -7,7 +7,7 @@ angular.module('starter.controllers', [])
         };
 
         // watch for any changes in the loggedIn status
-        $scope.$watch( AuthService.isLoggedIn, function ( isLoggedIn ) {
+        $scope.$watch(AuthService.isLoggedIn, function (isLoggedIn) {
             $scope.isLoggedIn = isLoggedIn;
             $scope.currentUser = AuthService.currentUser();
 
@@ -16,7 +16,7 @@ angular.module('starter.controllers', [])
             }
         });
 
-        $scope.logout = function() {
+        $scope.logout = function () {
             AuthService.logout();
             $state.go('login');
         }
@@ -27,7 +27,7 @@ angular.module('starter.controllers', [])
             $state.go('app.search');
         };
 
-        $scope.localLogin = function(user) {
+        $scope.localLogin = function (user) {
 
             Restangular.all('login').all('local').post({
                 id: user.id,
@@ -44,7 +44,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('SignupCtrl', function($scope, $state, Restangular, AuthService) {
+    .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService) {
 
         $scope.currencies = [
             "AUD", "BGN", "BRL", "CAD",
@@ -75,44 +75,99 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('SearchCtrl', function($scope, $state, Restangular) {
-        $scope.searchUsers = function(textSearch) {
+    .controller('SearchCtrl', function ($scope, $state, Restangular) {
+        $scope.searchUsers = function (textSearch) {
 
             if (textSearch.length === 0) {
                 $scope.users = [];
                 return;
             }
 
-            Restangular.one('users').get({"search": textSearch}).then(function(data) {
+            Restangular.one('users').get({"search": textSearch}).then(function (data) {
                 $scope.users = data.users;
             });
         }
     })
 
-    .controller('UserCtrl', function($scope, $state, $stateParams, Restangular) {
+    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular) {
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
-    .controller('FriendsCtrl', function ($scope, $stateParams, Restangular) {
+    .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService) {
+
+        $scope.currentUserId = AuthService.currentUser().id;
+        $scope.isOwner = function(userId) {
+            return $stateParams.userId === userId;
+        };
 
         $scope.data = {
             showDelete: false
         };
 
-        $scope.onFriendDelete = function(idx) {
-            $scope.friends.splice(idx, 1);
+        $scope.onFriendDelete = function (idx) {
+            var friend = $scope.friends[idx];
+            Restangular.one('users', $stateParams.userId).one('friends', friend.id).remove().then(
+                function (data) {
+                    $scope.friends.splice(idx, 1);
+                },
+                function (response) {
+                    AlertPopupService.createPopup("Error", response.error);
+                });
         };
 
-        $scope.friends = [
-            { id: 'Reggae',  avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y' },
-            { id: 'Chill',   avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=identicon&f=y' },
-            { id: 'Dubstep', avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=monsterid&f=y' },
-            { id: 'Indie',   avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=wavatar&f=y' },
-            { id: 'Rap',     avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=retro&f=y' },
-            { id: 'Cowbell', avatar_url: 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=blank&f=y' }
-        ];
+        $scope.isFriend = function(user) {
+            return _.some($scope.friends, function(friend) {
+                return user.id === friend.id;
+            });
+        };
 
-        //$scope.friends = Restangular.one('users', $stateParams.userId).one('friends').get().$object.friends;
+        $ionicModal.fromTemplateUrl('templates/searchModal.html', function (modal) {
+            $scope.modal = modal;
+        }, {
+            scope: $scope,  /// Give the modal access to the parent scope
+            animation: 'slide-in-up',
+            focusFirstInput: true
+        });
+
+        $scope.openModal = function () {
+            $scope.modal.show();
+        };
+        $scope.closeModal = function () {
+            $scope.modal.hide();
+            $scope.users = [];
+        };
+
+        //Cleanup the modal when we're done with it (avoid memory leaks)
+        $scope.$on('$destroy', function () {
+            $scope.users = [];
+            $scope.modal.remove();
+        });
+
+        $scope.addFriend = function (user) {
+            Restangular.one('users', $stateParams.userId).all('friends').post({ id: user.id }).then(
+                function (data) {
+                    $scope.friends.push(user);
+                },
+                function (response) {
+                    AlertPopupService.createPopup("Error", response.error);
+                });
+        };
+
+        $scope.searchUsers = function (textSearch) {
+
+            if (textSearch.length === 0) {
+                $scope.users = [];
+                return;
+            }
+
+            Restangular.one('users').get({"search": textSearch}).then(function (data) {
+                $scope.users = data.users;
+            });
+        };
+
+        Restangular.one('users', $stateParams.userId).one('friends').get().then(function(data) {
+            $scope.friends = data.friends;
+        });
     })
 
     .controller('FriendCtrl', function ($scope, $stateParams) {
