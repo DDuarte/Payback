@@ -22,7 +22,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('LoginCtrl', function ($scope, $state, Restangular, AuthService) {
+    .controller('LoginCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
         $scope.login = function () {
             $state.go('app.search');
         };
@@ -37,14 +37,13 @@ angular.module('starter.controllers', [])
                 AuthService.login(data.user.id, data.user.email, data.access_token);
                 $state.go('app.search');
             }, function (response) {
-                console.log("Error: " + response.toLocaleString());
-                $scope.error = response;
+                AlertPopupService.createPopup("Error", response.data.error);
             });
 
         }
     })
 
-    .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService) {
+    .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
 
         $scope.currencies = [
             "AUD", "BGN", "BRL", "CAD",
@@ -70,7 +69,7 @@ angular.module('starter.controllers', [])
                 AuthService.login(data.user.id, data.user.email, data.access_token);
                 $state.go('app.search');
             }, function (response) {
-                $scope.error = response;
+                AlertPopupService.createPopup("Error", response.data.error);
             });
         }
     })
