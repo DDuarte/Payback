@@ -20,6 +20,19 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         });
     })
 
+    .service('AlertPopupService', ['$ionicPopup', function ($ionicPopup) {
+
+        this.createPopup = function (headerMessage, bodyMessage, okAction) {
+            $ionicPopup.alert({
+                title: headerMessage,
+                content: bodyMessage
+            }).then(function (res) {
+                if (okAction)
+                    okAction();
+            });
+        }
+    }])
+
     // singleton, this service can be injected into any route in order to check the current user session information
     .provider('AuthService', function AuthServiceProvider() {
 
