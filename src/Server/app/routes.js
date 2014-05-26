@@ -278,7 +278,8 @@ module.exports = function (server, passport, fx, jwt) {
 
             res.json(200, {
                 id: user.id,
-                email: user.email
+                email: user.email,
+                currency: user.currency
             });
         });
 
@@ -415,7 +416,7 @@ module.exports = function (server, passport, fx, jwt) {
                     modified: debt.modified
                 };
 
-                var currency = req.query.currency ? req.query.currency : debt.currency;
+                var currency = req.query.currency || debt.currency;
 
                 ret.originalValue = convertMoney(debt.originalValue, debt.currency, currency);
                 ret.value = convertMoney(debt.value, debt.currency, currency);
@@ -441,13 +442,6 @@ module.exports = function (server, passport, fx, jwt) {
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
         }
-
-        //var valueStr = req.body.value.toString();
-        //var splitValueStr = valueStr.split(".");
-
-        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
-        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -529,7 +523,7 @@ module.exports = function (server, passport, fx, jwt) {
                     debts = credits.concat(debts);
 
                     async.reduce(debts, { credit: 0, debit: 0}, function (memo, debt, cb) {
-                        var val = convertMoney(debt.value, debt.currency, currency);;
+                        var val = convertMoney(debt.value, debt.currency, currency);
                         if (user.id === debt.creditor_id) {
                             memo.credit += val;
                         } else {
@@ -587,13 +581,6 @@ module.exports = function (server, passport, fx, jwt) {
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
         }
-
-        //var valueStr = req.body.value.toString();
-        //var splitValueStr = valueStr.split(".");
-
-        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
-        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
