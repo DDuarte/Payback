@@ -42,18 +42,28 @@ module.exports = function (passport) {
                     if (exists)
                         return done(null, false, { error: "That id is already taken." });
 
-                    req.models.user.create({
-                            id: id,
-                            passwordHash: password,
-                            email: req.body.email
-                        },
-                        function (err, userItem) {
+                    req.models.user.exists({ email: req.body.email }, function (err, exists) {
 
-                            if (err)
-                                return done(err);
+                        if (err)
+                            return done(err);
 
-                            return done(null, userItem);
-                        });
+                        if (exists)
+                            return done(null, false, { error: "That email is already taken." });
+
+                        req.models.user.create({
+                                id: id,
+                                passwordHash: password,
+                                email: req.body.email
+                            },
+                            function (err, userItem) {
+
+                                if (err)
+                                    return done(err);
+
+                                return done(null, userItem);
+                            });
+
+                    });
                 });
 
             });
@@ -181,8 +191,9 @@ module.exports = function (passport) {
                                     });
                             });
                         });
-                }});
-    }));
+                }
+            });
+        }));
 
     // login with facebook account
     passport.use("facebook-login", new FacebookStrategy({
@@ -210,7 +221,7 @@ module.exports = function (passport) {
                 });
             });
 
-    }));
+        }));
 
     // connect with facebook account
     passport.use("facebook-connect", new FacebookStrategy({
@@ -296,7 +307,7 @@ module.exports = function (passport) {
                             });
                     });
             });
-    }));
+        }));
 
     // login with google account
     passport.use("google-login", new GoogleStrategy({
@@ -322,7 +333,7 @@ module.exports = function (passport) {
                     return done(null, localUser);
                 });
             });
-    }));
+        }));
 
     // connect google account
     passport.use("google-connect", new GoogleStrategy({
@@ -339,23 +350,23 @@ module.exports = function (passport) {
             console.log(user.id);
 
             req.models.google.create({
-                id: identifier,
-                displayName: profile.displayName,
-                email: profile.emails[0].value,
-                localaccount_id: user.id
-            },
-            function (err, newGoogleUser) {
-
-                if (err)
-                    return done(err);
-
-                user.setGoogleAccount(newGoogleUser, function (err) {
+                    id: identifier,
+                    displayName: profile.displayName,
+                    email: profile.emails[0].value,
+                    localaccount_id: user.id
+                },
+                function (err, newGoogleUser) {
 
                     if (err)
                         return done(err);
 
-                    return done(null, user);
+                    user.setGoogleAccount(newGoogleUser, function (err) {
+
+                        if (err)
+                            return done(err);
+
+                        return done(null, user);
+                    });
                 });
-            });
-    }));
+        }));
 };
