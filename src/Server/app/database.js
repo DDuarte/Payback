@@ -17,7 +17,8 @@ module.exports = function (db, models) {
         id: { type: "text", size: 20, required: true },
         passwordHash: { type: "text", size: 64 },
         email: { type: "text", size: 254, required: false, unique: true },
-        currency: { type: "text", required: true, default: 'EUR' }
+        currency: { type: "text", required: true, default: 'EUR' },
+        avatar: { type: "text", required: false }
     }, {
         validations: {
             passwordHash: orm.enforce.ranges.length(64, 64, "invalid-password-length"),

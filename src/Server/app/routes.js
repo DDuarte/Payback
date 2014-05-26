@@ -266,6 +266,8 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
+    var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+
     // GET /users/{id}
     server.get("/users/:id", function (req, res) {
 
@@ -276,10 +278,13 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
+            var avatar = user.avatar || defaultAvatar;
+
             res.json(200, {
                 id: user.id,
                 email: user.email,
-                currency: user.currency
+                currency: user.currency,
+                avatar: avatar
             });
         });
 
@@ -292,8 +297,8 @@ module.exports = function (server, passport, fx, jwt) {
             return next("No body defined.");
         }
 
-        if (req.body.email === undefined) {
-            return next("Can only change 'email' attribute of the user.");
+        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
+            return next("Can only change 'email', 'currency' or 'avatar' attributes of the user.");
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -302,15 +307,32 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
-            user.save({ email: req.body.email }, function (err) {
+            var updateObj = {};
+            if (req.body.email) {
+                updateObj.email = req.body.email;
+            }
+
+            if (req.body.currency) {
+                updateObj.currency = req.body.currency;
+            }
+
+            if (req.body.avatar) {
+                updateObj.avatar = req.body.avatar;
+            }
+
+            user.save(updateObj, function (err) {
                 if (err || !user) {
                     res.json(403, err);
                     return;
                 }
 
+                var avatar = user.avatar || defaultAvatar;
+
                 res.json(200, {
                     id: user.id,
-                    email: req.body.email
+                    email: user.email,
+                    currency: user.currency,
+                    avatar: avatar
                 });
             });
         });
@@ -830,7 +852,6 @@ module.exports = function (server, passport, fx, jwt) {
 
     // POST /users
     server.post("/users", function (req, res, next) {
-
         if (req.body === undefined) {
             return next("No body defined");
         }
@@ -851,27 +872,29 @@ module.exports = function (server, passport, fx, jwt) {
             return next("Attribute 'passwordHash' is missing");
         }
 
+        if (req.body.currency === undefined) {
+            return next("Attribute 'currency' is missing");
+        }
+
         req.models.user.create({
             id: req.body.id,
             passwordHash: req.body.passwordHash,
-            email: req.body.email
+            email: req.body.email,
+            currency: req.body.currency,
+            avatar: req.body.avatar // can be empty
         }, function (err, item) {
-
             if (err) {
-
                 if (err.code == 23505) { // unique_violation
                     return next("Already exists");
                 } else if (err.msg == "invalid-password-length" || err.msg == "invalid-email-format") {
                     return next(err.msg);
-                }
-                else {
+                } else {
                     res.json(500, err);
                 }
             }
 
             res.json(201, {id: item.id, email: item.email });
         });
-
     });
 
     // make sure user is authenticated

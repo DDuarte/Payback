@@ -86,8 +86,6 @@ server.use(passport.initialize());
 server.use(passport.session());
 
 // routes ==========================================
-// TODO: send 403 when not logged in or not current user
-// TODO: implement checksum ( crypto.HmacSHA1( message , encryptionKey ).toString() )
 
 require("./config/scheduler")(schedule, fx);
 
