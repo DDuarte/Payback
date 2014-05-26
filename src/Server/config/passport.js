@@ -32,7 +32,7 @@ module.exports = function (passport) {
             process.nextTick(function () {
 
                 if (!req.body.email)
-                    return done(null, false, { message: "Attribute 'email' is missing." });
+                    return done(null, false, { error: "Attribute 'email' is missing." });
 
                 req.models.user.exists({ id: id }, function (err, exists) {
 
@@ -40,7 +40,7 @@ module.exports = function (passport) {
                         return done(err);
 
                     if (exists)
-                        return done(null, false, { message: "That id is already taken." });
+                        return done(null, false, { error: "That id is already taken." });
 
                     req.models.user.create({
                             id: id,
@@ -68,14 +68,11 @@ module.exports = function (passport) {
 
             req.models.user.get(id, function (err, user) {
 
-                if (err)
-                    return done(err);
-
-                if (!user)
-                    return done(null, false, { message: "No user found."});
+                if (err || !user)
+                    return done(null, false, { error: "No user ID was found."});
 
                 if (user.passwordHash !== password)
-                    return done(null, false, { message: "Wrong password."});
+                    return done(null, false, { error: "Wrong password."});
 
                 return done(null, user);
             });
