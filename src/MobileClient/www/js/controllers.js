@@ -34,7 +34,7 @@ angular.module('starter.controllers', [])
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
             }).then(function (data) {
                 console.log(data);
-                AuthService.login(data.user.id, data.user.email, data.access_token);
+                AuthService.login(data.user, data.access_token);
                 $state.go('app.search');
             }, function (response) {
                 AlertPopupService.createPopup("Error", response.data.error);
@@ -66,7 +66,7 @@ angular.module('starter.controllers', [])
                 email: user.email,
                 currency: $scope.currency
             }).then(function (data) {
-                AuthService.login(data.user.id, data.user.email, data.access_token);
+                AuthService.login(data.user, data.access_token);
                 $state.go('app.search');
             }, function (response) {
                 AlertPopupService.createPopup("Error", response.data.error);

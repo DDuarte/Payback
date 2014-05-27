@@ -46,13 +46,12 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         }
 
         function CurrentUser() {
-            this.login = function (id, email, access_token) {
+            this.login = function (user, access_token) {
 
-                if (id && access_token) {
-                    currentUser = {};
-                    currentUser.id = id;
-                    currentUser.email = email;
+                if (user && access_token) {
+                    currentUser = user;
                     currentUser.access_token = access_token;
+
                 }
 
             };
