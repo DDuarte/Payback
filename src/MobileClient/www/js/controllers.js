@@ -45,9 +45,7 @@ angular.module('starter.controllers', [])
             }, function (response) {
 				$ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
-				
             });
-
         };
 
         $scope.facebookLogin = function() {
@@ -60,7 +58,6 @@ angular.module('starter.controllers', [])
                 }
             });
         };
-		
     })
 
     .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
@@ -198,6 +195,7 @@ angular.module('starter.controllers', [])
         $scope.openModal = function () {
             $scope.modal.show();
         };
+
         $scope.closeModal = function () {
             $scope.modal.hide();
             $scope.users = [];

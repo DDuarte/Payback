@@ -6,7 +6,7 @@
 
 @synthesize hideKeyboardAccessoryBar = _hideKeyboardAccessoryBar;
 @synthesize disableScroll = _disableScroll;
-@synthesize styleDark = _styleDark;
+//@synthesize styleDark = _styleDark;
 
 - (void)pluginInitialize {
   
@@ -16,7 +16,7 @@
     //set defaults
     self.hideKeyboardAccessoryBar = NO;
     self.disableScroll = NO;
-    self.styleDark = NO;
+    //self.styleDark = NO;
     
     _keyboardShowObserver = [nc addObserverForName:UIKeyboardWillShowNotification
                                object:nil
@@ -26,16 +26,20 @@
                                    CGRect keyboardFrame = [notification.userInfo[UIKeyboardFrameEndUserInfoKey] CGRectValue];
                                    keyboardFrame = [self.viewController.view convertRect:keyboardFrame fromView:nil];
                                    
-                                   [weakSelf.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.plugins.Keyboard.isVisible = true; cordova.fireWindowEvent('native.showkeyboard', { 'keyboardHeight': %@ }); ", [@(keyboardFrame.size.height) stringValue]]];
-                              
-                                   
+                                   [weakSelf.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.plugins.Keyboard.isVisible = true; cordova.fireWindowEvent('native.keyboardshow', { 'keyboardHeight': %@ }); ", [@(keyboardFrame.size.height) stringValue]]];
+
+                                   //deprecated
+                                   [weakSelf.commandDelegate evalJs:[NSString stringWithFormat:@"cordova.fireWindowEvent('native.showkeyboard', { 'keyboardHeight': %@ }); ", [@(keyboardFrame.size.height) stringValue]]];
                                }];
     
     _keyboardHideObserver = [nc addObserverForName:UIKeyboardWillHideNotification
                                object:nil
                                queue:[NSOperationQueue mainQueue]
                                usingBlock:^(NSNotification* notification) {
-                                   [weakSelf.commandDelegate evalJs:@"cordova.plugins.Keyboard.isVisible = false; cordova.fireWindowEvent('native.hidekeyboard'); "];
+                                   [weakSelf.commandDelegate evalJs:@"cordova.plugins.Keyboard.isVisible = false; cordova.fireWindowEvent('native.keyboardhide'); "];
+
+                                   //deprecated
+                                   [weakSelf.commandDelegate evalJs:@"cordova.fireWindowEvent('native.hidekeyboard'); "];
                                }];
 }
 - (BOOL)disableScroll {
@@ -77,6 +81,7 @@
     _hideKeyboardAccessoryBar = hideKeyboardAccessoryBar;
 }
 
+/*
 - (BOOL)styleDark {
     return _styleDark;
 }
@@ -94,19 +99,18 @@
 
     _styleDark = styleDark;
 }
+*/
 
 
 /* ------------------------------------------------------------- */
 
-- (void)scrollViewDidScroll:(UIScrollView *)scrollView
-{
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     [scrollView setContentOffset: CGPointZero];
 }
 
 /* ------------------------------------------------------------- */
 
-- (void)dealloc
-{
+- (void)dealloc {
     NSNotificationCenter* nc = [NSNotificationCenter defaultCenter];
 
     [nc removeObserver:self name:UIKeyboardWillShowNotification object:nil];
@@ -115,8 +119,7 @@
 
 /* ------------------------------------------------------------- */
 
-- (void) disableScroll:(CDVInvokedUrlCommand*)command
-{
+- (void) disableScroll:(CDVInvokedUrlCommand*)command {
     if (!command.arguments || ![command.arguments count]){
       return;
     }
@@ -125,8 +128,7 @@
     self.disableScroll = [value boolValue];
 }
 
-- (void) hideKeyboardAccessoryBar:(CDVInvokedUrlCommand*)command
-{
+- (void) hideKeyboardAccessoryBar:(CDVInvokedUrlCommand*)command {
     if (!command.arguments || ![command.arguments count]){
       return;
     }
@@ -135,13 +137,12 @@
     self.hideKeyboardAccessoryBar = [value boolValue];
 }
 
-- (void) close:(CDVInvokedUrlCommand*)command
-{
+- (void) close:(CDVInvokedUrlCommand*)command {
     [self.webView endEditing:YES];
 }
 
-- (void) styleDark:(CDVInvokedUrlCommand*)command
-{
+/*
+- (void) styleDark:(CDVInvokedUrlCommand*)command {
     if (!command.arguments || ![command.arguments count]){
       return;
     }
@@ -149,6 +150,7 @@
     
     self.styleDark = [value boolValue];
 }
+*/
 
 @end
 
