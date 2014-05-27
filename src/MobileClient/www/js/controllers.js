@@ -87,7 +87,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular) {
+    .controller('UserCtrl', function ($scope, $stateParams, Restangular) {
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
@@ -135,7 +135,7 @@ angular.module('starter.controllers', [])
             $scope.users = [];
         };
 
-        //Cleanup the modal when we're done with it (avoid memory leaks)
+        // Cleanup the modal when we're done with it (avoid memory leaks)
         $scope.$on('$destroy', function () {
             $scope.users = [];
             $scope.modal.remove();

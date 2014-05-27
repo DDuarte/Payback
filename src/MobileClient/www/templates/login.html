@@ -10,7 +10,7 @@
                 Login with your local account
             </div>
             <div class="item item-text-wrap">
-                <ng-form name="localLoginForm">
+                <form name="localLoginForm" ng-submit="localLoginForm.$valid && localLogin(user)">
                     <div class="list">
                         <label class="item item-input">
                             <span class="input-label">User ID</span>
@@ -29,7 +29,7 @@
                             <a href="#/signup">Don't have an account?</a>
                         </p>
                     </div>
-                </ng-form>
+                </form>
             </div>
         </div>
         <div class="padding">
