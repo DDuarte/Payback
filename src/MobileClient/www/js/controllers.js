@@ -22,24 +22,30 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('LoginCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
+    .controller('LoginCtrl', function ($scope, $state, $ionicLoading, Restangular, AuthService, AlertPopupService) {
         $scope.login = function () {
             $state.go('app.search');
         };
-
+		
         $scope.localLogin = function (user) {
-
+			$ionicLoading.show({
+				  template: 'Logging in...'
+				});
             Restangular.all('login').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
-                $state.go('app.search');
+				$ionicLoading.hide();
+                $state.go('app.debts');
             }, function (response) {
+				$ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
+				
             });
 
         }
+		
     })
 
     .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
