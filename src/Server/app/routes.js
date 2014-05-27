@@ -4,13 +4,7 @@ var accounting = require("accounting");
 var crypto = require('crypto-js');
 var moment = require('moment');
 
-var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
-
 module.exports = function (server, passport, fx, jwt) {
-
-    /*server.all("/users", isLoggedIn);
-    server.all("/users/*", isLoggedIn);*/
-
     //server.all("/", validChecksum);
     //server.all("/*", validChecksum);
 
@@ -32,8 +26,6 @@ module.exports = function (server, passport, fx, jwt) {
                 if (err)
                     return res.send(401);
 
-                var avatar = user.avatar || defaultAvatar;
-
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
@@ -43,7 +35,7 @@ module.exports = function (server, passport, fx, jwt) {
                         id: user.id,
                         email: user.email,
                         currency: user.currency,
-                        avatar: avatar
+                        avatar: user.avatar
                     }
                 });
             });
@@ -64,8 +56,6 @@ module.exports = function (server, passport, fx, jwt) {
                 if (err)
                     return res.send(401);
 
-                var avatar = user.avatar || defaultAvatar;
-
                 var expires = moment().add('days', 7).valueOf();
                 var token = generateToken(user.id, expires);
                 res.send(200, {
@@ -75,7 +65,7 @@ module.exports = function (server, passport, fx, jwt) {
                         id: user.id,
                         email: user.email,
                         currency: user.currency,
-                        avatar: avatar
+                        avatar: user.avatar
                     }
                 });
             });
@@ -286,13 +276,11 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
-            var avatar = user.avatar || defaultAvatar;
-
             res.json(200, {
                 id: user.id,
                 email: user.email,
                 currency: user.currency,
-                avatar: avatar
+                avatar: user.avatar
             });
         });
 
@@ -334,13 +322,11 @@ module.exports = function (server, passport, fx, jwt) {
                     return;
                 }
 
-                var avatar = user.avatar || defaultAvatar;
-
                 res.json(200, {
                     id: user.id,
                     email: user.email,
                     currency: user.currency,
-                    avatar: avatar
+                    avatar: user.avatar
                 });
             });
         });
@@ -743,7 +729,7 @@ module.exports = function (server, passport, fx, jwt) {
                 }
 
                 friends = friends.map(function (user) {
-                    return { id: user.id };
+                    return { id: user.id, avatar: user.avatar };
                 });
 
                 var obj = {
@@ -837,7 +823,7 @@ module.exports = function (server, passport, fx, jwt) {
             }
 
             users = users.map(function (user) {
-                return {id: user.id};
+                return { id: user.id, avatar: user.avatar };
             });
 
             if (!req.query.search)
@@ -904,17 +890,6 @@ module.exports = function (server, passport, fx, jwt) {
             res.json(201, {id: item.id, email: item.email });
         });
     });
-
-    // make sure user is authenticated
-    function isLoggedIn(req, res, next) {
-
-        // if user is authenticated in the session, carry on
-        if (req.isAuthenticated())
-            return next();
-
-        // if not, then stop the chain flow
-        res.json(403, { error: "No permission" });
-    }
 
     // asynchronous version of the fuzzy evaluation function defined above
     function asyncFuzzyTest(searchTerm, user, callback) {

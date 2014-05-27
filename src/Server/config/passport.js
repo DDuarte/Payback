@@ -8,6 +8,8 @@ var TwitterStrategy = require('passport-twitter').Strategy;
 // load the auth variables
 var configAuth = require('./auth');
 
+var crypto = require('crypto-js');
+
 module.exports = function (passport) {
 
     passport.serializeUser(function (user, done) {
@@ -42,7 +44,8 @@ module.exports = function (passport) {
                     if (exists)
                         return done(null, false, { error: "That id is already taken." });
 
-                    req.models.user.exists({ email: req.body.email }, function (err, exists) {
+                    var email = req.body.email;
+                    req.models.user.exists({ email: email }, function (err, exists) {
 
                         if (err)
                             return done(err);
@@ -50,10 +53,14 @@ module.exports = function (passport) {
                         if (exists)
                             return done(null, false, { error: "That email is already taken." });
 
+                        var avatar = 'http://www.gravatar.com/avatar/' + crypto.MD5(email.trim().toLowerCase());
+
                         req.models.user.create({
                                 id: id,
                                 passwordHash: password,
-                                email: req.body.email
+                                email: email,
+                                avatar: avatar,
+                                currency: req.body.currency
                             },
                             function (err, userItem) {
 
