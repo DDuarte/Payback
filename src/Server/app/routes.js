@@ -4,6 +4,24 @@ var accounting = require("accounting");
 var crypto = require('crypto-js');
 var moment = require('moment');
 
+var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+
+function public_user_info(user) {
+    return {
+        id: user.id,
+        avatar: user.avatar || defaultAvatar
+    }
+}
+
+function protected_user_info(user) {
+    return {
+        id: user.id,
+        email: user.email,
+        currency: user.currency,
+        avatar: user.avatar || defaultAvatar
+    }
+}
+
 module.exports = function (server, passport, fx, jwt) {
     //server.all("/", validChecksum);
     //server.all("/*", validChecksum);
@@ -31,12 +49,7 @@ module.exports = function (server, passport, fx, jwt) {
                 res.send(200, {
                     access_token: token,
                     exp: expires,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        currency: user.currency,
-                        avatar: user.avatar
-                    }
+                    user: protected_user_info(user)
                 });
             });
         })(req, res);
@@ -61,12 +74,7 @@ module.exports = function (server, passport, fx, jwt) {
                 res.send(200, {
                     access_token: token,
                     exp: expires,
-                    user: {
-                        id: user.id,
-                        email: user.email,
-                        currency: user.currency,
-                        avatar: user.avatar
-                    }
+                    user: protected_user_info(user)
                 });
             });
         })(req, res);
@@ -276,14 +284,12 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
-            res.json(200, {
-                id: user.id,
-                email: user.email,
-                currency: user.currency,
-                avatar: user.avatar
-            });
+            if (req.user && req.user.id == user.id) {
+                res.json(protected_user_info(user));
+            } else {
+                res.json(public_user_info(user));
+            }
         });
-
     });
 
     // PATCH /users/{id}
@@ -322,12 +328,7 @@ module.exports = function (server, passport, fx, jwt) {
                     return;
                 }
 
-                res.json(200, {
-                    id: user.id,
-                    email: user.email,
-                    currency: user.currency,
-                    avatar: user.avatar
-                });
+                res.json(protected_user_info(user));
             });
         });
 
@@ -728,9 +729,7 @@ module.exports = function (server, passport, fx, jwt) {
                     return;
                 }
 
-                friends = friends.map(function (user) {
-                    return { id: user.id, avatar: user.avatar };
-                });
+                friends = friends.map(public_user_info);
 
                 var obj = {
                     "total": friends.length,
@@ -822,9 +821,7 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
-            users = users.map(function (user) {
-                return { id: user.id, avatar: user.avatar };
-            });
+            users = users.map(public_user_info);
 
             if (!req.query.search)
                 res.json(200, {
@@ -876,7 +873,7 @@ module.exports = function (server, passport, fx, jwt) {
             email: req.body.email,
             currency: req.body.currency,
             avatar: req.body.avatar // can be empty
-        }, function (err, item) {
+        }, function (err, user) {
             if (err) {
                 if (err.code == 23505) { // unique_violation
                     return next("Already exists");
@@ -887,7 +884,7 @@ module.exports = function (server, passport, fx, jwt) {
                 }
             }
 
-            res.json(201, {id: item.id, email: item.email });
+            res.json(201, protected_user_info(user));
         });
     });
 
