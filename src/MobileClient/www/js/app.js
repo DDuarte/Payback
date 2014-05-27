@@ -4,9 +4,9 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ngStorage'])
+angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ngCookies'])
 
-    .run(function ($ionicPlatform) {
+    .run(function ($ionicPlatform, $cookieStore, AuthService) {
         $ionicPlatform.ready(function () {
             // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
             // for form inputs)
@@ -45,11 +45,28 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 return null;
         }
 
-        function CurrentUser() {
+        this.token = token;
+
+        function loadFromCookie(cookieStore) {
+            var user = cookieStore.get('user');
+            var access_token = cookieStore.get('token');
+
+            if (user && access_token) {
+                currentUser = user;
+                currentUser.access_token = access_token;
+            }
+        }
+
+        function CurrentUser($cookieStore) {
+
+            this.storage = $cookieStore;
+
             this.login = function (user, access_token) {
                 if (user && access_token) {
                     currentUser = user;
                     currentUser.access_token = access_token;
+                    this.storage.put('user', user);
+                    this.storage.put('token', access_token);
                 }
             };
 
@@ -68,20 +85,19 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             this.token = token;
         }
 
-        this.$get = function() {
-            return new CurrentUser();
-        }
+        this.$get = ["$cookieStore", function ($cookieStore) {
+            return new CurrentUser($cookieStore);
+        }];
     })
 
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
         RestangularProvider.setBaseUrl('http://localhost:1337');
-        //RestangularProvider.setDefaultHeaders({"x-access-token": $sessionStorage.access_token});
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, queryParameters) {
             return {
-                headers: _.extend(headers, {'x-access-token': AuthServiceProvider.$get().token()})
+                headers: _.extend(headers, {'x-access-token': AuthServiceProvider.token()})
             }
         });
 

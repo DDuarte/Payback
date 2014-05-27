@@ -1,10 +1,14 @@
 angular.module('starter.controllers', [])
 
-    .controller('AppCtrl', function ($scope, $state, $ionicSideMenuDelegate, AuthService) {
+    .controller('AppCtrl', function ($scope, $state, $ionicSideMenuDelegate, $cookieStore, AuthService) {
 
         $scope.toggleLeft = function () {
             $ionicSideMenuDelegate.toggleLeft();
         };
+
+        var user = $cookieStore.get('user');
+        var access_token = $cookieStore.get('token');
+        AuthService.login(user, access_token, $cookieStore);
 
         // watch for any changes in the loggedIn status
         $scope.$watch(AuthService.isLoggedIn, function (isLoggedIn) {
