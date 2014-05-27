@@ -35,6 +35,11 @@ module.exports = function (passport) {
                 if (!req.body.email)
                     return done(null, false, { error: "Attribute 'email' is missing." });
 
+                var mailRegex  = /^[a-z0-9\._%\+\-]+@[a-z0-9\.\-]+\.[a-z]{2,6}$/;
+
+                if (mailRegex.exec(req.body.email) == null)
+                    return done(null, false, { error: "Invalid email format." });
+
                 req.models.user.exists({ id: id }, function (err, exists) {
 
                     if (err)
