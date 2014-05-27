@@ -15,7 +15,7 @@
             </header>
             <ion-content class="has-header" has_header="true">
                 <div class="list">
-                    <a class="item item-thumbnail-left" href="#">
+                    <a class="item item-thumbnail-left" ui-sref="app.user({userId: currentUser.id})" href="#">
                         <img src="{{currentUser.avatar}}">
                         {{currentUser.id}}<br><br>
                         {{currentUser.email}}
