@@ -33,7 +33,6 @@ angular.module('starter.controllers', [])
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
             }).then(function (data) {
-                console.log(data);
                 AuthService.login(data.user, data.access_token);
                 $state.go('app.search');
             }, function (response) {

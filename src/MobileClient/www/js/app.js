@@ -47,13 +47,10 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
 
         function CurrentUser() {
             this.login = function (user, access_token) {
-
                 if (user && access_token) {
                     currentUser = user;
                     currentUser.access_token = access_token;
-
                 }
-
             };
 
             this.logout = function () {
