@@ -57,7 +57,7 @@ module.exports = function (server, passport, fx, jwt) {
     });
 
     // POST /signup/local
-    server.post("/signup/local", function (req, res) {
+    server.post("/signup/local", function (req, res, next) {
 
         passport.authenticate('local-signup', function (err, user, info) {
 
@@ -77,7 +77,7 @@ module.exports = function (server, passport, fx, jwt) {
                     user: protected_user_info(user)
                 });
             });
-        })(req, res);
+        })(req, res, next);
 
     });
 
@@ -85,6 +85,7 @@ module.exports = function (server, passport, fx, jwt) {
     server.get("/login/facebook", function (req, res, next) {
         passport.authenticate('facebook-login', { scope: 'email' })(req, res, next);
     });
+
 
     // GET /login/facebook/callback
     server.get("/login/facebook/callback", function (req, res) {
