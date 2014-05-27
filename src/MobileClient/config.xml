@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.ionicframework.starter" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.ionicframework.starter" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Payback</name>
     <description>
         The place where you get paidback.
@@ -19,7 +19,11 @@
     -->
     <preference name="BackupWebStorage" value="none" />
 
-    <feature name="StatusBar">
-      <param name="ios-package" value="CDVStatusBar" onload="true" />
+    <gap:plugin name="org.apache.cordova.inappbrowser" />
+    <feature name="InAppBrowser">
+        <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser" />
+    </feature>
+    <feature name="InAppBrowser">
+        <param name="ios-package" value="CDVInAppBrowser" />
     </feature>
 </widget>

@@ -93,6 +93,14 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             }
         });
 
+        /*OAuthProvider.setPublicKey('Er6QTrouxLQowqHiw5SScL78y24');
+        OAuthProvider.setHandler("Facebook", function(result) {
+            console.log("here");
+            console.log(result);
+        });*/
+
+        OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24');
+
         // configure states
         $stateProvider
 

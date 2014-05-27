@@ -48,7 +48,18 @@ angular.module('starter.controllers', [])
 				
             });
 
-        }
+        };
+
+        $scope.facebookLogin = function() {
+            OAuth.popup("facebook", function(err, res) {
+                if (err) {
+                    console.log("Error");
+                }
+                else {
+                    console.log("success: " + res);
+                }
+            });
+        };
 		
     })
 
