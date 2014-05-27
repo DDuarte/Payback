@@ -40,7 +40,7 @@ angular.module('starter.controllers', [])
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
-				$ionicLoading.hide();
+                $ionicLoading.hide();
                 $state.go('app.debts');
             }, function (response) {
 				$ionicLoading.hide();
@@ -101,9 +101,56 @@ angular.module('starter.controllers', [])
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
-    .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService) {
+    .controller('DebtsCtrl', function ($scope, $stateParams, Restangular, AuthService) {
+        if (AuthService.currentUser())
+            $scope.currentUserId = AuthService.currentUser().id;
 
-        $scope.currentUserId = AuthService.currentUser().id;
+        $scope.isOwner = function(userId) {
+            return $stateParams.userId === userId;
+        };
+
+        $scope.debts = {
+            "total": 2,
+            "balance": -3.4,
+            "credit": 0,
+            "debit": 3.4,
+            "currency": "EUR",
+            "debts":
+                [
+                    {
+                        "debtId": 1,
+                        "creditor": "john",
+                        "debtor": "janeroe",
+                        "originalValue": 100,
+                        "value": 0,
+                        "currency": "EUR",
+                        "created": "2014-04-14T11:29Z",
+                        "modified": "2014-04-15T09:10Z"
+                    },
+                    {
+                        "debtId": 2,
+                        "creditor": "smith",
+                        "debtor": "john",
+                        "user": "smith",
+                        "originalValue": 5.4,
+                        "value": 3.4,
+                        "currency": "EUR",
+                        "created": "2014-04-16T08:30Z",
+                        "modified": "2014-04-17T10:30Z"
+                    }
+                ]
+        };
+
+        /*
+        Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
+            $scope.debts = data.debts;
+        });*/
+    })
+
+    .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
+        if (AuthService.currentUser())
+            $scope.currentUserId = AuthService.currentUser().id;
+
         $scope.isOwner = function(userId) {
             return $stateParams.userId === userId;
         };

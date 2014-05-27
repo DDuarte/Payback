@@ -152,6 +152,16 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 }
             })
 
+            .state('app.debts', {
+                url: "/users/:userId/debts",
+                views: {
+                    'app': {
+                        templateUrl: "templates/debts.html",
+                        controller: 'DebtsCtrl'
+                    }
+                }
+            })
+
             .state('app.friends', {
                 url: "/users/:userId/friends",
                 views: {

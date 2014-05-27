@@ -1,0 +1,15 @@
+<ion-view title="Debts">
+    <ion-header-bar class="bar-light bar-subheader">
+        <input type="search"
+               placeholder="Filter debts..."
+               ng-model="searchText.id">
+    </ion-header-bar>
+    <ion-content class="has-header">
+        <ion-list>
+            <ion-item ng-repeat="debt in debts.debts" href="#/app/users/{{friend.id}}"
+                      class="item-avatar-left">
+                debt
+            </ion-item>
+        </ion-list>
+    </ion-content>
+</ion-view>
