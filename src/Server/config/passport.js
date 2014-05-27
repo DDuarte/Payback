@@ -3,7 +3,6 @@
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var GoogleStrategy = require('passport-google').Strategy;
-var TwitterStrategy = require('passport-twitter').Strategy;
 
 // load the auth variables
 var configAuth = require('./auth');
@@ -94,52 +93,6 @@ module.exports = function (passport) {
                 return done(null, user);
             });
         }));
-
-    passport.use(new TwitterStrategy({
-
-            consumerKey: configAuth.twitterAuth.consumerKey,
-            consumerSecret: configAuth.twitterAuth.consumerSecret,
-            callbackURL: configAuth.twitterAuth.callbackURL,
-            passReqToCallback: true
-        },
-        function (req, token, refreshToken, profile, done) {
-            // asynchronous
-            process.nextTick(function () {
-
-                req.models.user.create({
-                        id: req.body.id,
-                        email: req.body.email
-                    },
-                    function (err, newLocalUser) {
-
-                        if (err)
-                            return done(err);
-
-                        req.models.twitter.create({
-                                id: profile.id,
-                                token: token,
-                                displayName: profile.username,
-                                localAccount_id: newLocalUser.id
-                            },
-                            function (err, newTwitterUser) {
-
-                                if (err)
-                                    return done(err);
-
-                                newLocalUser.setTwitterAccount(newTwitterUser, function (err) {
-
-                                    if (err)
-                                        return done(err);
-
-                                    return done(null, newLocalUser);
-                                });
-
-                            });
-                    });
-            });
-
-        }));
-
 
     // Facebook strategies =============================================================================================
 

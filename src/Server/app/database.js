@@ -43,15 +43,6 @@ module.exports = function (db, models) {
     user.hasOne("facebookAccount", facebook);
     facebook.hasOne("localAccount", user, { required: true }); // every facebook account has to be linked to a local account
 
-    var twitter = db.define("twitter", {
-        id: {type: "text", required: true },
-        token: { type: "text", required: true, unique: true },
-        displayName: { type: "text", required: true }
-    });
-
-    user.hasOne("twitterAccount", twitter);
-    twitter.hasOne("localAccount", user, { required: true }); // every twitter account has to be linked to a local account
-
     var google = db.define("google", {
         id: { type: "text", required: true },
         token: { type: "text", unique: true }, // we're using OpenID instead of OAuth 2.0, tokens are not provided :(
@@ -95,7 +86,6 @@ module.exports = function (db, models) {
     models.user = user;
     models.debt = debt;
     models.facebook = facebook;
-    models.twitter = twitter;
     models.google = google;
 
     db.sync(function (err) {
