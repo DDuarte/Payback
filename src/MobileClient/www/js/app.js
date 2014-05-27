@@ -47,16 +47,6 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
 
         this.token = token;
 
-        function loadFromCookie(cookieStore) {
-            var user = cookieStore.get('user');
-            var access_token = cookieStore.get('token');
-
-            if (user && access_token) {
-                currentUser = user;
-                currentUser.access_token = access_token;
-            }
-        }
-
         function CurrentUser($cookieStore) {
 
             this.storage = $cookieStore;
@@ -71,6 +61,8 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             };
 
             this.logout = function () {
+                this.storage.remove('user');
+                this.storage.remove('token');
                 currentUser = null;
             };
 
