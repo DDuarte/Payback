@@ -4,7 +4,7 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 // 'starter.controllers' is found in controllers.js
-angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ngCookies'])
+angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ngCookies', 'dx'])
 
     .run(function ($ionicPlatform, $cookieStore, AuthService) {
         $ionicPlatform.ready(function () {
@@ -123,15 +123,6 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                     'app': {
                         templateUrl: 'templates/user.html',
                         controller: 'UserCtrl'
-                    }
-                }
-            })
-
-            .state('app.browse', {
-                url: '/browse',
-                views: {
-                    'app': {
-                        templateUrl: 'templates/browse.html'
                     }
                 }
             })
