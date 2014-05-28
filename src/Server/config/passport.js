@@ -37,7 +37,7 @@ module.exports = function (passport) {
 
                 var mailRegex  = /^[a-z0-9\._%\+\-]+@[a-z0-9\.\-]+\.[a-z]{2,6}$/;
 
-                if (mailRegex.exec(req.body.email) == null)
+                if (!mailRegex.test(req.body.email))
                     return done(null, false, { error: "Invalid email format." });
 
                 req.models.user.exists({ id: id }, function (err, exists) {

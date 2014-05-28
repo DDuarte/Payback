@@ -30,11 +30,11 @@ angular.module('starter.controllers', [])
         $scope.login = function () {
             $state.go('app.search');
         };
-		
+        
         $scope.localLogin = function (user) {
-			$ionicLoading.show({
-				  template: 'Logging in...'
-				});
+            $ionicLoading.show({
+                  template: 'Logging in...'
+                });
             Restangular.all('login').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
@@ -43,7 +43,7 @@ angular.module('starter.controllers', [])
                 $ionicLoading.hide();
                 $state.go('app.debts');
             }, function (response) {
-				$ionicLoading.hide();
+                $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
             });
         };
@@ -60,7 +60,7 @@ angular.module('starter.controllers', [])
         };
     })
 
-    .controller('SignupCtrl', function ($scope, $state, Restangular, AuthService, AlertPopupService) {
+    .controller('SignupCtrl', function ($scope, $state, $ionicLoading, Restangular, AuthService, AlertPopupService) {
 
         $scope.currencies = [
             "AUD", "BGN", "BRL", "CAD",
@@ -75,8 +75,12 @@ angular.module('starter.controllers', [])
         ];
 
         $scope.currency = $scope.currencies[$scope.currencies.indexOf("EUR")];
-
+        
         $scope.signup = function (user) {
+             $ionicLoading.show({
+                    template: 'Signing up new account...'
+                });
+        
             Restangular.all('signup').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
@@ -84,8 +88,10 @@ angular.module('starter.controllers', [])
                 currency: $scope.currency
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
+                $ionicLoading.hide();
                 $state.go('app.search');
             }, function (response) {
+                $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
             });
         }
