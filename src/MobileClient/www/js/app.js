@@ -166,6 +166,16 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 }
             })
 
+            .state('app.map', {
+                url: "/map",
+                views: {
+                    'app': {
+                        templateUrl: "templates/map.html",
+                        controller: "MapCtrl"
+                    }
+                }
+            })
+
             .state('app.single', {
                 url: '/friends/:friendId',
                 views: {
