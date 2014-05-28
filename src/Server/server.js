@@ -2,7 +2,6 @@
 
 // set up ======================================================================
 // get all the tools we need
-//var crypto = require('crypto-js');
 
 var express = require('express'),
     morgan  = require('morgan'),
