@@ -30,11 +30,11 @@ angular.module('starter.controllers', [])
         $scope.login = function () {
             $state.go('app.search');
         };
-        
+
         $scope.localLogin = function (user) {
             $ionicLoading.show({
-                  template: 'Logging in...'
-                });
+                template: 'Logging in...'
+            });
             Restangular.all('login').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex)
@@ -48,13 +48,25 @@ angular.module('starter.controllers', [])
             });
         };
 
-        $scope.facebookLogin = function() {
-            OAuth.popup("facebook", function(err, res) {
+        $scope.facebookLogin = function () {
+            OAuth.popup("facebook", function (err, res) {
                 if (err) {
-                    console.log("Error");
+                    AlertPopupService.createPopup("Error", err);
                 }
                 else {
-                    console.log("success: " + res);
+                    $ionicLoading.show({
+                        template: 'Logging in...'
+                    });
+                    Restangular.all('login').all('facebook').post({
+                        token: res.access_token
+                    }).then(function(data) {
+                        AuthService.login(data.user, data.access_token);
+                        $ionicLoading.hide();
+                    },
+                    function(response) {
+                        $ionicLoading.hide();
+                        AlertPopupService.createPopup("Error", response.data.error);
+                    });
                 }
             });
         };
@@ -75,12 +87,12 @@ angular.module('starter.controllers', [])
         ];
 
         $scope.currency = $scope.currencies[$scope.currencies.indexOf("EUR")];
-        
+
         $scope.signup = function (user) {
-             $ionicLoading.show({
-                    template: 'Signing up new account...'
-                });
-        
+            $ionicLoading.show({
+                template: 'Signing up new account...'
+            });
+
             Restangular.all('signup').all('local').post({
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
@@ -120,7 +132,7 @@ angular.module('starter.controllers', [])
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;
 
-        $scope.isOwner = function(userId) {
+        $scope.isOwner = function (userId) {
             return $stateParams.userId === userId;
         };
 
@@ -130,43 +142,42 @@ angular.module('starter.controllers', [])
             "credit": 0,
             "debit": 3.4,
             "currency": "EUR",
-            "debts":
-                [
-                    {
-                        "debtId": 1,
-                        "creditor": "john",
-                        "debtor": "janeroe",
-                        "originalValue": 100,
-                        "value": 0,
-                        "currency": "EUR",
-                        "created": "2014-04-14T11:29Z",
-                        "modified": "2014-04-15T09:10Z"
-                    },
-                    {
-                        "debtId": 2,
-                        "creditor": "smith",
-                        "debtor": "john",
-                        "user": "smith",
-                        "originalValue": 5.4,
-                        "value": 3.4,
-                        "currency": "EUR",
-                        "created": "2014-04-16T08:30Z",
-                        "modified": "2014-04-17T10:30Z"
-                    }
-                ]
+            "debts": [
+                {
+                    "debtId": 1,
+                    "creditor": "john",
+                    "debtor": "janeroe",
+                    "originalValue": 100,
+                    "value": 0,
+                    "currency": "EUR",
+                    "created": "2014-04-14T11:29Z",
+                    "modified": "2014-04-15T09:10Z"
+                },
+                {
+                    "debtId": 2,
+                    "creditor": "smith",
+                    "debtor": "john",
+                    "user": "smith",
+                    "originalValue": 5.4,
+                    "value": 3.4,
+                    "currency": "EUR",
+                    "created": "2014-04-16T08:30Z",
+                    "modified": "2014-04-17T10:30Z"
+                }
+            ]
         };
 
         /*
-        Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
-            $scope.debts = data.debts;
-        });*/
+         Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
+         $scope.debts = data.debts;
+         });*/
     })
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;
 
-        $scope.isOwner = function(userId) {
+        $scope.isOwner = function (userId) {
             return $stateParams.userId === userId;
         };
 
@@ -185,8 +196,8 @@ angular.module('starter.controllers', [])
                 });
         };
 
-        $scope.isFriend = function(user) {
-            return _.some($scope.friends, function(friend) {
+        $scope.isFriend = function (user) {
+            return _.some($scope.friends, function (friend) {
                 return user.id === friend.id;
             });
         };
@@ -236,7 +247,7 @@ angular.module('starter.controllers', [])
             });
         };
 
-        Restangular.one('users', $stateParams.userId).one('friends').get().then(function(data) {
+        Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
         });
     })
@@ -299,6 +310,7 @@ angular.module('starter.controllers', [])
 
         initialize();
     })
+
     .controller('FriendCtrl', function ($scope, $stateParams) {
 
     });
