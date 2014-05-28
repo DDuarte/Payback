@@ -568,14 +568,10 @@ module.exports = function (server, passport, fx, jwt) {
                             });
 
                         });
-
                     });
                 });
             });
-
-
         });
-
     });
 
     // POST /users/{id}/debts

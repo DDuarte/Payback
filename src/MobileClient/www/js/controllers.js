@@ -41,7 +41,7 @@ angular.module('starter.controllers', [])
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
                 $ionicLoading.hide();
-                $state.go('app.debts');
+                $state.go('app.debts', { userId: data.user.id});
             }, function (response) {
                 $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
@@ -88,8 +88,9 @@ angular.module('starter.controllers', [])
                 currency: $scope.currency
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
+
                 $ionicLoading.hide();
-                $state.go('app.search');
+                $state.go('app.debts', { userId: data.user.id});
             }, function (response) {
                 $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
