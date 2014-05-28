@@ -77,7 +77,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             this.token = token;
         }
 
-        this.$get = ["$cookieStore", function ($cookieStore) {
+        this.$get = ['$cookieStore', function ($cookieStore) {
             return new CurrentUser($cookieStore);
         }];
     })
@@ -99,49 +99,49 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         $stateProvider
 
             .state('login', {
-                url: "/login",
-                templateUrl: "templates/login.html",
-                controller: "LoginCtrl"
+                url: '/login',
+                templateUrl: 'templates/login.html',
+                controller: 'LoginCtrl'
             })
 
             .state('signup', {
-                url: "/signup",
-                templateUrl: "templates/signup.html",
-                controller: "SignupCtrl"
+                url: '/signup',
+                templateUrl: 'templates/signup.html',
+                controller: 'SignupCtrl'
             })
 
             .state('app', {
-                url: "/app",
+                url: '/app',
                 abstract: true,
-                templateUrl: "templates/menu.html",
+                templateUrl: 'templates/menu.html',
                 controller: 'AppCtrl'
             })
 
             .state('app.user', {
-                url: "/users/:userId",
+                url: '/users/:userId',
                 views: {
                     'app': {
-                        templateUrl: "templates/user.html",
-                        controller: "UserCtrl"
+                        templateUrl: 'templates/user.html',
+                        controller: 'UserCtrl'
                     }
                 }
             })
 
             .state('app.search', {
-                url: "/search",
+                url: '/search',
                 views: {
                     'app': {
-                        templateUrl: "templates/search.html",
-                        controller: "SearchCtrl"
+                        templateUrl: 'templates/search.html',
+                        controller: 'SearchCtrl'
                     }
                 }
             })
 
             .state('app.browse', {
-                url: "/browse",
+                url: '/browse',
                 views: {
                     'app': {
-                        templateUrl: "templates/browse.html"
+                        templateUrl: 'templates/browse.html'
                     }
                 }
             })
@@ -157,20 +157,20 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             })
 
             .state('app.friends', {
-                url: "/users/:userId/friends",
+                url: '/users/:userId/friends',
                 views: {
                     'app': {
-                        templateUrl: "templates/friends.html",
+                        templateUrl: 'templates/friends.html',
                         controller: 'FriendsCtrl'
                     }
                 }
             })
 
             .state('app.single', {
-                url: "/friends/:friendId",
+                url: '/friends/:friendId',
                 views: {
                     'app': {
-                        templateUrl: "templates/friend.html",
+                        templateUrl: 'templates/friend.html',
                         controller: 'FriendCtrl'
                     }
                 }
