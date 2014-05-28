@@ -127,16 +127,6 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                 }
             })
 
-            .state('app.search', {
-                url: '/search',
-                views: {
-                    'app': {
-                        templateUrl: 'templates/search.html',
-                        controller: 'SearchCtrl'
-                    }
-                }
-            })
-
             .state('app.browse', {
                 url: '/browse',
                 views: {

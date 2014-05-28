@@ -110,20 +110,6 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('SearchCtrl', function ($scope, $state, Restangular) {
-        $scope.searchUsers = function (textSearch) {
-
-            if (textSearch.length === 0) {
-                $scope.users = [];
-                return;
-            }
-
-            Restangular.one('users').get({"search": textSearch}).then(function (data) {
-                $scope.users = data.users;
-            });
-        }
-    })
-
     .controller('UserCtrl', function ($scope, $stateParams, Restangular) {
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
