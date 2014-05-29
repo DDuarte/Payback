@@ -149,7 +149,7 @@ angular.module('starter.controllers', [])
 
     })
 
-    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService) {
+    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService) {
         var dataStore = new DevExpress.data.ArrayStore({
             key: 'name',
             data: [
@@ -244,7 +244,6 @@ angular.module('starter.controllers', [])
                 Restangular.one('users', $stateParams.userId).one('friends').get().then(function(data) {
                     $scope.friends = data.friends;
                 });
-
                 $scope.owingMoney = res;
                 $scope.friendsModal.show();
             });
@@ -283,7 +282,9 @@ angular.module('starter.controllers', [])
             scope: $scope,  /// Give the modal access to the parent scope
             animation: 'slide-in-right',
             focusFirstInput: true
-        });
+        }).then(function(modal) {
+            $scope.modal = modal;
+          });
 
         $scope.openCreateDebtModal = function () {
             $scope.createDebtModal.show();
@@ -292,15 +293,32 @@ angular.module('starter.controllers', [])
         $scope.closeCreateDebtModal = function () {
             $scope.createDebtModal.hide();
         };
+        
 
         $scope.commitDebts = function () {
-
+            
             $scope.friends.forEach(function (friend) {
                 if (!friend.isChecked)
                     return;
+                
+                if ($scope.owingMoney) {
+                    creditor =  $stateParams.userId;
+                    debitor = friend.id;
+                }
+                else {
+                    creditor =  friend.id;
+                    debitor = $stateParams.userId;
+                }
+                
 
-                Restangular.one('users', $stateParams.userId).one('debts').post({
-                    // ...
+                Restangular.one('users', debitor).all('debts').post({
+                    user: creditor,
+                    value: $scope.amount / $scope.countCheckedPayingFriends(),
+                    currency: AuthService.currentUser().currency
+                }).then(function(data) {
+                //
+                }, function(response) {
+                    AlertPopupService.createPopup('Error', response.error);
                 });
             });
 
