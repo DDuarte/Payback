@@ -86,27 +86,26 @@ module.exports = function (server, passport, fx, jwt) {
     server.post("/login/facebook", function (req, res, next) {
 
         if (!req.body.token) {
-            console.log("Error");
             return res.json(400, {error: "Missing facebook token"});
         }
 
         request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
             if (error || response.statusCode != 200) {
-                console.log("Error: " + error);
                 return res.json(400, { error: "Invalid facebook access token" });
             }
 
-            console.log(body);
-            var profile = body;
+
+            var profile = JSON.parse(body);
 
             if (profile.verified === false)
                 return res.json(400, { error: "Facebook account not verified" });
 
             req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
 
-                if (err || !facebookUser)
+                if (err || !facebookUser) {
                     return res.json(400, { error: "User not found" });
+                }
 
                 facebookUser.getLocalAccount(function (err, localUser) {
 
@@ -115,7 +114,8 @@ module.exports = function (server, passport, fx, jwt) {
 
                     var expires = moment().add('days', 7).valueOf();
                     var token = generateToken(localUser.id, expires);
-                    return res.json(200, {
+                    var ret = {
+                        access_token: token,
                         user: {
                             id: localUser.id,
                             email: localUser.email,
@@ -123,10 +123,9 @@ module.exports = function (server, passport, fx, jwt) {
                                 email: profile.email,
                                 access_token: req.body.token
                             }
-                        },
-                        access_token: token,
-                        exp: expires
-                    });
+                    }};
+
+                    res.json(200, ret);
                 });
             });
         });
@@ -155,21 +154,21 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // POST /signup/facebook/{id}
+    // POST /signup/facebook
     server.post("/signup/facebook", function (req, res, next) {
 
         if (!req.body.token) {
             return res.json(401, {error: "Missing facebook token"});
         }
 
+
         request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
             if (error || response.statusCode != 200) {
-                console.log("Error: " + error);
                 return res.json(401, { error: "Invalid facebook access token" });
             }
 
-            var profile = body;
+            var profile = JSON.parse(body);
             if (profile.verified === false)
                 return res.json(401, { error: "Facebook account not verified" });
 
@@ -191,39 +190,44 @@ module.exports = function (server, passport, fx, jwt) {
                         email: profile.email
                     }, function (err, localUser) {
 
-                        if (err || !localUser)
+                        if (err || !localUser) {
                             return res.json(401, { error: err});
+                        }
 
                         req.models.facebook.create({
                                 id: profile.id,
                                 token: req.body.token,
                                 displayName: profile.displayName,
-                                email: profile.emails,
+                                email: profile.email,
                                 localaccount_id: localUser.id
                             },
                             function (err, newFacebookUser) {
 
-                                if (err || !newFacebookUser)
+                                if (err || !newFacebookUser) {
                                     return res.json(401, { error: err });
+                                }
 
                                 localUser.setFacebookAccount(newFacebookUser, function (err) {
 
-                                    if (err)
+                                    if (err) {
                                         return res.json(401, { error: err });
+                                    }
 
                                     var expires = moment().add('days', 7).valueOf();
-                                    var token = generateToken(user.id, expires);
-                                    return res.json(200, {
+                                    var token = generateToken(localUser.id, expires);
+                                    var ret = {
+                                        access_token: token,
                                         user: {
-                                            id: localUser,
+                                            id: localUser.id,
                                             email: localUser.email,
-                                            access_token: token,
                                             facebookAccount: {
                                                 email: newFacebookUser.email,
                                                 access_token: newFacebookUser.token
                                             }
                                         }
-                                    });
+                                    };
+
+                                    return res.json(200, ret);
                                 });
 
                             });

@@ -62,6 +62,7 @@ angular.module('starter.controllers', [])
                     }).then(function(data) {
                         AuthService.login(data.user, data.access_token);
                         $ionicLoading.hide();
+                        $state.go('app.debts', { userId: data.user.id});
                     },
                     function(response) {
                         $ionicLoading.hide();
@@ -106,6 +107,31 @@ angular.module('starter.controllers', [])
             }, function (response) {
                 $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
+            });
+        }
+
+        $scope.facebookSignup = function () {
+
+            OAuth.popup("facebook", function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    $ionicLoading.show({
+                        template: 'Signing up new account...'
+                    });
+
+                    Restangular.all('signup').all('facebook').post({
+                        token: res.access_token
+                    }).then(function (data) {
+                        AuthService.login(data.user, data.access_token);
+                        $ionicLoading.hide();
+                        $state.go('app.debts', { userId: data.user.id });
+                    }, function(response) {
+                        $ionicLoading.hide();
+                        AlertPopupService.createPopup("Error", response.data.error);
+                    });
+                }
             });
         }
     })

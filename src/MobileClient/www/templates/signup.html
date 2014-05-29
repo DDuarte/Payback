@@ -25,6 +25,7 @@
                             <span class="input-label">E-mail</span>
                             <input type="email" placeholder="Enter your E-mail here" ng-model="user.email" required>
                         </label>
+
                         <div class="list">
                             <label class="item item-input item-select">
                                 <div class="input-label">
@@ -42,7 +43,26 @@
                 </div>
             </form>
         </div>
+        <div class="padding">
+            <hr>
         </div>
+        <div class="card">
+            <div class="item text-center item-divider">
+                Or
+            </div>
+            <div class="item item-text-wrap">
+                <button class="button button-block button-positive"
+                        ng-click="facebookSignup()">
+                    <i class="icon ion-social-facebook">
+                    </i>
+                    &nbsp Signup with Facebook
+                </button>
+                <button class="button button-block button-assertive" ng-click="googleSignup()">
+                    <i class="icon ion-social-googleplus">
+                    </i>
+                    &nbsp Signup with Google+
+                </button>
+            </div>
         </div>
     </ion-content>
 </ion-view>
