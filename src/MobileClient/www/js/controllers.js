@@ -316,6 +316,7 @@ angular.module('starter.controllers', [])
     })
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
+    
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;
 
@@ -324,14 +325,23 @@ angular.module('starter.controllers', [])
         };
 
         $scope.data = {
-            showDelete: false
+            showDelete: false,
+            hasFriends: false
+            
         };
 
+        $scope.addingFriends = [];
+        
         $scope.onFriendDelete = function (idx) {
             var friend = $scope.friends[idx];
             Restangular.one('users', $stateParams.userId).one('friends', friend.id).remove().then(
                 function (data) {
                     $scope.friends.splice(idx, 1);
+                    if ($scope.friends.length == 0) {
+                        $scope.data.hasFriends = false;
+                        $scope.data.showDelete = false;
+                        }
+
                 },
                 function (response) {
                     AlertPopupService.createPopup('Error', response.error);
@@ -359,6 +369,7 @@ angular.module('starter.controllers', [])
         $scope.closeModal = function () {
             $scope.modal.hide();
             $scope.users = [];
+            $scope.addingFriends
         };
 
         // Cleanup the modal when we're done with it (avoid memory leaks)
@@ -368,13 +379,20 @@ angular.module('starter.controllers', [])
         });
 
         $scope.addFriend = function (user) {
-            Restangular.one('users', $stateParams.userId).all('friends').post({ id: user.id }).then(
-                function (data) {
-                    $scope.friends.push(user);
-                },
-                function (response) {
-                    AlertPopupService.createPopup('Error', response.error);
-                });
+            if ($scope.addingFriends.indexOf(user) == -1) {
+                $scope.addingFriends.push(user);
+                Restangular.one('users', $stateParams.userId).all('friends').post({ id: user.id }).then(
+                    function (data) {
+                        $scope.addingFriends.splice($scope.addingFriends.indexOf(user),1);
+                        $scope.friends.push(user);
+                        $scope.data.hasFriends = true;
+                    },
+                    function (response) {
+                        AlertPopupService.createPopup('Error', response.error);
+                        $scope.addingFriends.splice($scope.addingFriends.indexOf(user),1);
+
+                    });
+            }
         };
 
         $scope.searchUsers = function (textSearch) {
@@ -391,6 +409,8 @@ angular.module('starter.controllers', [])
 
         Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
+
+             $scope.data.hasFriends = $scope.friends.length > 0;
         });
     })
 
