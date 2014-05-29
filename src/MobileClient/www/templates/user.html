@@ -1,13 +1,36 @@
 <ion-view title="{{user.id}}">
     <ion-content has-header="true" padding="true">
-
-        <div class="details">
-            <h4>{{ user.id }}</h4>
-            <p><i class="icon ion-ios7-email"></i> Email: {{ user.email }}</p>
+    
+        <div class="item-thumbnail-left">
+            <img ng-src="{{user.avatar}}">
+            <div class="details">
+                <h3>{{ user.id }}</h3>
+                <p  ng-if="user.email" ><i class="icon ion-ios7-email"></i> Email: {{ user.email }}</p>                
+                <h4 ng-class="(debts.balance < 0) ? 'assertive' : 'balanced'" ng-if="user.email" >{{ debts.balance }} {{ debts.currency }}</h4>
+            </div>
         </div>
 
-        <div class="list card">
-            <a class="item item-icon-left item-icon-right" ui-sref="app.friends({userId: user.id})"><i class="icon ion-person-stalker"></i>Friends <i class="icon ion-chevron-right icon-accessory"></i></a>
+        <div ng-if="debts && user.email" class="list card" >
+            <a class="item " ui-sref="app.debts({userId: user.id})">
+                <div class=" item-icon-left" >
+                    <i class="icon ion-card"></i>
+                    <div class="details">
+                    Debts: {{ debts.total }}
+                     <br/>
+                     Owed to me: {{ debts.debit }}
+                    <br/>
+                     I owe to others:  {{ debts.credit }}
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div ng-if="user" class="list card">
+            <a class="item item-icon-left item-icon-right" ui-sref="app.friends({userId: user.id})"><i class="icon ion-person-stalker"></i>
+            <span ng-if="!user.email">{{user.id}}'s</span>
+            <span ng-if="user.email">My </span>
+            friends 
+            <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
 
     </ion-content>

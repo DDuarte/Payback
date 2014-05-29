@@ -137,7 +137,16 @@ angular.module('starter.controllers', [])
     })
 
     .controller('UserCtrl', function ($scope, $stateParams, Restangular) {
-        $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
+    
+        Restangular.one('users', $stateParams.userId).get().then(function(data) {
+            $scope.user = data;
+        
+        });
+        
+        Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
+                $scope.debts = data; // will be needed for debt history later on
+            });
+
     })
 
     .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService) {
@@ -323,25 +332,24 @@ angular.module('starter.controllers', [])
         $scope.isOwner = function (userId) {
             return $stateParams.userId === userId;
         };
+        
+        if ( $stateParams.userId ==  $scope.currentUserId )
+            $scope.title = 'Friends';
+        else  $scope.title = $stateParams.userId + "'s friends";
 
         $scope.data = {
-            showDelete: false,
-            hasFriends: false
-            
+            showDelete: false            
         };
 
         $scope.addingFriends = [];
         
-        $scope.onFriendDelete = function (idx) {
-            var friend = $scope.friends[idx];
+        $scope.onFriendDelete = function (friend) {
+
             Restangular.one('users', $stateParams.userId).one('friends', friend.id).remove().then(
                 function (data) {
-                    $scope.friends.splice(idx, 1);
-                    if ($scope.friends.length == 0) {
-                        $scope.data.hasFriends = false;
-                        $scope.data.showDelete = false;
-                        }
-
+                    var idx = $scope.friends.indexOf(friend);
+                    if (idx != -1)
+                        $scope.friends.splice(idx, 1);
                 },
                 function (response) {
                     AlertPopupService.createPopup('Error', response.error);
@@ -369,7 +377,6 @@ angular.module('starter.controllers', [])
         $scope.closeModal = function () {
             $scope.modal.hide();
             $scope.users = [];
-            $scope.addingFriends
         };
 
         // Cleanup the modal when we're done with it (avoid memory leaks)
@@ -385,7 +392,6 @@ angular.module('starter.controllers', [])
                     function (data) {
                         $scope.addingFriends.splice($scope.addingFriends.indexOf(user),1);
                         $scope.friends.push(user);
-                        $scope.data.hasFriends = true;
                     },
                     function (response) {
                         AlertPopupService.createPopup('Error', response.error);
@@ -410,7 +416,6 @@ angular.module('starter.controllers', [])
         Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
 
-             $scope.data.hasFriends = $scope.friends.length > 0;
         });
     })
 

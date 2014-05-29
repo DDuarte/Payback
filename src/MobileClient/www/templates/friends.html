@@ -1,10 +1,10 @@
 <ion-nav-buttons side="right">
     <button ng-if="isOwner(currentUserId)" class="button button-icon icon ion-android-add-contact"
             ng-click="openModal()"></button>
-    <button ng-if="isOwner(currentUserId) && data.hasFriends" class="button button-icon icon ion-ios7-minus-outline"
+    <button ng-if="isOwner(currentUserId) && friends.length > 0" class="button button-icon icon ion-ios7-minus-outline"
             ng-click="data.showDelete = !data.showDelete"></button>
 </ion-nav-buttons>
-<ion-view title="Friends">
+<ion-view title={{title}}>
     <ion-header-bar class="bar-light bar-subheader">
         <input type="search"
                placeholder="Filter friends..."
@@ -22,7 +22,7 @@
 
                 <h2>{{friend.id}}</h2>
                 <ion-delete-button class="ion-minus-circled"
-                                   ng-click="onFriendDelete($index)">
+                                   ng-click="onFriendDelete(friend)">
                 </ion-delete-button>
             </ion-item>
         </ion-list>

@@ -85,7 +85,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
-        RestangularProvider.setBaseUrl('http://172.30.22.58:1337');
+        RestangularProvider.setBaseUrl('http://localhost:1337');
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, queryParameters) {
             return {
@@ -156,16 +156,6 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                     }
                 }
             })
-
-            .state('app.single', {
-                url: '/friends/:friendId',
-                views: {
-                    'app': {
-                        templateUrl: 'templates/friend.html',
-                        controller: 'FriendCtrl'
-                    }
-                }
-            });
 
         // if none of the above states are matched, use this as the fallback
         $urlRouterProvider.otherwise('/login');
