@@ -1,3 +1,7 @@
+<ion-nav-buttons side="right">
+    <button class="button button-icon icon ion-ios7-plus"
+            ng-click="openFriendsModal()"> Debt</button>
+</ion-nav-buttons>
 <ion-view title="Debts">
     <ion-header-bar class="bar-light bar-subheader">
         <input type="search"
@@ -5,10 +9,13 @@
                ng-model="searchText.id">
     </ion-header-bar>
     <ion-content class="has-header">
+
+        <div id="chart" dx-pie-chart="chartOptions"></div>
+
         <ion-list>
             <ion-item ng-repeat="debt in debts.debts" href="#/app/users/{{friend.id}}"
                       class="item-avatar-left">
-                debt
+                {{debt}}
             </ion-item>
         </ion-list>
     </ion-content>

@@ -114,49 +114,179 @@ angular.module('starter.controllers', [])
         $scope.user = Restangular.one('users', $stateParams.userId).get().$object;
     })
 
-    .controller('DebtsCtrl', function ($scope, $stateParams, Restangular, AuthService) {
-        if (AuthService.currentUser())
-            $scope.currentUserId = AuthService.currentUser().id;
+    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService) {
+        var dataStore = new DevExpress.data.ArrayStore({
+            key: 'name',
+            data: [
+                { name: 'Credit', value: 0 },
+                { name: 'Debit', value: 0 }
+            ]
+        });
 
-        $scope.isOwner = function (userId) {
-            return $stateParams.userId === userId;
-        };
+        var dataSource = new DevExpress.data.DataSource(dataStore);
 
-        $scope.debts = {
-            "total": 2,
-            "balance": -3.4,
-            "credit": 0,
-            "debit": 3.4,
-            "currency": "EUR",
-            "debts": [
+        $scope.chartOptions = {
+            dataSource: dataSource,
+            size: {
+                height: 270
+            },
+            tooltip: {
+                enabled: false
+            },
+            legend: {
+                visible: false
+            },
+            series: [
                 {
-                    "debtId": 1,
-                    "creditor": "john",
-                    "debtor": "janeroe",
-                    "originalValue": 100,
-                    "value": 0,
-                    "currency": "EUR",
-                    "created": "2014-04-14T11:29Z",
-                    "modified": "2014-04-15T09:10Z"
-                },
-                {
-                    "debtId": 2,
-                    "creditor": "smith",
-                    "debtor": "john",
-                    "user": "smith",
-                    "originalValue": 5.4,
-                    "value": 3.4,
-                    "currency": "EUR",
-                    "created": "2014-04-16T08:30Z",
-                    "modified": "2014-04-17T10:30Z"
+                    argumentField: 'name',
+                    valueField: 'value',
+                    label: {
+                        visible: true,
+                        connector: {
+                            visible: false,
+                            width: 0.5
+                        },
+                        position: 'inside',
+                        radialOffset: -20,
+                        customizeText: function(arg) {
+                            return arg.argumentText + ": " + arg.valueText + " € ";
+                        },
+                        font: {
+                            size: '15px'
+                        }
+                    },
+                    border: {
+                        width: 2,
+                        visible: true
+                    },
+                    hoverStyle: {
+                        border: {
+                            width: 2,
+                            visible: true
+                        }
+                    }
                 }
             ]
         };
 
-        /*
-         Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
-         $scope.debts = data.debts;
-         });*/
+        Restangular.one('users', $stateParams.userId).all('debts').get().then(function(data) {
+            $scope.debts = data;
+
+            dataStore.update('Credit', { value: data.credit });
+            dataStore.update('Debit', { value: data.debit });
+            dataSource.load();
+        });
+
+        $ionicModal.fromTemplateUrl('templates/debtsFriendsModal.html', function (modal) {
+            $scope.friendsModal = modal;
+        }, {
+            scope: $scope,  /// Give the modal access to the parent scope
+            animation: 'slide-in-up',
+            focusFirstInput: true
+        });
+
+        $scope.openFriendsModal = function () {
+            $ionicPopup.show({
+                title: 'Someone is owing you money?',
+                scope: $scope,
+                buttons: [
+                    {
+                        text: 'I owe money',
+                        type: 'button-positive',
+                        onTap: function(e) {
+                            return true;
+                        }
+                    },
+                    {
+                        text: 'Someone owes me',
+                        type: 'button-calm',
+                        onTap: function(e) {
+                            return false;
+                        }
+                    }
+                ]
+            }).then(function(res) {
+                Restangular.one('users', $stateParams.userId).all('friends').get().then(function(data) {
+                    $scope.friends = data.friends;
+                });
+
+                $scope.owingMoney = res;
+                $scope.friendsModal.show();
+            });
+        };
+
+        $scope.checkCheckedFriends = function () {
+            if (!$scope.friends)
+                return false;
+
+            return _.some($scope.friends, function (f) {
+                return f.isChecked;
+            });
+        };
+
+        $scope.canRemoveIsChecked = function () {
+            return $scope.countCheckedPayingFriends >= 2;
+        };
+
+        $scope.countCheckedPayingFriends = function () {
+            if (!$scope.friends)
+                return 0;
+
+            return _.countBy($scope.friends, function (f) {
+                return f.isChecked;
+            }).true;
+        };
+
+        $scope.closeFriendsModal = function () {
+            $scope.friendsModal.hide();
+            $scope.friends = [];
+        };
+
+        $ionicModal.fromTemplateUrl('templates/debtsCreateModal.html', function (modal) {
+            $scope.createDebtModal = modal;
+        }, {
+            scope: $scope,  /// Give the modal access to the parent scope
+            animation: 'slide-in-right',
+            focusFirstInput: true
+        });
+
+        $scope.openCreateDebtModal = function () {
+            $scope.createDebtModal.show();
+        };
+
+        $scope.closeCreateDebtModal = function () {
+            $scope.createDebtModal.hide();
+        };
+
+        $scope.commitDebts = function () {
+
+            $scope.friends.forEach(function (friend) {
+                if (!friend.isChecked)
+                    return;
+
+                Restangular.one('users', $stateParams.userId).all('debts').post({
+                    // ...
+                });
+            });
+
+            // ...
+
+            Restangular.one('users', $stateParams.userId).all('debts').get().then(function(data) {
+                $scope.debts = data;
+
+                dataStore.update('Credit', { value: data.credit });
+                dataStore.update('Debit', { value: data.debit });
+                dataSource.load();
+            });
+        };
+
+        // Cleanup the modal when we're done with it (avoid memory leaks)
+        $scope.$on('$destroy', function () {
+            $scope.debts = [];
+            $scope.friends = [];
+            $scope.friendsModal.remove();
+            $scope.createDebtModal.remove();
+        });
     })
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
@@ -178,7 +308,7 @@ angular.module('starter.controllers', [])
                     $scope.friends.splice(idx, 1);
                 },
                 function (response) {
-                    AlertPopupService.createPopup("Error", response.error);
+                    AlertPopupService.createPopup('Error', response.error);
                 });
         };
 
@@ -217,7 +347,7 @@ angular.module('starter.controllers', [])
                     $scope.friends.push(user);
                 },
                 function (response) {
-                    AlertPopupService.createPopup("Error", response.error);
+                    AlertPopupService.createPopup('Error', response.error);
                 });
         };
 

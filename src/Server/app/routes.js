@@ -642,7 +642,6 @@ module.exports = function (server, passport, fx, jwt) {
                         return res.json(500, err);
 
                     user.getDebts(function (err, debts) {
-
                         if (err || !debts)
                             return res.json(500, err);
 
@@ -658,23 +657,34 @@ module.exports = function (server, passport, fx, jwt) {
 
                             cb(null, memo);
                         }, function (err, values) {
-
                             var balance = values.credit - values.debit;
 
-                            async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function (err, result) {
-
+                            async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function (err, debtsConverted) {
                                 if (err)
                                     return res.json(500, err);
 
-                                res.json(200, {
-                                    total: result.length,
-                                    balance: balance,
+                                var debtsData = {
+                                    total: debtsConverted.length,
+                                    balance: values.credit - values.debit,
                                     credit: values.credit,
                                     debit: values.debit,
                                     currency: currency,
-                                    debts: result
+                                    debts: debtsConverted
+                                };
+
+                                debtsData.debts.forEach(function(debt) {
+                                    req.models.user.get(debt.creditor_id, function(err, creditor) {
+                                        if (!err)
+                                            debt.creditorAvatar = creditor.avatar;
+                                    });
+
+                                    req.models.user.get(debt.debtor_id, function(err, debtor) {
+                                        if (!err)
+                                            debt.debtorAvatar = debtor.avatar;
+                                    });
                                 });
 
+                                res.json(debtsData);
                             });
                         });
                     });
