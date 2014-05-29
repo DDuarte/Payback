@@ -195,7 +195,7 @@ angular.module('starter.controllers', [])
             ]
         };
 
-        Restangular.one('users', $stateParams.userId).all('debts').get().then(function(data) {
+        Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
             $scope.debts = data;
 
             dataStore.update('Credit', { value: data.credit });
@@ -232,7 +232,7 @@ angular.module('starter.controllers', [])
                     }
                 ]
             }).then(function(res) {
-                Restangular.one('users', $stateParams.userId).all('friends').get().then(function(data) {
+                Restangular.one('users', $stateParams.userId).one('friends').get().then(function(data) {
                     $scope.friends = data.friends;
                 });
 
@@ -290,14 +290,14 @@ angular.module('starter.controllers', [])
                 if (!friend.isChecked)
                     return;
 
-                Restangular.one('users', $stateParams.userId).all('debts').post({
+                Restangular.one('users', $stateParams.userId).one('debts').post({
                     // ...
                 });
             });
 
             // ...
 
-            Restangular.one('users', $stateParams.userId).all('debts').get().then(function(data) {
+            Restangular.one('users', $stateParams.userId).one('debts').get().then(function(data) {
                 $scope.debts = data;
 
                 dataStore.update('Credit', { value: data.credit });
@@ -368,7 +368,7 @@ angular.module('starter.controllers', [])
         });
 
         $scope.addFriend = function (user) {
-            Restangular.one('users', $stateParams.userId).all('friends').post({ id: user.id }).then(
+            Restangular.one('users', $stateParams.userId).one('friends').post({ id: user.id }).then(
                 function (data) {
                     $scope.friends.push(user);
                 },
