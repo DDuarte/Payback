@@ -368,7 +368,7 @@ angular.module('starter.controllers', [])
         });
 
         $scope.addFriend = function (user) {
-            Restangular.one('users', $stateParams.userId).one('friends').post({ id: user.id }).then(
+            Restangular.one('users', $stateParams.userId).all('friends').post({ id: user.id }).then(
                 function (data) {
                     $scope.friends.push(user);
                 },
