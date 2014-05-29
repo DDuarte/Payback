@@ -282,7 +282,7 @@ angular.module('starter.controllers', [])
             scope: $scope,  /// Give the modal access to the parent scope
             animation: 'slide-in-right',
             focusFirstInput: true
-        }).then(function(modal) {
+            }).then(function(modal) {
             $scope.modal = modal;
           });
 
@@ -293,10 +293,10 @@ angular.module('starter.controllers', [])
         $scope.closeCreateDebtModal = function () {
             $scope.createDebtModal.hide();
         };
-        
 
-        $scope.commitDebts = function () {
-            
+        
+        $scope.commitDebts = function (amount) {
+        
             $scope.friends.forEach(function (friend) {
                 if (!friend.isChecked)
                     return;
@@ -313,7 +313,7 @@ angular.module('starter.controllers', [])
 
                 Restangular.one('users', debitor).all('debts').post({
                     user: creditor,
-                    value: $scope.amount / $scope.countCheckedPayingFriends(),
+                    value: amount / $scope.countCheckedPayingFriends(),
                     currency: AuthService.currentUser().currency
                 }).then(function(data) {
                 //

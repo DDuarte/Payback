@@ -17,9 +17,9 @@
                     <div class="details">
                     Debts: {{ debts.total }}
                      <br/>
-                     Owed to me: {{ debts.debit }}
+                     Owed to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
                     <br/>
-                     I owe to others:  {{ debts.credit }}
+                     I owe to others:  <span ng-class="(debts.debit > 0) ? 'assertive' : ''"> {{ debts.debit }} {{ debts.currency }} </span>
                     </div>
                 </div>
             </a>
