@@ -25,9 +25,12 @@
             </div>
         </div>
         <ion-list can-swipe="true" show-delete="canRemoveIsChecked()">
-            <ion-item ng-repeat="friend in friends | filter: { isChecked:true }" class="item-avatar-left item-icon-right">
+            <ion-item ng-repeat="friend in friends | filter: { isChecked:true }"
+                      class="item-avatar-left item-icon-right">
                 <img ng-src="{{friend.avatar}}">
+
                 <h2>{{friend.id}}</h2>
+
                 <h3><i>{{amount / countCheckedPayingFriends() | currency:"&euro;"}}</i></h3>
                 <ion-delete-button class="ion-minus-circled"
                                    ng-click="friend.isChecked = false">
@@ -37,7 +40,8 @@
         <div class="bar bar-footer bar-balanced" ng-show="amount > 0 && commitStatus()">
             <div class="title">
                 <button class="button button-clear button-full"
-                        ng-click="commitDebts(amount)">Ok</button>
+                        ng-click="commitDebts(amount)">Ok
+                </button>
             </div>
         </div>
     </ion-content>
