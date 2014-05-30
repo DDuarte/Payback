@@ -1,4 +1,4 @@
-<div class="modal">
+<div class="modal" ng-controller="FriendsCtrl">
     <ion-header-bar class="bar bar-header bar-positive">
         <h1 class="title">Alter Debt</h1>
         <button class="button button-clear button-primary" ng-click="closeDebtModal()">Close</button>
@@ -14,7 +14,7 @@
 
                  </div>
                   <div  ng-if="debt.debtor != user.id">
-                    <h3><b>{{user.id}} </b> owes you</h3>  
+                    <h3><b>{{debt.debtor}} </b> owes you</h3>  
                     <h4 style="font-style:italic" class="dark"> created: {{formatDate(debt.created)}} </h4> 
                     <h4 style="font-style:italic" class="dark"> modified: {{formatDate(debt.modified)}} </h4> 
 
@@ -24,62 +24,64 @@
             </div>
             <ion-item class="item-body" 
               class="item-icon-left">
-                   <div  ng-if="debt.debtor == user.id">
-                  <p>
-                           <h2>Initial Amount: <b class="dark">{{debt.value}} {{debt.currency}}</b></h2>
 
-                             <h2>Amount left: <b class="assertive">{{debt.value}} {{debt.currency}}</b></h2>
+                <div  ng-if="debt.debtor == user.id">
+                        <p>
+                           <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{debt.currency}}</b></h2>
+
+                             <h2>Amount left: <b ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': 'assertive'" > <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span> {{debt.currency}}</b></h2>
                              <div class="row">
-                                   <div class="col-25">
+                                   <div class="col-30">
                                     <b >Resolved: </b>
+                                   
                                      <label class="toggle toggle-balanced">
-                                       <input type="checkbox">
+                                       <input  type="checkbox" ng-model="resolved" ng-change="pushResolved(resolved)">
                                        <div class="track">
-                                         <div class="handle"></div>
+                                         <div class="handle" ></div>
                                        </div>
                                      </label>
-                                     <label class="item-input">
-                                        <b class="input-label">Ammount received</b>
-                                        <input ng-init="amount=0.0" type="number" ng-model="amount">
+                                     <label ng-if="!resolved" class="item-input">
+                                        <b  class="input-label" ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''" >Ammount you payed </b> 
+                                        <input type="number" ng-model="modal.amount" >
                                     </label>
 
                                   </div>
                             </div>
                        </p>
-
-                  </div>     
+                  </div>                    
                  
                   <div  ng-if="debt.debtor != user.id">
                         <p>
-                           <h2>Initial Amount: <b class="dark">{{debt.value}} {{debt.currency}}</b></h2>
+                           <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{debt.currency}}</b></h2>
 
-                             <h2>Amount left: <b class="balanced">{{debt.value}} {{debt.currency}}</b></h2>
+                             <h2>Amount left: <b ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': 'balanced'"> <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span> {{debt.currency}}</b></h2>
                              <div class="row">
-                                   <div class="col-25">
+                                   <div class="col-30">
                                     <b >Resolved: </b>
+                                   
                                      <label class="toggle toggle-balanced">
-                                       <input type="checkbox">
+                                       <input  type="checkbox" ng-model="resolved" ng-change="pushResolved(resolved)">
                                        <div class="track">
-                                         <div class="handle"></div>
+                                         <div class="handle" ></div>
                                        </div>
                                      </label>
-                                     <label class="item-input">
-                                        <b class="input-label">Ammount received</b>
-                                        <input ng-init="amount=0.0" type="number" ng-model="amount">
+                                     <label ng-if="!resolved" class="item-input">
+                                        <b  class="input-label" ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''" >Ammount you received</b> 
+                                        <input type="number" ng-model="modal.amount" >
                                     </label>
 
                                   </div>
                             </div>
                        </p>
-
                   </div>  
                   
-          
-    </ion-item>
+            </ion-item>
+            
+            
             <div class="item">
                  <div class="button-bar">
-                  <a class="button button-balanced button-disabled">Resolve</a>
-                  <a class="button button-calm">Update</a>
+                  <a class="button button-balanced" ng-class="modal.amount - debt.value == 0 || modal.resolved ? '' : 'button-disabled' ">Resolve</a>
+                  <a class="button button-calm" ng-class="modal.amount - debt.value == 0 || modal.resolved ||  !modal.amount || debt.value - modal.amount < 0 || modal.amount < 0 ? 'button-disabled' : '' " >Update</a>
                   <a class="button button-assertive">Delete</a>
                 </div>
             </div>

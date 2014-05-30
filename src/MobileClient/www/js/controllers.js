@@ -396,6 +396,18 @@ angular.module('starter.controllers', [])
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
      $scope.friends = [];
+          $scope.modal = 
+          {amount: 0,
+          resolved: false
+           };
+           $scope.resolved = false;
+
+           $scope.pushResolved = function(resolved) {
+                  $scope.modal.resolved = resolved;
+                  if ($scope.modal.resolved) $scope.modal.amount = $scope.debt.value;
+                  else $scope.modal.amount = 0;
+           };
+           
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;
 
