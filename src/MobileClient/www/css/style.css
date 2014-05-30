@@ -23,3 +23,12 @@
 .scroll {
     height: 100%;
 }
+
+
+.button-disabled {
+  filter: Alpha(Opacity=30);
+  opacity: .3;
+  zoom: 1;
+  cursor: default !important;
+  pointer-events: none;
+}

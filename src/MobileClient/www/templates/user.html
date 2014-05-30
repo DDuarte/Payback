@@ -32,6 +32,30 @@
             friends 
             <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
+        
+         <ion-list class="list" ng-if="debts.debts.length > 0">
+            <ion-item ng-repeat="debt in debts.debts"  ng-click="openDebtModal(debt)"
+                      class="item-icon-left ">
+                           <div  ng-if="debt.debtor == currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id ) ">
+                               <i  class="icon ion-arrow-down-a assertive"></i>
+                                 <p>
+                                     <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                                     <h3>You owe <b>{{debt.creditor}} </b> </h3>  
+                                     <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4> 
+                               </p>
+ 
+                          </div>     
+                          <div  ng-if="debt.debtor != currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id )">
+                                <i class="icon ion-arrow-up-a balanced "></i>
+                                <p>
+                                     <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                                     <h3><b>{{debt.debtor}} </b> owes you</h3>  
+                                      <h4 style="font-style:italic" class="dark" >{{formatDate(debt.created)}}   </h4>
+                               </p>
+
+                          </div>  
+            </ion-item>
+        </ion-list>
 
     </ion-content>
 </ion-view>

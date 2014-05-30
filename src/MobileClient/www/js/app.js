@@ -85,7 +85,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
-        RestangularProvider.setBaseUrl('http://localhost:1337');
+        RestangularProvider.setBaseUrl('http://192.168.1.76:1337');
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, queryParameters) {
             return {

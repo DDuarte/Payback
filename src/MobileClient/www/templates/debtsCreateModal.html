@@ -34,7 +34,7 @@
                 </ion-delete-button>
             </ion-item>
         </ion-list>
-        <div class="bar bar-footer bar-balanced" ng-show="amount > 0">
+        <div class="bar bar-footer bar-balanced" ng-show="amount > 0 && commitStatus()">
             <div class="title">
                 <button class="button button-clear button-full"
                         ng-click="commitDebts(amount)">Ok</button>

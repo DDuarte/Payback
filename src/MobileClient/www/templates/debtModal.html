@@ -1,0 +1,92 @@
+<div class="modal">
+    <ion-header-bar class="bar bar-header bar-positive">
+        <h1 class="title">Alter Debt</h1>
+        <button class="button button-clear button-primary" ng-click="closeDebtModal()">Close</button>
+    </ion-header-bar>
+    <ion-content class="has-header list card">
+            <div class="item item-avatar item-icon-right"> <!-- TODO AVATAR -->
+                 <div  ng-if="debt.debtor == user.id">              
+                    <h3><b>You owe {{debt.creditor}} </b> </h3>  
+                    <h4 style="font-style:italic" class="dark"> created: {{formatDate(debt.created)}} </h4> 
+                    <h4 style="font-style:italic" class="dark"> modified: {{formatDate(debt.created)}} </h4> 
+
+                    <i class="icon ion-arrow-down-a assertive "></i>
+
+                 </div>
+                  <div  ng-if="debt.debtor != user.id">
+                    <h3><b>{{user.id}} </b> owes you</h3>  
+                    <h4 style="font-style:italic" class="dark"> created: {{formatDate(debt.created)}} </h4> 
+                    <h4 style="font-style:italic" class="dark"> modified: {{formatDate(debt.modified)}} </h4> 
+
+                    <i class="icon ion-arrow-up-a balanced "></i>
+
+                 </div>
+            </div>
+            <ion-item class="item-body" 
+              class="item-icon-left">
+                   <div  ng-if="debt.debtor == user.id">
+                  <p>
+                           <h2>Initial Amount: <b class="dark">{{debt.value}} {{debt.currency}}</b></h2>
+
+                             <h2>Amount left: <b class="assertive">{{debt.value}} {{debt.currency}}</b></h2>
+                             <div class="row">
+                                   <div class="col-25">
+                                    <b >Resolved: </b>
+                                     <label class="toggle toggle-balanced">
+                                       <input type="checkbox">
+                                       <div class="track">
+                                         <div class="handle"></div>
+                                       </div>
+                                     </label>
+                                     <label class="item-input">
+                                        <b class="input-label">Ammount received</b>
+                                        <input ng-init="amount=0.0" type="number" ng-model="amount">
+                                    </label>
+
+                                  </div>
+                            </div>
+                       </p>
+
+                  </div>     
+                 
+                  <div  ng-if="debt.debtor != user.id">
+                        <p>
+                           <h2>Initial Amount: <b class="dark">{{debt.value}} {{debt.currency}}</b></h2>
+
+                             <h2>Amount left: <b class="balanced">{{debt.value}} {{debt.currency}}</b></h2>
+                             <div class="row">
+                                   <div class="col-25">
+                                    <b >Resolved: </b>
+                                     <label class="toggle toggle-balanced">
+                                       <input type="checkbox">
+                                       <div class="track">
+                                         <div class="handle"></div>
+                                       </div>
+                                     </label>
+                                     <label class="item-input">
+                                        <b class="input-label">Ammount received</b>
+                                        <input ng-init="amount=0.0" type="number" ng-model="amount">
+                                    </label>
+
+                                  </div>
+                            </div>
+                       </p>
+
+                  </div>  
+                  
+          
+    </ion-item>
+            <div class="item">
+                 <div class="button-bar">
+                  <a class="button button-balanced button-disabled">Resolve</a>
+                  <a class="button button-calm">Update</a>
+                  <a class="button button-assertive">Delete</a>
+                </div>
+            </div>
+    </ion-content>
+    <ion-footer-bar align-title="left" class="bar-balanced" ng-show="checkCheckedFriends()">
+        <button class="button button-clear button-full" ng-click="openCreateDebtModal()">
+            Ok
+        </button>
+    </ion-footer-bar>
+</div>
