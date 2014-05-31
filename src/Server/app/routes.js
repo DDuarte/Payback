@@ -6,6 +6,7 @@ var moment = require('moment');
 var request = require('request');
 
 var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
 
 function public_user_info(user) {
     return {
@@ -89,68 +90,68 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(400, {error: 'Missing facebook token'});
         }
 
-        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+        async.waterfall([
+            function (callback) {
 
-            if (error || response.statusCode != 200) {
-                return res.json(400, { error: "Invalid facebook access token" });
-            }
+                request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
 
+                    if (error || response.statusCode != 200)
+                        return callback(null, {error: "Invalid facebook access token"});
 
-            var profile = JSON.parse(body);
-
-            if (profile.verified === false)
-                return res.json(400, { error: "Facebook account not verified" });
-
-            req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
-
-                if (err || !facebookUser) {
-                    return res.json(400, { error: "User not found" });
-                }
-
-                facebookUser.getLocalAccount(function (err, localUser) {
-
-                    if (err)
-                        return res.json(400, { error: "User not found" });
-
-                    var expires = moment().add('days', 7).valueOf();
-                    var token = generateToken(localUser.id, expires);
-                    var ret = {
-                        access_token: token,
-                        user: {
-                            id: localUser.id,
-                            email: localUser.email,
-                            facebookAccount: {
-                                email: profile.email,
-                                access_token: req.body.token
-                            }
-                        }};
-
-                    res.json(200, ret);
+                    var picture = JSON.parse(body).picture;
+                    callback(null, picture); // picture : {data: url }
                 });
-            });
-        });
-    });
 
-    // GET /api/login/facebook/callback
-    server.get('/api/login/facebook/callback', function (req, res) {
+            },
+            function (profilePicture, callback) {
+                request(facebookEndpoint + req.body.token, function (error, response, body) {
 
-        passport.authenticate('facebook-login', function (err, user, info) {
+                    console.log("profilePicture:" + profilePicture.toString());
+                    if (error || response.statusCode != 200) {
+                        return callback({ error: "Invalid facebook access token" });
+                    }
 
+                    var profile = JSON.parse(body);
+
+                    if (profile.verified === false)
+                        return callback({ error: "Facebook account not verified" });
+
+                    req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
+
+                        if (err || !facebookUser) {
+                            return callback({ error: "User not found" });
+                        }
+
+                        facebookUser.getLocalAccount(function (err, localUser) {
+
+                            if (err)
+                                return callback({ error: "User not found" });
+
+                            var expires = moment().add('days', 7).valueOf();
+                            var token = generateToken(localUser.id, expires);
+                            var ret = {
+                                access_token: token,
+                                user: {
+                                    id: localUser.id,
+                                    email: localUser.email,
+                                    avatar: profilePicture.data.url,
+                                    facebookAccount: {
+                                        email: profile.email,
+                                        access_token: req.body.token
+                                    }
+                                }};
+
+                            return callback(null, ret);
+                        });
+                    });
+                });
+            }
+        ], function (err, result) {
             if (err)
-                return res.json(500, err);
+                return res.json(400, err);
 
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
+            res.json(200, result);
+        });
     });
 
     // POST /api/signup/facebook
@@ -160,102 +161,109 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(401, {error: "Missing facebook token"});
         }
 
+        async.waterfall([
+                function (callback) {
 
-        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+                    request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
 
-            if (error || response.statusCode != 200) {
-                return res.json(401, { error: "Invalid facebook access token" });
-            }
+                        if (error || response.statusCode != 200)
+                            return callback(null, {error: "Invalid facebook access token"});
 
-            var profile = JSON.parse(body);
-            if (profile.verified === false)
-                return res.json(401, { error: "Facebook account not verified" });
+                        var picture = JSON.parse(body).picture;
+                        callback(null, picture); // picture : {data: url }
+                    });
 
-            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+                },
+                function (profilePicture, callback) {
 
-                if (err || exists)
-                    return res.json(401, { error: "Facebook account is already registered" });
+                    console.log("ProfilePicture:" + profilePicture.data.url);
 
-                if (!profile.displayName)
-                    profile.displayName = profile.first_name + " " + profile.last_name;
+                    request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
-                req.models.user.exists({id: profile.displayName}, function (err, exists) {
-
-                    if (err || exists)
-                        return res.json(401, { error: "That facebook displayName is already taken" });
-
-                    req.models.user.create({
-                        id: profile.displayName,
-                        email: profile.email
-                    }, function (err, localUser) {
-
-                        if (err || !localUser) {
-                            return res.json(401, { error: err});
+                        if (error || response.statusCode != 200) {
+                            return callback({ error: "Invalid facebook access token" });
                         }
 
-                        req.models.facebook.create({
-                                id: profile.id,
-                                token: req.body.token,
-                                displayName: profile.displayName,
-                                email: profile.email,
-                                localaccount_id: localUser.id
-                            },
-                            function (err, newFacebookUser) {
+                        var profile = JSON.parse(body);
+                        if (profile.verified === false)
+                            return callback({ error: "Facebook account not verified" });
 
-                                if (err || !newFacebookUser) {
-                                    return res.json(401, { error: err });
-                                }
+                        console.log("Profile: " + JSON.stringify(profile));
 
-                                localUser.setFacebookAccount(newFacebookUser, function (err) {
+                        req.models.facebook.exists({ id: profile.id }, function (err, exists) {
 
-                                    if (err) {
-                                        return res.json(401, { error: err });
+                            if (err || exists)
+                                return callback({ error: "Facebook account is already registered" });
+
+                            if (!profile.displayName)
+                                profile.displayName = profile.first_name + " " + profile.last_name;
+
+                            req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                                if (err || exists)
+                                    return callback({ error: "That facebook displayName is already taken" });
+
+                                req.models.user.create({
+                                    id: profile.displayName,
+                                    email: profile.email,
+                                    avatar: profilePicture.data.url
+                                }, function (err, localUser) {
+
+                                    if (err || !localUser) {
+                                        return callback({ error: err});
                                     }
 
-                                    var expires = moment().add('days', 7).valueOf();
-                                    var token = generateToken(localUser.id, expires);
-                                    var ret = {
-                                        access_token: token,
-                                        user: {
-                                            id: localUser.id,
-                                            email: localUser.email,
-                                            facebookAccount: {
-                                                email: newFacebookUser.email,
-                                                access_token: newFacebookUser.token
+                                    req.models.facebook.create({
+                                            id: profile.id,
+                                            token: req.body.token,
+                                            displayName: profile.displayName,
+                                            email: profile.email,
+                                            localaccount_id: localUser.id
+                                        },
+                                        function (err, newFacebookUser) {
+
+                                            if (err || !newFacebookUser) {
+                                                return callback({ error: err });
                                             }
-                                        }
-                                    };
 
-                                    return res.json(200, ret);
+                                            localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                                if (err) {
+                                                    return callback({ error: err });
+                                                }
+
+                                                var expires = moment().add('days', 7).valueOf();
+                                                var token = generateToken(localUser.id, expires);
+                                                var ret = {
+                                                    access_token: token,
+                                                    user: {
+                                                        id: localUser.id,
+                                                        email: localUser.email,
+                                                        avatar: localUser.avatar,
+                                                        facebookAccount: {
+                                                            email: newFacebookUser.email,
+                                                            access_token: newFacebookUser.token
+                                                        }
+                                                    }
+                                                };
+
+                                                return callback(null, ret);
+                                            });
+
+                                        });
                                 });
-
                             });
+                        });
                     });
-                });
-            });
-        });
-    });
 
-    // GET /api/signup/facebook/callback
-    server.get('/api/signup/facebook/callback', function (req, res) {
-
-        passport.authenticate('facebook-signup', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
+                }],
+            function (err, result) {
 
                 if (err)
-                    return res.send(401);
+                    return res.json(401, err);
 
-                res.send(200);
+                return res.json(200, result);
             });
-        })(req, res);
-
     });
 
     // GET /api/connect/facebook
@@ -313,7 +321,7 @@ module.exports = function (server, passport, fx, jwt) {
     server.get('/api/signup/google/:id', function (req, res, next) {
 
         if (!req.params.id)
-            return next("Attribute 'id' is missing.");
+            return res.json(409, { error: "Attribute 'id' is missing."});
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
 
@@ -408,11 +416,11 @@ module.exports = function (server, passport, fx, jwt) {
     server.patch('/api/users/:id', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
-            return next("Can only change 'email', 'currency' or 'avatar' attributes of the user.");
+            return res.json(409, {error: "Can only change 'email', 'currency' or 'avatar' attributes of the user."});
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -561,15 +569,15 @@ module.exports = function (server, passport, fx, jwt) {
     server.patch('/api/users/:id/debts/:debtId', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.value === undefined && req.body.currency == undefined) {
-            return next("Attributes value and currency are required.");
+            return res.json(409, {error: "Attributes value and currency are required."});
         }
 
         if (isNaN(req.body.value)) {
-            return next("Attribute 'value' needs to be a number.");
+            return res.json(409, {error: "Attribute 'value' needs to be a number."});
         }
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
@@ -675,7 +683,7 @@ module.exports = function (server, passport, fx, jwt) {
                                 debts: debtsConverted
                             };
 
-                            async.each(debtsData.debts, function(debt, callback) {
+                            async.each(debtsData.debts, function (debt, callback) {
                                 req.models.user.get(debt.creditor, function (err, creditor) {
                                     if (!err)
                                         debt.creditorAvatar = creditor.avatar;
@@ -685,22 +693,23 @@ module.exports = function (server, passport, fx, jwt) {
                                             debt.debtorAvatar = debtor.avatar;
 
                                         callback(null);
-                                    })});
-                            }, function(err) {
+                                    })
+                                });
+                            }, function (err) {
                                 res.json(debtsData);
                             });
                             /*debtsData.debts.forEach(function (debt) {
-                                req.models.user.get(debt.creditor, function (err, creditor) {
-                                    if (!err)
-                                        debt.creditorAvatar = creditor.avatar;
-                                        
-                                    req.models.user.get(debt.debtor, function (err, debtor) {
-                                        if (!err)
-                                            debt.debtorAvatar = debtor.avatar;
-                                        res.json(debtsData);
-                                    });
-                                });
-                            }); */
+                             req.models.user.get(debt.creditor, function (err, creditor) {
+                             if (!err)
+                             debt.creditorAvatar = creditor.avatar;
+
+                             req.models.user.get(debt.debtor, function (err, debtor) {
+                             if (!err)
+                             debt.debtorAvatar = debtor.avatar;
+                             res.json(debtsData);
+                             });
+                             });
+                             }); */
                         });
                     });
                 });
@@ -712,22 +721,22 @@ module.exports = function (server, passport, fx, jwt) {
     server.post('/api/users/:id/debts', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.user === undefined) {
-            return next("Attribute 'user' is missing.");
+            return res.json(409, {error: "Attribute 'user' is missing."});
         }
 
         if (req.body.value === undefined) {
-            return next("Attribute 'value' is missing.");
+            return res.json(409, {error: "Attribute 'value' is missing."});
         }
 
         if (!req.body.currency)
-            return next("Attribute 'currency' is missing");
+            return res.json(409, {error: "Attribute 'currency' is missing"});
 
         if (isNaN(req.body.value)) {
-            return next("Attribute 'value' needs to be a number.");
+            return res.json(409, {error: "Attribute 'value' needs to be a number."});
         }
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
@@ -877,11 +886,11 @@ module.exports = function (server, passport, fx, jwt) {
     server.post('/api/users/:id/friends', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.id === undefined) {
-            return next("Attribute 'id' is missing.");
+            return res.json(409, {error: "Attribute 'id' is missing."});
         }
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -975,27 +984,27 @@ module.exports = function (server, passport, fx, jwt) {
     // POST /api/users
     server.post('/api/users', function (req, res, next) {
         if (req.body === undefined) {
-            return next("No body defined");
+            return res.json(409, {error: "No body defined"});
         }
 
         if (req.body.id === undefined) {
-            return next("Attribute 'id' is missing.");
+            return res.json(409, {error: "Attribute 'id' is missing."});
         }
 
         if (req.body.email === undefined) {
-            return next("Attribute 'email' is missing.");
+            return res.json(409, {error: "Attribute 'email' is missing."});
         }
 
         if (!/\S+@\S+\.\S+/.test(req.body.email)) {
-            return next("Attribute 'email' is not a valid email address.");
+            return res.json(409, {error: "Attribute 'email' is not a valid email address."});
         }
 
         if (req.body.passwordHash === undefined) {
-            return next("Attribute 'passwordHash' is missing");
+            return res.json(409, {error: "Attribute 'passwordHash' is missing"});
         }
 
         if (req.body.currency === undefined) {
-            return next("Attribute 'currency' is missing");
+            return res.json(409, {error: "Attribute 'currency' is missing"});
         }
 
         req.models.user.create({

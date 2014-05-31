@@ -33,7 +33,8 @@ module.exports = function (db, models) {
         id: { type: "text", required: true },
         token: { type: "text", required: true, unique: true },
         email: { type: "text", size: 254, required: true, unique: true },
-        displayName: { type: "text", required: true }
+        displayName: { type: "text", required: true },
+        avatar: { type: "text", required: false, defaultValue: '' }
     }, {
         validations: {
             email: orm.enforce.patterns.email("invalid-email-format")
@@ -47,7 +48,8 @@ module.exports = function (db, models) {
         id: { type: "text", required: true },
         token: { type: "text", unique: true }, // we're using OpenID instead of OAuth 2.0, tokens are not provided :(
         email: { type: "text", size: 254, required: true, unique: true },
-        displayName: { type: "text", required: true }
+        displayName: { type: "text", required: true },
+        avatar: { type: "text", required: false, defaultValue: '' }
     }, {
         validations: {
             email: orm.enforce.patterns.email("invalid-email-format")
