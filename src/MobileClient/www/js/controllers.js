@@ -155,16 +155,34 @@ angular.module('starter.controllers', [])
 
     .filter('matchTab', function() {
         return function( items ,filter, userId) {
+
             var filtered = [];
             angular.forEach(items, function(item) {
-                if (filter == 'owed' && item.debtor == userId)
-                    filtered.push(item);
-                else if (filter == 'own' &&  item.debtor != userId)
-                    filtered.push(item);
-                else if (filter == 'all')
-                    filtered.push(item);
+                if (item.value != 0) {
+                    if (filter == 'owed' && item.debtor == userId)
+                        filtered.push(item);
+                    else if (filter == 'own' && item.debtor != userId)
+                        filtered.push(item);
+                    else if (filter == 'all')
+                        filtered.push(item);
+                }
 
             });
+            return filtered;
+        };
+    })
+
+    .filter('history', function() {
+        return function( items ,filter) {
+            var filtered = [];
+            angular.forEach(items, function(item) {
+                if (item.value == 0) {
+                        filtered.push(item);
+                }
+
+            });
+            console.log(filtered);
+
             return filtered;
         };
     })

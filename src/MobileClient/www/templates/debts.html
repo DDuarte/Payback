@@ -16,17 +16,35 @@
 
             <div id="chart" dx-pie-chart="chartOptions"></div>
 
+
+
         </div>
+
+        <div ng-if="debts && user.id == currentUser.id && filter == 'details'" class="list card">
+            <a class="item " ui-sref="app.debts({userId: user.id})">
+                <div class=" item-icon-left">
+                    <i class="icon ion-clipboard"></i>
+
+                    <div class="details">
+                        Debts: {{ debts.total }}
+                        <br/>
+                        Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
+                        <br/>
+                        I owe to others: <span ng-class="(debts.debit > 0) ? 'assertive' : ''"> {{ debts.debit }} {{ debts.currency }} </span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
         <ion-list class="list">
-            <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id  " ng-click="openDebtModal(debt)"
+            <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left " ng-if="filter != 'details'">
                     <div ng-if="debt.debtor == user.id ">
                         <i class="icon ion-arrow-down-a assertive"></i>
-
                         <p>
-                        <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
-                        <h3>You owe <b>{{debt.creditor}} </b></h3>
-                        <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
+                            <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                            <h3>You owe <b>{{debt.creditor}} </b></h3>
+                            <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
                         </p>
 
                     </div>
@@ -34,13 +52,39 @@
                         <i class="icon ion-arrow-up-a balanced "></i>
 
                         <p>
-                        <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
-                        <h3><b>{{debt.debtor}} </b> owes you</h3>
-                        <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
+                            <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                            <h3><b>{{debt.debtor}} </b> owes you</h3>
+                            <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
                         </p>
                 </div>
             </ion-item>
         </ion-list>
+    <ion-list class="list" ng-if="filter == 'history'" >
+        <ion-item ng-repeat="debt in debts.debts  | history:filter" ng-click=""
+                  class="item-icon-left " >
+            <div ng-if="debt.debtor == user.id ">
+                <i class="icon ion-ios7-upload dark"></i>
+
+                <p>
+                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h3>You payed <b>{{debt.creditor}} </b></h3>
+                    <h4 style="font-style:italic" class="dark">created: {{formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{formatDate(debt.modified)}} </h4>
+                </p>
+
+            </div>
+            <div ng-if="debt.debtor != user.id">
+                <i class="icon ion-ios7-download dark "></i>
+
+                <p>
+                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h3><b>{{debt.debtor}} </b> payed you</h3>
+                    <h4 style="font-style:italic" class="dark">created: {{formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{formatDate(debt.modified)}} </h4>
+                </p>
+            </div>
+        </ion-item>
+    </ion-list>
     </ion-content>
     <ion-footer-bar>
         <ion-tabs class="tabs-icon-left">
@@ -59,6 +103,10 @@
             <a ng-click="setFilter('details')" class="tab-item">
                 <i  class="icon ion-pie-graph positive"></i>
                 Details
+            </a>
+            <a ng-click="setFilter('history')" class="tab-item">
+                <i  class="icon ion-archive energized"></i>
+                Old Debts
             </a>
         </ion-tabs>
     </ion-footer-bar>
