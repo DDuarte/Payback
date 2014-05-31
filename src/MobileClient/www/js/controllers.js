@@ -155,17 +155,16 @@ angular.module('starter.controllers', [])
     })
 
     .filter('matchTab', function(AuthService) {
-        return function( items ,filter, userId) {
-
+        return function(  items ,searchText,filter, userId) {
+            var search = searchText.toLowerCase();
             var filtered = [];
             angular.forEach(items, function(item) {
                 if (item.value != 0 && (item.debtor ==  AuthService.currentUser().id || item.creditor == AuthService.currentUser().id)) {
-
-                    if (filter == 'owed' && item.debtor == userId)
+                    if (filter == 'owed' && item.debtor == userId && item.debtor.toLowerCase().indexOf(search) > -1)
                         filtered.push(item);
-                    else if (filter == 'own' && item.debtor != userId)
+                    else if (filter == 'own' && item.debtor != userId && item.debtor.toLowerCase().indexOf(search) > -1)
                         filtered.push(item);
-                    else if (filter == 'all')
+                    else if (filter == 'all'&& (item.debtor.indexOf(search) > -1|| item.debtor.toLowerCase().indexOf(search) > -1) )
                         filtered.push(item);
                 }
 
@@ -175,10 +174,10 @@ angular.module('starter.controllers', [])
     })
 
     .filter('history', function() {
-        return function( items ,filter) {
+        return function( items, searchText ) {
             var filtered = [];
             angular.forEach(items, function(item) {
-                if (item.value == 0) {
+                if (item.value == 0 && (item.debtor.indexOf(searchText.toLowerCase()) > -1|| item.debtor.toLowerCase().indexOf(searchText.toLowerCase()) > -1)) {
                         filtered.push(item);
                 }
 
@@ -193,7 +192,10 @@ angular.module('starter.controllers', [])
 
         $scope.filter = 'all';
 
+        $scope.searchText = '';
+
         $scope.setFilter = function(filter) {
+            $scope.searchText = '';
             $scope.filter = filter;
         }
 
@@ -254,7 +256,6 @@ angular.module('starter.controllers', [])
         }
 
         $scope.deleteDebt = function(debt) {
-            console.log(debt);
 
             $ionicPopup.show({
                 title: 'Are you sure you want to delete this debt?',

@@ -7,7 +7,7 @@
     <ion-header-bar class="bar-light bar-subheader">
         <input type="search"
                placeholder="Filter debts..."
-               ng-model="searchText.id">
+               ng-model="searchText">
     </ion-header-bar>
     <ion-content class="has-header list-inset" >
         <div class="card item" ng-if="debts.debts.length && filter == 'details'">
@@ -19,7 +19,6 @@
 
 
         </div>
-
         <div ng-if="debts && user.id == currentUser.id && filter == 'details'" class="list card">
             <a class="item " ui-sref="app.debts({userId: user.id})">
                 <div class=" item-icon-left">
@@ -42,7 +41,8 @@
                 <div ng-if="filter == 'owed'"> My debts</div>
                 <div ng-if="filter == 'own'"> Friends debts</div>
             </div>
-            <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id" ng-click="openDebtModal(debt)"
+
+            <ion-item ng-repeat="debt in debts.debts | matchTab:searchText:filter:user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left " ng-if="filter != 'details'">
                     <div ng-if="debt.debtor == user.id ">
                         <i class="icon ion-arrow-down-a assertive"></i>
@@ -68,7 +68,7 @@
         <div class="item item-divider">
             History
         </div>
-        <ion-item ng-repeat="debt in debts.debts  | history:filter" ng-click=""
+        <ion-item ng-repeat="debt in debts.debts  | history:searchText" ng-click=""
                   class="item-icon-left " >
             <div ng-if="debt.debtor == user.id ">
                 <i class="icon ion-ios7-upload dark"></i>
