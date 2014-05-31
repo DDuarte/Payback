@@ -43,7 +43,7 @@
             <div class="item item-divider">
                 Open Debts
             </div>
-            <ion-item ng-repeat="debt in debts.debts | matchTab:'all':user.id" ng-click="openDebtModal(debt)"
+            <ion-item ng-repeat="debt in debts.debts | matchTab:'':'all':user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left ">
                 <div ng-if="debt.debtor == currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id ) ">
                     <i class="icon ion-arrow-down-a assertive"></i>
@@ -74,7 +74,7 @@
                 Resolved Debts
             </div>
 
-            <ion-item ng-repeat="debt in debts.debts  | history:'all'" ng-click=""
+            <ion-item ng-repeat="debt in debts.debts  | history:''" ng-click=""
                       class="item-icon-left " >
                 <div ng-if="debt.debtor != user.id ">
                     <i class="icon ion-ios7-upload dark"></i>
