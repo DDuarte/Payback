@@ -611,7 +611,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     // DELETE /api/users/{id}/debts/{debtId}
     server.del('/api/users/:id/debts/:debtId', function (req, res) {
-        req.models.user.exists({ id: req.params.id }, function (err, exists) {
+        req.models.user.exists(id: req.params.id, function (err, exists) {
             if (err || !exists) {
                 res.json(404, { error: "User '" + req.params.id + "' does not exist"});
                 return;
