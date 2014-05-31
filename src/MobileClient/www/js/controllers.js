@@ -278,8 +278,10 @@ angular.module('starter.controllers', [])
                 ]
             }).then(function (res) {
                 if (res) {
-                    Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove(function (data) {
-                        console.log(data);
+                    Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove().then(function (data) {
+                        console.log('hello');
+                        $scope.closeDebtModal();
+                        $scope.reloadDebts();
                     });
                 }
 
