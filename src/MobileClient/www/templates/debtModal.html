@@ -5,8 +5,12 @@
     </ion-header-bar>
     <ion-content class="has-header list card">
         <div class="item item-avatar item-icon-right">
-           <img ng-if="debt.debtor == user.id" ng-src="{{debt.creditorAvatar}}"/>
-           <img ng-if="debt.debtor != user.id" ng-src="{{debt.debtorAvatar}}"/>
+           <img ng-if="debt.debtor == user.id && debt.creditorAvatar != null" ng-src="{{debt.creditorAvatar}}"/>
+           <img ng-if="debt.debtor == user.id && debt.creditorAvatar == null" ng-src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y"/>
+
+           <img ng-if="debt.debtor != user.id && debt.debtorAvatar != null" ng-src="{{debt.debtorAvatar}}"/>
+           <img ng-if="debt.debtor != user.id && debt.debtorAvatar == null" ng-src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y"/>
+
             <div ng-if="debt.debtor == user.id">
                 <h3><b>You owe {{debt.creditor}} </b></h3>
                 <h4 style="font-style:italic" class="dark"> created: {{dateFormatter.formatDate(debt.created)}} </h4>
