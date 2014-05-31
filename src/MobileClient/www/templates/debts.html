@@ -37,6 +37,12 @@
         </div>
 
         <ion-list class="list">
+            <div class="item item-divider" ng-if="filter != 'history'" >
+                <div ng-if="filter == 'all'"> All debts</div>
+                <div ng-if="filter == 'owed'"> My debts</div>
+                <div ng-if="filter == 'own'"> Friends debts</div>
+
+            </div>
             <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left " ng-if="filter != 'details'">
                     <div ng-if="debt.debtor == user.id ">
@@ -44,7 +50,7 @@
                         <p>
                             <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
                             <h3>You owe <b>{{debt.creditor}} </b></h3>
-                            <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
+                            <h4 style="font-style:italic" class="dark"> {{dateFormatter.formatDate(debt.created)}} </h4>
                         </p>
 
                     </div>
@@ -54,12 +60,15 @@
                         <p>
                             <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
                             <h3><b>{{debt.debtor}} </b> owes you</h3>
-                            <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
+                            <h4 style="font-style:italic" class="dark">{{dateFormatter.formatDate(debt.created)}} </h4>
                         </p>
                 </div>
             </ion-item>
         </ion-list>
     <ion-list class="list" ng-if="filter == 'history'" >
+        <div class="item item-divider">
+            History
+        </div>
         <ion-item ng-repeat="debt in debts.debts  | history:filter" ng-click=""
                   class="item-icon-left " >
             <div ng-if="debt.debtor == user.id ">
@@ -68,8 +77,8 @@
                 <p>
                     <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
                     <h3>You payed <b>{{debt.creditor}} </b></h3>
-                    <h4 style="font-style:italic" class="dark">created: {{formatDate(debt.created)}} </h4>
-                    <h4 style="font-style:italic" class="dark">resolved: {{formatDate(debt.modified)}} </h4>
+                    <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
                 </p>
 
             </div>
@@ -79,8 +88,8 @@
                 <p>
                     <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
                     <h3><b>{{debt.debtor}} </b> payed you</h3>
-                    <h4 style="font-style:italic" class="dark">created: {{formatDate(debt.created)}} </h4>
-                    <h4 style="font-style:italic" class="dark">resolved: {{formatDate(debt.modified)}} </h4>
+                    <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
                 </p>
             </div>
         </ion-item>

@@ -40,7 +40,10 @@
 
 
         <ion-list class="list" ng-if="debts.debts.length > 0 && currentUser.id != user.id"  >
-            <ion-item ng-repeat="debt in debts.debts" ng-click="openDebtModal(debt)"
+            <div class="item item-divider">
+                Open Debts
+            </div>
+            <ion-item ng-repeat="debt in debts.debts | matchTab:'all':user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left ">
                 <div ng-if="debt.debtor == currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id ) ">
                     <i class="icon ion-arrow-down-a assertive"></i>
@@ -50,7 +53,7 @@
                     <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
 
                     <h3>You owe <b>{{debt.creditor}} </b></h3>
-                    <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark"> {{dateFormatter.formatDate(debt.created)}} </h4>
                     </p>
 
                 </div>
@@ -62,9 +65,37 @@
                     <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
 
                     <h3><b>{{debt.debtor}} </b> owes you</h3>
-                    <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">{{dateFormatter.formatDate(debt.created)}} </h4>
                     </p>
 
+                </div>
+            </ion-item>
+            <div class="item item-divider">
+                Resolved Debts
+            </div>
+
+            <ion-item ng-repeat="debt in debts.debts  | history:'all'" ng-click=""
+                      class="item-icon-left " >
+                <div ng-if="debt.debtor != user.id ">
+                    <i class="icon ion-ios7-upload dark"></i>
+
+                    <p>
+                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h3>You payed <b>{{debt.creditor}} </b></h3>
+                    <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
+                    </p>
+
+                </div>
+                <div ng-if="debt.debtor == user.id">
+                    <i class="icon ion-ios7-download dark "></i>
+
+                    <p>
+                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h3><b>{{debt.debtor}} </b> payed you</h3>
+                    <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                    <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
+                    </p>
                 </div>
             </ion-item>
         </ion-list>

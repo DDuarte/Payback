@@ -33,6 +33,32 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         }
     }])
 
+    .factory('DateFormatter', function () {
+        var root = {};
+
+        root.formatDate = function (arg) { // converting hours minutes and seconds does not work
+            now = new Date(arg);
+            year = "" + now.getFullYear();
+            month = "" + (now.getMonth() + 1);
+            if (month.length == 1) {
+                month = "0" + month;
+            }
+            day = "" + now.getDate();
+            if (day.length == 1) {
+                day = "0" + day;
+            }
+            /*
+             hour = "" + now.getHours(); if (hour.length == 1) { hour = "0" + hour; }
+             minute = "" + now.getMinutes(); if (minute.length == 1) { minute = "0" + minute; }
+             second = "" + now.getSeconds(); if (second.length == 1) { second = "0" + second; }
+             */
+            return day + "-" + month + "-" + year;
+        }
+
+
+        return root;
+    })
+
     // singleton, this service can be injected into any route in order to check the current user session information
     .provider('AuthService', function AuthServiceProvider() {
 

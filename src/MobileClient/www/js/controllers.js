@@ -136,7 +136,8 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('UserCtrl', function ($scope, $stateParams, Restangular, AuthService) {
+    .controller('UserCtrl', function ($scope, $stateParams, Restangular, AuthService, DateFormatter) {
+        $scope.dateFormatter = DateFormatter;
 
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
@@ -187,7 +188,8 @@ angular.module('starter.controllers', [])
         };
     })
 
-    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService) {
+    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService, DateFormatter) {
+        $scope.dateFormatter = DateFormatter;
 
         $scope.filter = 'all';
 
@@ -333,24 +335,7 @@ angular.module('starter.controllers', [])
 
         $scope.debts = []; // this is needed to keep reference constant
 
-        $scope.formatDate = function (arg) { // converting hours minutes and seconds does not work
-            now = new Date(arg);
-            year = "" + now.getFullYear();
-            month = "" + (now.getMonth() + 1);
-            if (month.length == 1) {
-                month = "0" + month;
-            }
-            day = "" + now.getDate();
-            if (day.length == 1) {
-                day = "0" + day;
-            }
-            /*
-             hour = "" + now.getHours(); if (hour.length == 1) { hour = "0" + hour; }
-             minute = "" + now.getMinutes(); if (minute.length == 1) { minute = "0" + minute; }
-             second = "" + now.getSeconds(); if (second.length == 1) { second = "0" + second; }
-             */
-            return day + "-" + month + "-" + year;
-        }
+
 
 
         $scope.user = AuthService.currentUser();
