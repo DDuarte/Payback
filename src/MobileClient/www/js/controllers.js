@@ -191,16 +191,124 @@ angular.module('starter.controllers', [])
 
 
         $scope.resolveDebt = function(debt) {
-            console.log(debt);
+            var title;
+            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + debt.value + ' ' + debt.currency + ' and thus resolved the debt?';
+            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + debt.value + ' ' + debt.currency + ' and resolved the debt ?';
+            $ionicPopup.show({
+                title: title ,
+                scope: $scope,
+                buttons: [
+                    {
+                        text: 'Yes',
+                        type: 'button-balanced',
+                        onTap: function (e) {
+                            return true;
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        type: 'button-assertive',
+                        onTap: function (e) {
+                            return false;
+                        }
+                    }
+                ]
+            }).then(function (res) {
+                if (res) {
+
+                    var newDebt = {
+                        value: 0,
+                        currency: debt.currency
+                    }
+
+                    Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
+                        $scope.closeDebtModal();
+                        $scope.reloadDebts();
+                    }, function (response) {
+                        AlertPopupService.createPopup('Error', response.error);
+                    });
+
+                }
+
+            });
         }
 
         $scope.deleteDebt = function(debt) {
             console.log(debt);
+
+            $ionicPopup.show({
+                title: 'Are you sure you want to delete this debt?',
+                scope: $scope,
+                buttons: [
+                    {
+                        text: 'Yes, delete it',
+                        type: 'button-balanced',
+                        onTap: function (e) {
+                            return true;
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        type: 'button-assertive',
+                        onTap: function (e) {
+                            return false;
+                        }
+                    }
+                ]
+            }).then(function (res) {
+                if (res) {
+                    Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove(function (data) {
+                        console.log(data);
+                    });
+                }
+
+            });
+
         }
 
         $scope.updateDebt = function(debt,amount) {
-            console.log(debt);
-            console.log(amount);
+
+            var title;
+            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + amount + ' ' + debt.currency + ', but still owe  him/her ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
+            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + amount + ' ' + debt.currency + ', but is still owing you ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
+                $ionicPopup.show({
+                title: title ,
+                scope: $scope,
+                buttons: [
+                    {
+                        text: 'Yes',
+                        type: 'button-balanced',
+                        onTap: function (e) {
+                            return true;
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        type: 'button-assertive',
+                        onTap: function (e) {
+                            return false;
+                        }
+                    }
+                ]
+            }).then(function (res) {
+                if (res) {
+
+                    var newDebt = {
+                        value: debt.value - amount,
+                        currency: debt.currency
+                    }
+
+                    Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
+                        $scope.closeDebtModal();
+                        $scope.reloadDebts();
+                    }, function (response) {
+                        AlertPopupService.createPopup('Error', response.error);
+                    });
+
+                }
+
+            });
+
         }
 
 

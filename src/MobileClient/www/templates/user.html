@@ -7,13 +7,13 @@
             <div class="details">
                 <h3>{{ user.id }}</h3>
 
-                <p ng-if="user.email"><i class="icon ion-ios7-email"></i> Email: {{ user.email }}</p>
-                <h4 ng-class="(debts.balance < 0) ? 'assertive' : 'balanced'" ng-if="user.email">{{ debts.balance }} {{
+                <p ng-if="user.id == currentUser.id"><i class="icon ion-ios7-email"></i> Email: {{ currentUser.email }}</p>
+                <h4 ng-class="(debts.balance < 0) ? 'assertive' : 'balanced'" ng-if="user.id == currentUser.id">{{ debts.balance }} {{
                     debts.currency }}</h4>
             </div>
         </div>
 
-        <div ng-if="debts && user.email" class="list card">
+        <div ng-if="debts && user.id == currentUser.id" class="list card">
             <a class="item " ui-sref="app.debts({userId: user.id})">
                 <div class=" item-icon-left">
                     <i class="icon ion-clipboard"></i>
@@ -21,7 +21,7 @@
                     <div class="details">
                         Debts: {{ debts.total }}
                         <br/>
-                        Owed to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
+                        Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
                         <br/>
                         I owe to others: <span ng-class="(debts.debit > 0) ? 'assertive' : ''"> {{ debts.debit }} {{ debts.currency }} </span>
                     </div>
@@ -32,8 +32,8 @@
         <div ng-if="user" class="list card">
             <a class="item item-icon-left item-icon-right" ui-sref="app.friends({userId: user.id})"><i
                     class="icon ion-person-stalker"></i>
-                <span ng-if="!user.email">{{user.id}}'s</span>
-                <span ng-if="user.email">My </span>
+                <span ng-if="!user.id == currentUser.id">{{user.id}}'s</span>
+                <span ng-if="user.id == currentUser.id">My </span>
                 friends
                 <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
