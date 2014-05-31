@@ -183,7 +183,6 @@ angular.module('starter.controllers', [])
                 }
 
             });
-            console.log(filtered);
 
             return filtered;
         };
