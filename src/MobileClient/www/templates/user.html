@@ -32,7 +32,7 @@
         <div ng-if="user" class="list card">
             <a class="item item-icon-left item-icon-right" ui-sref="app.friends({userId: user.id})"><i
                     class="icon ion-person-stalker"></i>
-                <span ng-if="!user.id == currentUser.id">{{user.id}}'s</span>
+                <span ng-if="user.id != currentUser.id">{{user.id}}'s</span>
                 <span ng-if="user.id == currentUser.id">My </span>
                 friends
                 <i class="icon ion-chevron-right icon-accessory"></i></a>
