@@ -9,8 +9,8 @@
                placeholder="Filter debts..."
                ng-model="searchText.id">
     </ion-header-bar>
-    <ion-content class="has-header list-inset">
-        <div class="card item" ng-if="debts.debts.length">
+    <ion-content class="has-header list-inset" >
+        <div class="card item" ng-if="debts.debts.length && filter == 'details'">
             <h1 ng-if="debts.balance" style="text-align:center" ng-class="dark">Balance: {{ debts.balance }} {{
                 debts.currency }}</h1>
 
@@ -18,50 +18,49 @@
 
         </div>
         <ion-list class="list">
-            <ion-item ng-repeat="debt in debts.debts" ng-click="openDebtModal(debt)"
-                      class="item-icon-left ">
-                <div ng-if="debt.debtor == user.id">
-                    <i class="icon ion-arrow-down-a assertive"></i>
+            <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id  " ng-click="openDebtModal(debt)"
+                      class="item-icon-left " ng-if="filter != 'details'">
+                    <div ng-if="debt.debtor == user.id ">
+                        <i class="icon ion-arrow-down-a assertive"></i>
 
-                    <p>
-                    <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
-                    <h3>You owe <b>{{debt.creditor}} </b></h3>
-                    <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
-                    </p>
+                        <p>
+                        <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                        <h3>You owe <b>{{debt.creditor}} </b></h3>
+                        <h4 style="font-style:italic" class="dark"> {{formatDate(debt.created)}} </h4>
+                        </p>
 
-                </div>
-                <div ng-if="debt.debtor != user.id">
-                    <i class="icon ion-arrow-up-a balanced "></i>
+                    </div>
+                    <div ng-if="debt.debtor != user.id">
+                        <i class="icon ion-arrow-up-a balanced "></i>
 
-                    <p>
-                    <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
-                    <h3><b>{{debt.debtor}} </b> owes you</h3>
-                    <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
-                    </p>
-
+                        <p>
+                        <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                        <h3><b>{{debt.debtor}} </b> owes you</h3>
+                        <h4 style="font-style:italic" class="dark">{{formatDate(debt.created)}} </h4>
+                        </p>
                 </div>
             </ion-item>
         </ion-list>
     </ion-content>
     <ion-footer-bar>
-        <div class="tabs tabs-icon-left">
-            <a class="tab-item">
+        <ion-tabs class="tabs-icon-left">
+            <a ng-click="setFilter('all')" class="tab-item">
                 <i class="icon ion-card"></i>
                 All debts
             </a>
-            <a class="tab-item">
+            <a ng-click="setFilter('own')" class="tab-item">
                 <i class="icon ion-card balanced"></i>
                 Own to me
             </a>
-            <a class="tab-item">
+            <a ng-click="setFilter('owed')" class="tab-item">
                 <i class="icon ion-card assertive"></i>
                 Owed by me
             </a>
-            <a class="tab-item">
-                <i class="icon ion-pie-graph positive"></i>
+            <a ng-click="setFilter('details')" class="tab-item">
+                <i  class="icon ion-pie-graph positive"></i>
                 Details
             </a>
-        </div>
+        </ion-tabs>
     </ion-footer-bar>
 
 </ion-view>

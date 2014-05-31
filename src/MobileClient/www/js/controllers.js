@@ -153,7 +153,29 @@ angular.module('starter.controllers', [])
 
     })
 
+    .filter('matchTab', function() {
+        return function( items ,filter, userId) {
+            var filtered = [];
+            angular.forEach(items, function(item) {
+                if (filter == 'owed' && item.debtor == userId)
+                    filtered.push(item);
+                else if (filter == 'own' &&  item.debtor != userId)
+                    filtered.push(item);
+                else if (filter == 'all')
+                    filtered.push(item);
+
+            });
+            return filtered;
+        };
+    })
+
     .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService) {
+
+        $scope.filter = 'all';
+
+        $scope.setFilter = function(filter) {
+            $scope.filter = filter;
+        }
 
         $scope.modal = {
             amount: 0,
@@ -301,7 +323,6 @@ angular.module('starter.controllers', [])
         $scope.openDebtModal = function (debt) {
             $ionicModal.fromTemplateUrl('templates/debtModal.html', function (modal) {
                 $scope.debtModal = modal;
-
                 $scope.debt = debt;
                 $scope.modal.resolved = false;
                 $scope.resolved = false;
