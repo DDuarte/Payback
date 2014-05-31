@@ -85,9 +85,12 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
-        RestangularProvider.setBaseUrl('http://192.168.1.76:1337');
+        if (typeof process !== 'undefined' && process.env && process.env.URL)
+            RestangularProvider.setBaseUrl(process.env.URL + '/api');
+        else
+            RestangularProvider.setBaseUrl('http://127.0.0.1:1337/api');
 
-        RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers, queryParameters) {
+        RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers) {
             return {
                 headers: _.extend(headers, {'x-access-token': AuthServiceProvider.token()})
             }
@@ -148,11 +151,11 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             })
 
             .state('app.map', {
-                url: "/map",
+                url: '/map',
                 views: {
                     'app': {
-                        templateUrl: "templates/map.html",
-                        controller: "MapCtrl"
+                        templateUrl: 'templates/map.html',
+                        controller: 'MapCtrl'
                     }
                 }
             });

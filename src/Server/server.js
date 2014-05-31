@@ -70,7 +70,7 @@ server.use(bodyParser({
 }));
 
 // static
-server.use(express.static(__dirname + '/public'));
+server.use(express.static(__dirname + '/../MobileClient/www'));
 
 // session secret
 server.use(session({ secret: 'ilovekittiessomuch' }));
@@ -86,9 +86,9 @@ server.use(passport.session());
 
 // routes ==========================================
 
-require("./config/scheduler")(schedule, fx);
+require('./config/scheduler')(schedule, fx);
 
-require("./config/jwtAuth.js")(server);
+require('./config/jwtAuth.js')(server);
 
 // load our routes and pass in our server and fully configured passport
 require('./app/routes.js')(server, passport, fx, jwt);
@@ -97,5 +97,5 @@ require('./app/routes.js')(server, passport, fx, jwt);
 var port = process.env.PORT || 1337;
 
 server.listen(port, function () {
-    console.log("listening at %s", port);
+    console.log('listening at %s', port);
 });
