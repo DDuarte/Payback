@@ -13,12 +13,6 @@ module.exports = {
         connectCallbackURL: url + "connect/facebook/callback"
     },
 
-    twitterAuth : {
-        consumerKey		: 'zd8XQbIzsoNC08hgPszaJyQwP',
-        consumerSecret 	: 'yWtbYQdPwdn3rq2T8oZxT4C604cBFt2YANFGtXBd6O0GuSS0ys',
-        callbackURL		: url + 'auth/twitter/callback'
-    },
-
     googleAuth: {
         clientID: "20245249929-c4vg5b8ejg10156llvdgiccr1lc6evtp.apps.googleusercontent.com",
         clientSecret: "THEioXacp0YhbX07ci37aFM2",

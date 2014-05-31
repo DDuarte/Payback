@@ -2,22 +2,38 @@
 var async = require("async");
 var accounting = require("accounting");
 var crypto = require('crypto-js');
+var moment = require('moment');
+var request = require('request');
 
-module.exports = function (server, passport, fx) {
+var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 
-    server.all("/users", isLoggedIn);
-    server.all("/users/*", isLoggedIn);
+function public_user_info(user) {
+    return {
+        id: user.id,
+        avatar: user.avatar || defaultAvatar
+    }
+}
 
-    //server.all("/", validChecksum);
-    //server.all("/*", validChecksum);
+function protected_user_info(user) {
+    return {
+        id: user.id,
+        email: user.email,
+        currency: user.currency,
+        avatar: user.avatar || defaultAvatar
+    }
+}
 
-    // GET /
-    server.get("/", function (req, res) {
+module.exports = function (server, passport, fx, jwt) {
+    //server.all("/api/", validChecksum);
+    //server.all("/api/*", validChecksum);
+
+    // GET /api/
+    server.get("/api/", function (req, res) {
         res.send(204);
     });
 
-    // POST /login
-    server.post('/login/local', function (req, res) {
+    // POST /api/login/local
+    server.post('/api/login/local', function (req, res) {
 
         passport.authenticate('local-login', function (err, user, info) {
 
@@ -29,14 +45,20 @@ module.exports = function (server, passport, fx) {
                 if (err)
                     return res.send(401);
 
-                res.send(200);
+                var expires = moment().add('days', 7).valueOf();
+                var token = generateToken(user.id, expires);
+                res.send(200, {
+                    access_token: token,
+                    exp: expires,
+                    user: protected_user_info(user)
+                });
             });
         })(req, res);
 
     });
 
-    // POST /signup/local
-    server.post("/signup/local", function (req, res) {
+    // POST /api/signup/local
+    server.post('/api/signup/local', function (req, res, next) {
 
         passport.authenticate('local-signup', function (err, user, info) {
 
@@ -48,19 +70,69 @@ module.exports = function (server, passport, fx) {
                 if (err)
                     return res.send(401);
 
-                res.send(200);
+                var expires = moment().add('days', 7).valueOf();
+                var token = generateToken(user.id, expires);
+                res.send(200, {
+                    access_token: token,
+                    exp: expires,
+                    user: protected_user_info(user)
+                });
             });
-        })(req, res);
+        })(req, res, next);
 
     });
 
-    // GET /login/facebook
-    server.get("/login/facebook", function (req, res, next) {
-        passport.authenticate('facebook-login', { scope: 'email' })(req, res, next);
+    // POST /api/login/facebook
+    server.post('/api/login/facebook', function (req, res, next) {
+
+        if (!req.body.token) {
+            return res.json(400, {error: 'Missing facebook token'});
+        }
+
+        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+
+            if (error || response.statusCode != 200) {
+                return res.json(400, { error: "Invalid facebook access token" });
+            }
+
+
+            var profile = JSON.parse(body);
+
+            if (profile.verified === false)
+                return res.json(400, { error: "Facebook account not verified" });
+
+            req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
+
+                if (err || !facebookUser) {
+                    return res.json(400, { error: "User not found" });
+                }
+
+                facebookUser.getLocalAccount(function (err, localUser) {
+
+                    if (err)
+                        return res.json(400, { error: "User not found" });
+
+                    var expires = moment().add('days', 7).valueOf();
+                    var token = generateToken(localUser.id, expires);
+                    var ret = {
+                        access_token: token,
+                        user: {
+                            id: localUser.id,
+                            email: localUser.email,
+                            facebookAccount: {
+                                email: profile.email,
+                                access_token: req.body.token
+                            }
+                        }};
+
+                    res.json(200, ret);
+                });
+            });
+        });
     });
 
-    // GET /login/facebook/callback
-    server.get("/login/facebook/callback", function (req, res) {
+    // GET /api/login/facebook/callback
+    server.get('/api/login/facebook/callback', function (req, res) {
 
         passport.authenticate('facebook-login', function (err, user, info) {
 
@@ -81,24 +153,91 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /signup/facebook/{id}
-    server.get("/signup/facebook/:id", function (req, res, next) {
+    // POST /api/signup/facebook
+    server.post('/api/signup/facebook', function (req, res, next) {
 
-        if (!req.params.id)
-            return next("Attribute 'id' is missing.");
+        if (!req.body.token) {
+            return res.json(401, {error: "Missing facebook token"});
+        }
 
-        req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
 
-            if (err || exists)
-                return res.json(403, "User '" + req.params.id + "' already exists.");
+        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
-            passport.authenticate('facebook-signup', { scope: 'email', state: req.params.id })(req, res, next);
+            if (error || response.statusCode != 200) {
+                return res.json(401, { error: "Invalid facebook access token" });
+            }
+
+            var profile = JSON.parse(body);
+            if (profile.verified === false)
+                return res.json(401, { error: "Facebook account not verified" });
+
+            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                if (err || exists)
+                    return res.json(401, { error: "Facebook account is already registered" });
+
+                if (!profile.displayName)
+                    profile.displayName = profile.first_name + " " + profile.last_name;
+
+                req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                    if (err || exists)
+                        return res.json(401, { error: "That facebook displayName is already taken" });
+
+                    req.models.user.create({
+                        id: profile.displayName,
+                        email: profile.email
+                    }, function (err, localUser) {
+
+                        if (err || !localUser) {
+                            return res.json(401, { error: err});
+                        }
+
+                        req.models.facebook.create({
+                                id: profile.id,
+                                token: req.body.token,
+                                displayName: profile.displayName,
+                                email: profile.email,
+                                localaccount_id: localUser.id
+                            },
+                            function (err, newFacebookUser) {
+
+                                if (err || !newFacebookUser) {
+                                    return res.json(401, { error: err });
+                                }
+
+                                localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                    if (err) {
+                                        return res.json(401, { error: err });
+                                    }
+
+                                    var expires = moment().add('days', 7).valueOf();
+                                    var token = generateToken(localUser.id, expires);
+                                    var ret = {
+                                        access_token: token,
+                                        user: {
+                                            id: localUser.id,
+                                            email: localUser.email,
+                                            facebookAccount: {
+                                                email: newFacebookUser.email,
+                                                access_token: newFacebookUser.token
+                                            }
+                                        }
+                                    };
+
+                                    return res.json(200, ret);
+                                });
+
+                            });
+                    });
+                });
+            });
         });
-
     });
 
-    // GET /signup/facebook/callback
-    server.get('/signup/facebook/callback', function (req, res) {
+    // GET /api/signup/facebook/callback
+    server.get('/api/signup/facebook/callback', function (req, res) {
 
         passport.authenticate('facebook-signup', function (err, user, info) {
 
@@ -119,11 +258,11 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /connect/facebook
-    server.get('/connect/facebook', passport.authorize('facebook-connect', { scope : 'email' }));
+    // GET /api/connect/facebook
+    server.get('/api/connect/facebook', passport.authorize('facebook-connect', { scope: 'email' }));
 
-    // GET /connect/facebook/callback
-    server.get('/connect/facebook/callback', function (req, res) {
+    // GET /api/connect/facebook/callback
+    server.get('/api/connect/facebook/callback', function (req, res) {
 
         passport.authorize('facebook-connect', function (err, user, info) {
 
@@ -143,13 +282,13 @@ module.exports = function (server, passport, fx) {
         })(req, res);
     });
 
-    // GET /login/google
-    server.get("/login/google", function (req, res, next) {
+    // GET /api/login/google
+    server.get('/api/login/google', function (req, res, next) {
         passport.authenticate('google-login')(req, res, next);
     });
 
-    // GET /login/google/callback
-    server.get("/login/google/callback", function (req, res, next) {
+    // GET /api/login/google/callback
+    server.get('/api/login/google/callback', function (req, res, next) {
 
         passport.authenticate('google-login', function (err, user, info) {
 
@@ -170,8 +309,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /signup/google/{id}
-    server.get('/signup/google/:id', function (req, res, next) {
+    // GET /api/signup/google/{id}
+    server.get('/api/signup/google/:id', function (req, res, next) {
 
         if (!req.params.id)
             return next("Attribute 'id' is missing.");
@@ -185,8 +324,8 @@ module.exports = function (server, passport, fx) {
         });
     });
 
-    // GET /signup/google/callback
-    server.get('/signup/google/callback', function (req, res) {
+    // GET /api/signup/google/callback
+    server.get('/api/signup/google/callback', function (req, res) {
 
         passport.authenticate('google-signup', function (err, user, info) {
 
@@ -207,11 +346,11 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /connect/google
-    server.get('/connect/google', passport.authorize('google-connect'));
+    // GET /api/connect/google
+    server.get('/api/connect/google', passport.authorize('google-connect'));
 
-    // GET /connect/google/callback
-    server.get('/connect/google/callback', function (req, res) {
+    // GET /api/connect/google/callback
+    server.get('/api/connect/google/callback', function (req, res) {
 
         passport.authorize('google-connect', function (err, user, info) {
 
@@ -231,14 +370,14 @@ module.exports = function (server, passport, fx) {
         })(req, res);
     });
 
-    // GET /logout
-    server.get('/logout', function (req, res) {
+    // GET /api/logout
+    server.get('/api/logout', function (req, res) {
         req.logout();
         res.send(200);
     });
 
-    // GET /exchangeRates
-    server.get("/exchangeRates", function(req, res) {
+    // GET /api/exchangeRates
+    server.get('/api/exchangeRates', function (req, res) {
 
         return res.json(200, {
             base: fx.base,
@@ -247,8 +386,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users/{id}
-    server.get("/users/:id", function (req, res) {
+    // GET /api/users/{id}
+    server.get('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -257,23 +396,23 @@ module.exports = function (server, passport, fx) {
                 return;
             }
 
-            res.json(200, {
-                id: user.id,
-                email: user.email
-            });
+            if (req.user && req.user.id == user.id) {
+                res.json(protected_user_info(user));
+            } else {
+                res.json(public_user_info(user));
+            }
         });
-
     });
 
-    // PATCH /users/{id}
-    server.patch("/users/:id", function (req, res, next) {
+    // PATCH /api/users/{id}
+    server.patch('/api/users/:id', function (req, res, next) {
 
         if (req.body === undefined) {
             return next("No body defined.");
         }
 
-        if (req.body.email === undefined) {
-            return next("Can only change 'email' attribute of the user.");
+        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
+            return next("Can only change 'email', 'currency' or 'avatar' attributes of the user.");
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -282,23 +421,33 @@ module.exports = function (server, passport, fx) {
                 return;
             }
 
-            user.save({ email: req.body.email }, function (err) {
+            var updateObj = {};
+            if (req.body.email) {
+                updateObj.email = req.body.email;
+            }
+
+            if (req.body.currency) {
+                updateObj.currency = req.body.currency;
+            }
+
+            if (req.body.avatar) {
+                updateObj.avatar = req.body.avatar;
+            }
+
+            user.save(updateObj, function (err) {
                 if (err || !user) {
                     res.json(403, err);
                     return;
                 }
 
-                res.json(200, {
-                    id: user.id,
-                    email: req.body.email
-                });
+                res.json(protected_user_info(user));
             });
         });
 
     });
 
-    // DELETE /users/{id}
-    server.del("/users/:id", function (req, res) {
+    // DELETE /api/users/{id}
+    server.del('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -320,8 +469,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users/{id}/facebook
-    server.get("/users/:id/facebook", function (req, res) {
+    // GET /api/users/{id}/facebook
+    server.get('/api/users/:id/facebook', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -345,8 +494,8 @@ module.exports = function (server, passport, fx) {
         })
     });
 
-    // GET /users/{id}/google
-    server.get("/users/:id/google", function (req, res) {
+    // GET /api/users/{id}/google
+    server.get('/api/users/:id/google', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -370,8 +519,8 @@ module.exports = function (server, passport, fx) {
         })
     });
 
-    // GET /users/{id}/debts/{debtId}
-    server.get("/users/:id/debts/:debtId", function (req, res) {
+    // GET /api/users/{id}/debts/{debtId}
+    server.get('/api/users/:id/debts/:debtId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -396,7 +545,7 @@ module.exports = function (server, passport, fx) {
                     modified: debt.modified
                 };
 
-                var currency = req.query.currency ? req.query.currency : debt.currency;
+                var currency = req.query.currency || debt.currency;
 
                 ret.originalValue = convertMoney(debt.originalValue, debt.currency, currency);
                 ret.value = convertMoney(debt.value, debt.currency, currency);
@@ -408,8 +557,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // PATCH /users/{id}/debts/{debtId}
-    server.patch("/users/:id/debts/:debtId", function (req, res, next) {
+    // PATCH /api/users/{id}/debts/{debtId}
+    server.patch('/api/users/:id/debts/:debtId', function (req, res, next) {
 
         if (req.body === undefined) {
             return next("No body defined.");
@@ -422,13 +571,6 @@ module.exports = function (server, passport, fx) {
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
         }
-
-        //var valueStr = req.body.value.toString();
-        //var splitValueStr = valueStr.split(".");
-
-        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
-        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -467,8 +609,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // DELETE /users/{id}/debts/{debtId}
-    server.del("/users/:id/debts/:debtId", function (req, res) {
+    // DELETE /api/users/{id}/debts/{debtId}
+    server.del('/api/users/:id/debts/:debtId', function (req, res) {
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -488,8 +630,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users/{id}/debts
-    server.get("/users/:id/debts", function (req, res) {
+    // GET /api/users/{id}/debts
+    server.get('/api/users/:id/debts', function (req, res) {
 
         var currency = req.query.currency ? req.query.currency : "EUR";
 
@@ -503,14 +645,13 @@ module.exports = function (server, passport, fx) {
                     return res.json(500, err);
 
                 user.getDebts(function (err, debts) {
-
                     if (err || !debts)
                         return res.json(500, err);
 
                     debts = credits.concat(debts);
 
                     async.reduce(debts, { credit: 0, debit: 0}, function (memo, debt, cb) {
-                        var val = convertMoney(debt.value, debt.currency, currency);;
+                        var val = convertMoney(debt.value, debt.currency, currency);
                         if (user.id === debt.creditor_id) {
                             memo.credit += val;
                         } else {
@@ -519,36 +660,43 @@ module.exports = function (server, passport, fx) {
 
                         cb(null, memo);
                     }, function (err, values) {
-
                         var balance = values.credit - values.debit;
 
-                        async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function (err, result) {
-
+                        async.map(debts, asyncDebtConversion.bind(undefined, req.query.currency), function (err, debtsConverted) {
                             if (err)
                                 return res.json(500, err);
 
-                            res.json(200, {
-                                total: result.length,
-                                balance: balance,
+                            var debtsData = {
+                                total: debtsConverted.length,
+                                balance: values.credit - values.debit,
                                 credit: values.credit,
                                 debit: values.debit,
                                 currency: currency,
-                                debts: result
+                                debts: debtsConverted
+                            };
+
+                            debtsData.debts.forEach(function (debt) {
+                                req.models.user.get(debt.creditor_id, function (err, creditor) {
+                                    if (!err)
+                                        debt.creditorAvatar = creditor.avatar;
+                                });
+
+                                req.models.user.get(debt.debtor_id, function (err, debtor) {
+                                    if (!err)
+                                        debt.debtorAvatar = debtor.avatar;
+                                });
                             });
 
+                            res.json(debtsData);
                         });
-
                     });
                 });
             });
-
-
         });
-
     });
 
-    // POST /users/{id}/debts
-    server.post("/users/:id/debts", function (req, res, next) {
+    // POST /api/users/{id}/debts
+    server.post('/api/users/:id/debts', function (req, res, next) {
 
         if (req.body === undefined) {
             return next("No body defined.");
@@ -568,13 +716,6 @@ module.exports = function (server, passport, fx) {
         if (isNaN(req.body.value)) {
             return next("Attribute 'value' needs to be a number.");
         }
-
-        //var valueStr = req.body.value.toString();
-        //var splitValueStr = valueStr.split(".");
-
-        //if (splitValueStr.length > 1 && splitValueStr[1].length > 2) { // more than 2 decimal digits
-        //    return next("Attribute 'value' can't exceed 2 decimal digits.");
-        //}
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
 
@@ -626,8 +767,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users/{id}/friends/{friendId}
-    server.get("/users/:id/friends/:friendId", function (req, res) {
+    // GET /api/users/{id}/friends/{friendId}
+    server.get('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
             if (err) {
@@ -648,8 +789,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // DELETE /users/{id}/friends/{friendId}
-    server.del("/users/:id/friends/:friendId", function (req, res) {
+    // DELETE /api/users/{id}/friends/{friendId}
+    server.del('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
 
@@ -685,8 +826,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users/{id}/friends
-    server.get("/users/:id/friends", function (req, res) {
+    // GET /api/users/{id}/friends
+    server.get('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
             if (err) {
@@ -706,9 +847,7 @@ module.exports = function (server, passport, fx) {
                     return;
                 }
 
-                friends = friends.map(function (user) {
-                    return { id: user.id };
-                });
+                friends = friends.map(public_user_info);
 
                 var obj = {
                     "total": friends.length,
@@ -721,8 +860,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // POST /users/{id}/friends
-    server.post("/users/:id/friends", function (req, res, next) {
+    // POST /api/users/{id}/friends
+    server.post('/api/users/:id/friends', function (req, res, next) {
 
         if (req.body === undefined) {
             return next("No body defined.");
@@ -766,8 +905,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // DELETE /users/{id}/friends
-    server.del("/users/:id/friends", function (req, res) {
+    // DELETE /api/users/{id}/friends
+    server.del('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
             if (err) {
@@ -790,8 +929,8 @@ module.exports = function (server, passport, fx) {
 
     });
 
-    // GET /users
-    server.get("/users", function (req, res) {
+    // GET /api/users
+    server.get('/api/users', function (req, res) {
 
         req.models.user.find({}).run(function (err, users) {
 
@@ -800,26 +939,28 @@ module.exports = function (server, passport, fx) {
                 return;
             }
 
-            users = users.map(function (user) {
-                return {id: user.id};
-            });
+            users = users.map(public_user_info);
 
             if (!req.query.search)
-                res.json(200, users);
+                res.json(200, {
+                    total: users.length,
+                    users: users
+                });
             else {
-
                 var fuzzyTest = asyncFuzzyTest.bind(undefined, req.query.search);
-                async.filter(users, fuzzyTest, function(results) { // asynchronous search
-                    res.json(200, results);
+                async.filter(users, fuzzyTest, function (results) { // asynchronous search
+                    res.json(200, {
+                        total: results.length,
+                        users: results
+                    });
                 });
             }
         });
 
     });
 
-    // POST /users
-    server.post("/users", function (req, res, next) {
-
+    // POST /api/users
+    server.post('/api/users', function (req, res, next) {
         if (req.body === undefined) {
             return next("No body defined");
         }
@@ -840,39 +981,30 @@ module.exports = function (server, passport, fx) {
             return next("Attribute 'passwordHash' is missing");
         }
 
+        if (req.body.currency === undefined) {
+            return next("Attribute 'currency' is missing");
+        }
+
         req.models.user.create({
             id: req.body.id,
             passwordHash: req.body.passwordHash,
-            email: req.body.email
-        }, function (err, item) {
-
+            email: req.body.email,
+            currency: req.body.currency,
+            avatar: req.body.avatar // can be empty
+        }, function (err, user) {
             if (err) {
-
                 if (err.code == 23505) { // unique_violation
                     return next("Already exists");
                 } else if (err.msg == "invalid-password-length" || err.msg == "invalid-email-format") {
                     return next(err.msg);
-                }
-                else {
+                } else {
                     res.json(500, err);
                 }
             }
 
-            res.json(201, {id: item.id, email: item.email });
+            res.json(201, protected_user_info(user));
         });
-
     });
-
-    // make sure user is authenticated
-    function isLoggedIn(req, res, next) {
-
-        // if user is authenticated in the session, carry on
-        if (req.isAuthenticated())
-            return next();
-
-        // if not, then stop the chain flow
-        res.json(403, { error: "No permission" });
-    }
 
     // asynchronous version of the fuzzy evaluation function defined above
     function asyncFuzzyTest(searchTerm, user, callback) {
@@ -923,5 +1055,14 @@ module.exports = function (server, passport, fx) {
     function convertMoney(value, srcCurrency, destCurrency) {
         // TODO: remove use of parseFloat
         return parseFloat(accounting.toFixed(fx(value).from(srcCurrency).to(destCurrency), 4));
+    }
+
+    function generateToken(userId, expirationDate) {
+        var token = jwt.encode({
+            iss: userId,
+            exp: expirationDate
+        }, server.get('jwtTokenSecret'));
+
+        return token;
     }
 };

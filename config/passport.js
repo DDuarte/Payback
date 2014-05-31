@@ -3,10 +3,11 @@
 var LocalStrategy = require('passport-local').Strategy;
 var FacebookStrategy = require('passport-facebook').Strategy;
 var GoogleStrategy = require('passport-google').Strategy;
-var TwitterStrategy = require('passport-twitter').Strategy;
 
 // load the auth variables
 var configAuth = require('./auth');
+
+var crypto = require('crypto-js');
 
 module.exports = function (passport) {
 
@@ -32,7 +33,12 @@ module.exports = function (passport) {
             process.nextTick(function () {
 
                 if (!req.body.email)
-                    return done(null, false, { message: "Attribute 'email' is missing." });
+                    return done(null, false, { error: "Attribute 'email' is missing." });
+
+                var mailRegex  = /^[a-z0-9\._%\+\-]+@[a-z0-9\.\-]+\.[a-z]{2,6}$/;
+
+                if (!mailRegex.test(req.body.email))
+                    return done(null, false, { error: "Invalid email format." });
 
                 req.models.user.exists({ id: id }, function (err, exists) {
 
@@ -40,20 +46,35 @@ module.exports = function (passport) {
                         return done(err);
 
                     if (exists)
-                        return done(null, false, { message: "That id is already taken." });
+                        return done(null, false, { error: "That id is already taken." });
 
-                    req.models.user.create({
-                            id: id,
-                            passwordHash: password,
-                            email: req.body.email
-                        },
-                        function (err, userItem) {
+                    var email = req.body.email;
+                    req.models.user.exists({ email: email }, function (err, exists) {
 
-                            if (err)
-                                return done(err);
+                        if (err)
+                            return done(err);
 
-                            return done(null, userItem);
-                        });
+                        if (exists)
+                            return done(null, false, { error: "That email is already taken." });
+
+                        var avatar = 'http://www.gravatar.com/avatar/' + crypto.MD5(email.trim().toLowerCase());
+
+                        req.models.user.create({
+                                id: id,
+                                passwordHash: password,
+                                email: email,
+                                avatar: avatar,
+                                currency: req.body.currency
+                            },
+                            function (err, userItem) {
+
+                                if (err)
+                                    return done(err);
+
+                                return done(null, userItem);
+                            });
+
+                    });
                 });
 
             });
@@ -68,64 +89,15 @@ module.exports = function (passport) {
 
             req.models.user.get(id, function (err, user) {
 
-                if (err)
-                    return done(err);
-
-                if (!user)
-                    return done(null, false, { message: "No user found."});
+                if (err || !user)
+                    return done(null, false, { error: "No user ID was found."});
 
                 if (user.passwordHash !== password)
-                    return done(null, false, { message: "Wrong password."});
+                    return done(null, false, { error: "Wrong password."});
 
                 return done(null, user);
             });
         }));
-
-    passport.use(new TwitterStrategy({
-
-            consumerKey: configAuth.twitterAuth.consumerKey,
-            consumerSecret: configAuth.twitterAuth.consumerSecret,
-            callbackURL: configAuth.twitterAuth.callbackURL,
-            passReqToCallback: true
-        },
-        function (req, token, refreshToken, profile, done) {
-            // asynchronous
-            process.nextTick(function () {
-
-                req.models.user.create({
-                        id: req.body.id,
-                        email: req.body.email
-                    },
-                    function (err, newLocalUser) {
-
-                        if (err)
-                            return done(err);
-
-                        req.models.twitter.create({
-                                id: profile.id,
-                                token: token,
-                                displayName: profile.username,
-                                localAccount_id: newLocalUser.id
-                            },
-                            function (err, newTwitterUser) {
-
-                                if (err)
-                                    return done(err);
-
-                                newLocalUser.setTwitterAccount(newTwitterUser, function (err) {
-
-                                    if (err)
-                                        return done(err);
-
-                                    return done(null, newLocalUser);
-                                });
-
-                            });
-                    });
-            });
-
-        }));
-
 
     // Facebook strategies =============================================================================================
 
@@ -184,8 +156,9 @@ module.exports = function (passport) {
                                     });
                             });
                         });
-                }});
-    }));
+                }
+            });
+        }));
 
     // login with facebook account
     passport.use("facebook-login", new FacebookStrategy({
@@ -213,7 +186,7 @@ module.exports = function (passport) {
                 });
             });
 
-    }));
+        }));
 
     // connect with facebook account
     passport.use("facebook-connect", new FacebookStrategy({
@@ -299,7 +272,7 @@ module.exports = function (passport) {
                             });
                     });
             });
-    }));
+        }));
 
     // login with google account
     passport.use("google-login", new GoogleStrategy({
@@ -325,7 +298,7 @@ module.exports = function (passport) {
                     return done(null, localUser);
                 });
             });
-    }));
+        }));
 
     // connect google account
     passport.use("google-connect", new GoogleStrategy({
@@ -342,23 +315,23 @@ module.exports = function (passport) {
             console.log(user.id);
 
             req.models.google.create({
-                id: identifier,
-                displayName: profile.displayName,
-                email: profile.emails[0].value,
-                localaccount_id: user.id
-            },
-            function (err, newGoogleUser) {
-
-                if (err)
-                    return done(err);
-
-                user.setGoogleAccount(newGoogleUser, function (err) {
+                    id: identifier,
+                    displayName: profile.displayName,
+                    email: profile.emails[0].value,
+                    localaccount_id: user.id
+                },
+                function (err, newGoogleUser) {
 
                     if (err)
                         return done(err);
 
-                    return done(null, user);
+                    user.setGoogleAccount(newGoogleUser, function (err) {
+
+                        if (err)
+                            return done(err);
+
+                        return done(null, user);
+                    });
                 });
-            });
-    }));
+        }));
 };
