@@ -576,7 +576,3 @@ angular.module('starter.controllers', [])
 
         initialize();
     })
-
-    .controller('FriendCtrl', function ($scope, $stateParams) {
-
-    });
