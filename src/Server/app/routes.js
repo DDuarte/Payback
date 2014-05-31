@@ -679,15 +679,14 @@ module.exports = function (server, passport, fx, jwt) {
                                 req.models.user.get(debt.creditor, function (err, creditor) {
                                     if (!err)
                                         debt.creditorAvatar = creditor.avatar;
-                                });
-
-                                req.models.user.get(debt.debtor, function (err, debtor) {
-                                    if (!err)
-                                        debt.debtorAvatar = debtor.avatar;
+                                        
+                                    req.models.user.get(debt.debtor, function (err, debtor) {
+                                        if (!err)
+                                            debt.debtorAvatar = debtor.avatar;
+                                        res.json(debtsData);
+                                    });
                                 });
                             });
-
-                            res.json(debtsData);
                         });
                     });
                 });
