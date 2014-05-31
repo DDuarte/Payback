@@ -611,23 +611,23 @@ module.exports = function (server, passport, fx, jwt) {
 
     // DELETE /api/users/{id}/debts/{debtId}
     server.del('/api/users/:id/debts/:debtId', function (req, res) {
-
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
-
             if (err || !exists) {
                 res.json(404, { error: "User '" + req.params.id + "' does not exist"});
                 return;
             }
 
-            req.models.debt.remove({ id: req.params.debtId }, function (err) {
-
+            req.models.debt.get({ id: req.params.debtId }, function (err, debt) {
                 if (err)
                     return res.json(404, { error: "Debt '" + req.params.debtId + "' does not exist" });
 
-                res.send(204);
+                debt.remove(function (err) {
+                    if (err)
+                        return res.json(500, { error: "Could not remove debt '" + req.params.debtId + "': " + err });
+                    res.send(204);
+                });
             });
         });
-
     });
 
     // GET /api/users/{id}/debts
