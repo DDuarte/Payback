@@ -154,12 +154,13 @@ angular.module('starter.controllers', [])
 
     })
 
-    .filter('matchTab', function() {
+    .filter('matchTab', function(AuthService) {
         return function( items ,filter, userId) {
 
             var filtered = [];
             angular.forEach(items, function(item) {
-                if (item.value != 0) {
+                if (item.value != 0 && (item.debtor ==  AuthService.currentUser().id || item.creditor == AuthService.currentUser().id)) {
+
                     if (filter == 'owed' && item.debtor == userId)
                         filtered.push(item);
                     else if (filter == 'own' && item.debtor != userId)

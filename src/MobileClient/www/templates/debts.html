@@ -41,7 +41,6 @@
                 <div ng-if="filter == 'all'"> All debts</div>
                 <div ng-if="filter == 'owed'"> My debts</div>
                 <div ng-if="filter == 'own'"> Friends debts</div>
-
             </div>
             <ion-item ng-repeat="debt in debts.debts | matchTab:filter:user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left " ng-if="filter != 'details'">
