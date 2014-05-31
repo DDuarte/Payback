@@ -155,7 +155,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
                         controller: "MapCtrl"
                     }
                 }
-            })
+            });
 
         // if none of the above states are matched, use this as the fallback
         $urlRouterProvider.otherwise('/login');
