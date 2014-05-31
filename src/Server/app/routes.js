@@ -675,7 +675,21 @@ module.exports = function (server, passport, fx, jwt) {
                                 debts: debtsConverted
                             };
 
-                            debtsData.debts.forEach(function (debt) {
+                            async.each(debtsData.debts, function(debt, callback) {
+                                req.models.user.get(debt.creditor, function (err, creditor) {
+                                    if (!err)
+                                        debt.creditorAvatar = creditor.avatar;
+
+                                    req.models.user.get(debt.debtor, function (err, debtor) {
+                                        if (!err)
+                                            debt.debtorAvatar = debtor.avatar;
+
+                                        callback(null);
+                                    })});
+                            }, function(err) {
+                                res.json(debtsData);
+                            });
+                            /*debtsData.debts.forEach(function (debt) {
                                 req.models.user.get(debt.creditor, function (err, creditor) {
                                     if (!err)
                                         debt.creditorAvatar = creditor.avatar;
@@ -686,7 +700,7 @@ module.exports = function (server, passport, fx, jwt) {
                                         res.json(debtsData);
                                     });
                                 });
-                            });
+                            }); */
                         });
                     });
                 });
