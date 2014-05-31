@@ -7,6 +7,7 @@ var request = require('request');
 
 var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
+var googleEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=";
 
 function public_user_info(user) {
     return {
@@ -106,7 +107,6 @@ module.exports = function (server, passport, fx, jwt) {
             function (profilePicture, callback) {
                 request(facebookEndpoint + req.body.token, function (error, response, body) {
 
-                    console.log("profilePicture:" + profilePicture.toString());
                     if (error || response.statusCode != 200) {
                         return callback({ error: "Invalid facebook access token" });
                     }
@@ -125,7 +125,7 @@ module.exports = function (server, passport, fx, jwt) {
                         facebookUser.getLocalAccount(function (err, localUser) {
 
                             if (err)
-                                return callback({ error: "User not found" });
+                                return callback({ error: "Local user not found" });
 
                             var expires = moment().add('days', 7).valueOf();
                             var token = generateToken(localUser.id, expires);
@@ -290,68 +290,140 @@ module.exports = function (server, passport, fx, jwt) {
         })(req, res);
     });
 
-    // GET /api/login/google
-    server.get('/api/login/google', function (req, res, next) {
-        passport.authenticate('google-login')(req, res, next);
-    });
+    // POST /api/login/google
+    server.post('/api/login/google', function (req, res, next) {
 
-    // GET /api/login/google/callback
-    server.get('/api/login/google/callback', function (req, res, next) {
+        if (!req.body.token) {
+            return res.json(400, {error: 'Missing google token'});
+        }
 
-        passport.authenticate('google-login', function (err, user, info) {
+        request(googleEndpoint + req.body.token, function (error, response, body) {
 
-            if (err)
-                return res.json(500, err);
+            if (error || response.statusCode != 200) {
+                return res.json(400, { error: "Invalid google access token" });
+            }
 
-            if (!user)
-                return res.json(401, info);
+            var profile = JSON.parse(body);
 
-            req.logIn(user, function (err) {
+            console.log(error);
+            console.log(body);
 
-                if (err)
-                    return res.send(401);
+            return res.json(400, {error: "Testing"});
 
-                res.send(200);
+            if (profile.verified_email === false)
+                return res.json(400, { error: "Google account not verified" });
+
+            req.models.google.get(profile.id, function (err, googleUser) { // login attempt
+
+                if (err || !facebookUser) {
+                    return res.json(400, { error: "User not found" });
+                }
+
+                googleUser.getLocalAccount(function (err, localUser) {
+
+                    if (err)
+                        return res.json(400, { error: "Local user not found" });
+
+                    var expires = moment().add('days', 7).valueOf();
+                    var token = generateToken(localUser.id, expires);
+                    var ret = {
+                        access_token: token,
+                        user: {
+                            id: localUser.id,
+                            email: localUser.email,
+                            googleAccount: {
+                                email: profile.email,
+                                access_token: req.body.token
+                            }
+                        }};
+
+                    return res.json(200, ret);
+                });
             });
-        })(req, res, next);
-
-    });
-
-    // GET /api/signup/google/{id}
-    server.get('/api/signup/google/:id', function (req, res, next) {
-
-        if (!req.params.id)
-            return res.json(409, { error: "Attribute 'id' is missing."});
-
-        req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
-
-            if (err || exists)
-                return res.json(403, "User '" + req.params.id + "' already exists.");
-
-            passport.authenticate('google-signup', {state: req.params.id })(req, res, next);
         });
     });
 
-    // GET /api/signup/google/callback
-    server.get('/api/signup/google/callback', function (req, res) {
+    // POST /api/signup/google
+    server.get('/api/signup/google', function (req, res, next) {
 
-        passport.authenticate('google-signup', function (err, user, info) {
+        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
-            if (err)
-                return res.json(500, err);
+            if (error || response.statusCode != 200) {
+                return res.json(401, { error: "Invalid google access token" });
+            }
 
-            if (!user)
-                return res.json(401, info);
+            var profile = JSON.parse(body);
+            if (profile.verified_email === false)
+                return res.json(401, { error: "Google account not verified" });
 
-            req.logIn(user, function (err) {
+            console.log("Profile: " + JSON.stringify(profile));
 
-                if (err)
-                    return res.send(401);
+            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
 
-                res.send(200);
+                if (err || exists)
+                    return res.json(401, { error: "Google account is already registered" });
+
+                if (!profile.displayName)
+                    profile.displayName = profile.given_name + " " + profile.familyName;
+
+                req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                    if (err || exists)
+                        return res.json(401, { error: "That google displayName is already taken" });
+
+                    req.models.user.create({
+                        id: profile.displayName,
+                        email: profile.email,
+                        avatar: profile.picture
+                    }, function (err, localUser) {
+
+                        if (err || !localUser) {
+                           return res.json(401, { error: err});
+                        }
+
+                        req.models.google.create({
+                                id: profile.id,
+                                token: req.body.token,
+                                displayName: profile.displayName,
+                                email: profile.email,
+                                localaccount_id: localUser.id,
+                                avatar: profile.picture
+                            },
+                            function (err, newGoogleUser) {
+
+                                if (err || !newGoogleUser) {
+                                    return res.json(401, { error: err });
+                                }
+
+                                localUser.setGoogleAccount(newGoogleUser, function (err) {
+
+                                    if (err) {
+                                        return res.json(401, { error: err });
+                                    }
+
+                                    var expires = moment().add('days', 7).valueOf();
+                                    var token = generateToken(localUser.id, expires);
+                                    var ret = {
+                                        access_token: token,
+                                        user: {
+                                            id: localUser.id,
+                                            email: localUser.email,
+                                            avatar: localUser.avatar,
+                                            facebookAccount: {
+                                                email: newFacebookUser.email,
+                                                access_token: newFacebookUser.token
+                                            }
+                                        }
+                                    };
+
+                                    return callback(null, ret);
+                                });
+
+                            });
+                    });
+                });
             });
-        })(req, res);
-
+        });
     });
 
     // GET /api/connect/google
