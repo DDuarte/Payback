@@ -676,12 +676,12 @@ module.exports = function (server, passport, fx, jwt) {
                             };
 
                             debtsData.debts.forEach(function (debt) {
-                                req.models.user.get(debt.creditor_id, function (err, creditor) {
+                                req.models.user.get(debt.creditor, function (err, creditor) {
                                     if (!err)
                                         debt.creditorAvatar = creditor.avatar;
                                 });
 
-                                req.models.user.get(debt.debtor_id, function (err, debtor) {
+                                req.models.user.get(debt.debtor, function (err, debtor) {
                                     if (!err)
                                         debt.debtorAvatar = debtor.avatar;
                                 });
@@ -1026,7 +1026,9 @@ module.exports = function (server, passport, fx, jwt) {
         return callback(null, {
             debtId: debt.id,
             creditor: debt.creditor_id,
+            creditorAvatar: defaultAvatar,
             debtor: debt.debtor_id,
+            debtorAvatar: defaultAvatar,
             originalValue: convertMoney(debt.originalValue, debt.currency, currency),
             value: convertMoney(debt.value, debt.currency, currency),
             currency: currency,
