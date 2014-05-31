@@ -190,6 +190,21 @@ angular.module('starter.controllers', [])
         };
 
 
+        $scope.resolveDebt = function(debt) {
+            console.log(debt);
+        }
+
+        $scope.deleteDebt = function(debt) {
+            console.log(debt);
+        }
+
+        $scope.updateDebt = function(debt,amount) {
+            console.log(debt);
+            console.log(amount);
+        }
+
+
+
         $scope.debts = []; // this is needed to keep reference constant
 
         $scope.formatDate = function (arg) { // converting hours minutes and seconds does not work

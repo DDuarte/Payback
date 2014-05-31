@@ -95,12 +95,12 @@
 
 
         <div class="item">
-            <div class="button-bar">
-                <a class="button button-balanced"
+            <div class="button-bar" >
+                <a class="button button-balanced" ng-click=" !(modal.amount - debt.value == 0 || modal.resolved ) || resolveDebt(debt) "
                    ng-class="modal.amount - debt.value == 0 || modal.resolved ? '' : 'button-disabled' ">Resolve</a>
-                <a class="button button-calm"
+                <a class="button button-calm" ng-click="modal.amount - debt.value == 0 || modal.resolved ||  !modal.amount || debt.value - modal.amount < 0 || modal.amount < 0 || updateDebt(debt,modal.amount)"
                    ng-class="modal.amount - debt.value == 0 || modal.resolved ||  !modal.amount || debt.value - modal.amount < 0 || modal.amount < 0 ? 'button-disabled' : '' ">Update</a>
-                <a class="button button-assertive">Delete</a>
+                <a class="button button-assertive" ng-click="deleteDebt(debt)" >Delete</a>
             </div>
         </div>
     </ion-content>

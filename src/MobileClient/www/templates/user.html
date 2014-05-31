@@ -16,7 +16,7 @@
         <div ng-if="debts && user.email" class="list card">
             <a class="item " ui-sref="app.debts({userId: user.id})">
                 <div class=" item-icon-left">
-                    <i class="icon ion-card"></i>
+                    <i class="icon ion-clipboard"></i>
 
                     <div class="details">
                         Debts: {{ debts.total }}
@@ -38,7 +38,8 @@
                 <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
 
-        <ion-list class="list" ng-if="debts.debts.length > 0">
+
+        <ion-list class="list" ng-if="debts.debts.length > 0 && currentUser.id != user.id"  >
             <ion-item ng-repeat="debt in debts.debts" ng-click="openDebtModal(debt)"
                       class="item-icon-left ">
                 <div ng-if="debt.debtor == currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id ) ">
@@ -67,6 +68,14 @@
                 </div>
             </ion-item>
         </ion-list>
+
+        <div ng-if="user && currentUser.id == user.id" class="list card">
+            <a class="item item-icon-left item-icon-right" ui-sref="app.debts({userId: user.id, initFilter:'details'})"> <!-- TODO pass filter details -->
+                <i class="icon ion-card"></i>
+                <span >My debts </span>
+                <i class="icon ion-chevron-right icon-accessory"></i></a>
+        </div>
+
 
     </ion-content>
 </ion-view>
