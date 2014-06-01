@@ -47,7 +47,8 @@
         "crypto-js": "3.1.2-3",
         "nedb": "~0.10.5",
         "jwt-simple": "~0.2.0",
-        "moment": "~2.6.0"
+        "moment": "~2.6.0",
+        "shortid": "^2.0.0"
     },
     "repository": {
         "type": "git",
