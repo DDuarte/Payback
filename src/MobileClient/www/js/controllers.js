@@ -28,7 +28,7 @@ angular.module('starter.controllers', [])
 
     .controller('LoginCtrl', function ($scope, $state, $ionicLoading, Restangular, AuthService, AlertPopupService) {
         $scope.login = function () {
-            $state.go('app.search');
+            $state.go('app.debts');
         };
 
         $scope.localLogin = function (user) {
@@ -187,7 +187,7 @@ angular.module('starter.controllers', [])
         };
     })
 
-    .controller('DebtsCtrl', function ($scope, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService, DateFormatter) {
+    .controller('DebtsCtrl', function ($scope,$state, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService, DateFormatter) {
         $scope.dateFormatter = DateFormatter;
 
         $scope.filter = 'all';
@@ -442,9 +442,17 @@ angular.module('starter.controllers', [])
             }).then(function (res) {
                 Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
                     $scope.friends = data.friends;
+                    $scope.owingMoney = res;
+
+                    if ($scope.friends.length == 0) {
+                        AlertPopupService.createPopup("No friends :(", "You need to add a friend before creating a debt", function() {$state.go('app.friends',{userId: $scope.user.id})} );
+                    }
+                    else
+                        $scope.friendsModal.show();
+
                 });
-                $scope.owingMoney = res;
-                $scope.friendsModal.show();
+
+
             });
         };
 
@@ -582,7 +590,8 @@ angular.module('starter.controllers', [])
             return $stateParams.userId === userId;
         };
 
-        if ($stateParams.userId == $scope.currentUserId)
+        console.log($stateParams.userId);
+        if ($stateParams.userId == $scope.currentUserId || !$stateParams.userId)
             $scope.title = 'Friends';
         else  $scope.title = $stateParams.userId + "'s friends";
 
