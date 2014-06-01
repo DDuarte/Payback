@@ -756,7 +756,7 @@ angular.module('starter.controllers', [])
                 return;
             }
 
-            Restangular.one('users').get({"search": textSearch}).then(function (data) {
+            Restangular.one('users').get({ "search": textSearch, "self": false }).then(function (data) {
                 $scope.users = data.users;
             });
         };

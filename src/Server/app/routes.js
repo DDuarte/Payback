@@ -5,6 +5,7 @@ var crypto = require('crypto-js');
 var moment = require('moment');
 var request = require('request');
 var shortId = require('shortid');
+var _ = require('lodash');
 
 var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
@@ -1167,9 +1168,7 @@ module.exports = function (server, passport, fx, jwt) {
 
 // GET /api/users
     server.get('/api/users', function (req, res) {
-
         req.models.user.find({}).run(function (err, users) {
-
             if (err) {
                 res.json(500, err);
                 return;
@@ -1177,22 +1176,35 @@ module.exports = function (server, passport, fx, jwt) {
 
             users = users.map(public_user_info);
 
-            if (!req.query.search)
-                res.json(200, {
+            var removeSelf = req.query.self !== undefined && req.query.self == 'false';
+
+            if (!req.query.search) {
+                if (removeSelf) {
+                    users = _.remove(users, function (user) {
+                        return req.user.id !== user.id;
+                    });
+                }
+
+                res.json({
                     total: users.length,
                     users: users
                 });
-            else {
+            } else {
                 var fuzzyTest = asyncFuzzyTest.bind(undefined, req.query.search);
                 async.filter(users, fuzzyTest, function (results) { // asynchronous search
-                    res.json(200, {
+                    if (removeSelf) {
+                        results = _.remove(results, function (user) {
+                            return req.user.id !== user.id;
+                        });
+                    }
+
+                    res.json({
                         total: results.length,
                         users: results
                     });
                 });
             }
         });
-
     });
 
 // POST /api/users
