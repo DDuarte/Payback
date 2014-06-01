@@ -154,7 +154,6 @@ module.exports = function (server, passport, fx, jwt) {
                                 }};
 
                             facebookUser.save({token: req.body.token}, function(err) {
-                                console.log("Error updating token");
                                 return callback(null, ret);
                             });
                         });
@@ -509,7 +508,6 @@ module.exports = function (server, passport, fx, jwt) {
                         }};
 
                     googleUser.save({token: req.body.token}, function(err) {
-                        console.log("Error updating token");
                         return res.json(200, ret);
                     });
                 });
