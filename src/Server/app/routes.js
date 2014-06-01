@@ -7,7 +7,7 @@ var request = require('request');
 var shortId = require('shortid');
 var _ = require('lodash');
 
-var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+var defaultAvatar = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
 var googleEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=";
 
