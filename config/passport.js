@@ -57,7 +57,7 @@ module.exports = function (passport) {
                         if (exists)
                             return done(null, false, { error: "That email is already taken." });
 
-                        var avatar = 'http://www.gravatar.com/avatar/' + crypto.MD5(email.trim().toLowerCase());
+                        var avatar = 'https://www.gravatar.com/avatar/' + crypto.MD5(email.trim().toLowerCase());
 
                         req.models.user.create({
                                 id: id,
