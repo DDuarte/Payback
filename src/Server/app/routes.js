@@ -4,6 +4,7 @@ var accounting = require("accounting");
 var crypto = require('crypto-js');
 var moment = require('moment');
 var request = require('request');
+var shortId = require('shortid');
 
 var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
 var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
@@ -16,13 +17,22 @@ function public_user_info(user) {
     }
 }
 
-function protected_user_info(user) {
-    return {
+function protected_user_info(user, facebookAccount, googleAccount) {
+
+    var ret = {
         id: user.id,
         email: user.email,
         currency: user.currency,
         avatar: user.avatar || defaultAvatar
-    }
+    };
+
+    if (facebookAccount)
+        ret.facebookAccount = facebookAccount;
+
+    if (googleAccount)
+        ret.googleAccount = googleAccount;
+
+    return ret;
 }
 
 module.exports = function (server, passport, fx, jwt) {
@@ -308,14 +318,12 @@ module.exports = function (server, passport, fx, jwt) {
             console.log(error);
             console.log(body);
 
-            return res.json(400, {error: "Testing"});
-
             if (profile.verified_email === false)
                 return res.json(400, { error: "Google account not verified" });
 
             req.models.google.get(profile.id, function (err, googleUser) { // login attempt
 
-                if (err || !facebookUser) {
+                if (err || !googleUser) {
                     return res.json(400, { error: "User not found" });
                 }
 
@@ -331,6 +339,7 @@ module.exports = function (server, passport, fx, jwt) {
                         user: {
                             id: localUser.id,
                             email: localUser.email,
+                            avatar: localUser.avatar,
                             googleAccount: {
                                 email: profile.email,
                                 access_token: req.body.token
@@ -344,9 +353,9 @@ module.exports = function (server, passport, fx, jwt) {
     });
 
     // POST /api/signup/google
-    server.get('/api/signup/google', function (req, res, next) {
+    server.post('/api/signup/google', function (req, res, next) {
 
-        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+        request(googleEndpoint + req.body.token, function (error, response, body) {
 
             if (error || response.statusCode != 200) {
                 return res.json(401, { error: "Invalid google access token" });
@@ -358,28 +367,19 @@ module.exports = function (server, passport, fx, jwt) {
 
             console.log("Profile: " + JSON.stringify(profile));
 
-            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+            if (!profile.displayName)
+                profile.displayName = profile.given_name + " " + profile.family_name;
 
-                if (err || exists)
-                    return res.json(401, { error: "Google account is already registered" });
+            req.models.user.exists({email: profile.email}, function (err, exists) {
 
-                if (!profile.displayName)
-                    profile.displayName = profile.given_name + " " + profile.familyName;
+                if (err || exists) { // if a local user is registered with the same email, link the accounts
+                    req.models.user.find({email: profile.email}, function (err, results) {
 
-                req.models.user.exists({id: profile.displayName}, function (err, exists) {
+                        if (err || !results)
+                            return res.json(500, {error: "Internal Server error"});
 
-                    if (err || exists)
-                        return res.json(401, { error: "That google displayName is already taken" });
-
-                    req.models.user.create({
-                        id: profile.displayName,
-                        email: profile.email,
-                        avatar: profile.picture
-                    }, function (err, localUser) {
-
-                        if (err || !localUser) {
-                           return res.json(401, { error: err});
-                        }
+                        var localUser = results[0];
+                        console.log("Localuser:" + localUser);
 
                         req.models.google.create({
                                 id: profile.id,
@@ -392,12 +392,13 @@ module.exports = function (server, passport, fx, jwt) {
                             function (err, newGoogleUser) {
 
                                 if (err || !newGoogleUser) {
-                                    return res.json(401, { error: err });
+                                    return res.json(401, { error: "A Google account is already connected" });
                                 }
 
                                 localUser.setGoogleAccount(newGoogleUser, function (err) {
 
                                     if (err) {
+                                        console.log("error");
                                         return res.json(401, { error: err });
                                     }
 
@@ -409,20 +410,85 @@ module.exports = function (server, passport, fx, jwt) {
                                             id: localUser.id,
                                             email: localUser.email,
                                             avatar: localUser.avatar,
-                                            facebookAccount: {
-                                                email: newFacebookUser.email,
-                                                access_token: newFacebookUser.token
+                                            googleAccount: {
+                                                email: newGoogleUser.email,
+                                                access_token: newGoogleUser.token
                                             }
                                         }
                                     };
 
-                                    return callback(null, ret);
+                                    return res.json(200, ret);
                                 });
 
                             });
                     });
-                });
+                }
+                else {
+                    req.models.google.exists({ id: profile.id }, function (err, exists) {
+
+                        if (err || exists)
+                            return res.json(401, { error: "Google account is already registered" });
+
+                        req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                            if (err || exists)
+                                return res.json(401, { error: "That google displayName is already taken" });
+
+                            req.models.user.create({
+                                id: profile.displayName,
+                                email: profile.email,
+                                avatar: profile.picture
+                            }, function (err, localUser) {
+
+                                if (err || !localUser) {
+                                    return res.json(401, { error: err});
+                                }
+
+                                req.models.google.create({
+                                        id: profile.id,
+                                        token: req.body.token,
+                                        displayName: profile.displayName,
+                                        email: profile.email,
+                                        localaccount_id: localUser.id,
+                                        avatar: profile.picture
+                                    },
+                                    function (err, newGoogleUser) {
+
+                                        if (err || !newGoogleUser) {
+                                            return res.json(401, { error: err });
+                                        }
+
+                                        localUser.setGoogleAccount(newGoogleUser, function (err) {
+
+                                            if (err) {
+                                                return res.json(401, { error: err });
+                                            }
+
+                                            var expires = moment().add('days', 7).valueOf();
+                                            var token = generateToken(localUser.id, expires);
+                                            var ret = {
+                                                access_token: token,
+                                                user: {
+                                                    id: localUser.id,
+                                                    email: localUser.email,
+                                                    avatar: localUser.avatar,
+                                                    googleAccount: {
+                                                        email: newGoogleUser.email,
+                                                        access_token: newGoogleUser.token
+                                                    }
+                                                }
+                                            };
+
+                                            return res.json(200, ret);
+                                        });
+
+                                    });
+                            });
+                        });
+                    });
+                }
             });
+
         });
     });
 
