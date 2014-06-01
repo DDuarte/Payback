@@ -4,8 +4,8 @@
     </button>
 </ion-nav-buttons>
 <ion-view title="Debts">
-    <ion-header-bar class="bar-light bar-subheader">
-        <input type="search"
+    <ion-header-bar class="bar-light bar-subheader" >
+        <input type="search" ng-if="filter != 'details'"
                placeholder="Filter debts..."
                ng-model="searchText">
     </ion-header-bar>

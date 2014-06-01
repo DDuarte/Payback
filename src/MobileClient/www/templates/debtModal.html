@@ -52,11 +52,12 @@
                                 <div class="handle"></div>
                             </div>
                         </label>
-                        <label ng-if="!resolved" class="item-input">
+                        <label  class="item-input">
                             <b class="input-label"
-                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount you
+                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount <br/>you<br/>
                                 payed </b>
-                            <input type="number" ng-model="modal.amount">
+                            <b ng-if="resolved" class="assertive " class="assertive">{{modal.amount}}</b>
+                            <input  ng-if="!resolved"  type="number" ng-model="modal.amount">
                         </label>
 
                     </div>
@@ -73,7 +74,6 @@
                     <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span>
                     {{debt.currency}}</b></h2>
 
-                <div class="row">
                     <div class="col-30">
                         <b>Resolved: </b>
 
@@ -85,15 +85,15 @@
                                 <div class="handle"></div>
                             </div>
                         </label>
-                        <label ng-if="!resolved" class="item-input">
+                        <label class="item-input">
                             <b class="input-label"
-                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount you
+                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount <br/>you<br/>
                                 received</b>
-                            <input type="number" ng-model="modal.amount">
+                            <b ng-if="resolved" class="balanced " class="assertive">{{modal.amount}}</b>
+                            <input ng-if="!resolved" type="number" ng-model="modal.amount">
                         </label>
 
                     </div>
-                </div>
                 </p>
             </div>
 

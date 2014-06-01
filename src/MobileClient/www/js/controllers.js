@@ -173,7 +173,7 @@ angular.module('starter.controllers', [])
         };
     })
 
-    .filter('history', function() {
+    .filter('history', function(AuthService) {
         return function( items, searchText ) {
             var filtered = [];
             angular.forEach(items, function(item) {
