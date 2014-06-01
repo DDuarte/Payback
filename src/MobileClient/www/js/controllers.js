@@ -177,7 +177,7 @@ angular.module('starter.controllers', [])
         return function( items, searchText ) {
             var filtered = [];
             angular.forEach(items, function(item) {
-                if (item.value == 0 && (item.debtor.indexOf(searchText.toLowerCase()) > -1|| item.debtor.toLowerCase().indexOf(searchText.toLowerCase()) > -1)) {
+                if (item.value == 0 && (item.debtor.indexOf(searchText.toLowerCase()) > -1|| item.debtor.toLowerCase().indexOf(searchText.toLowerCase()) > -1)  && (item.debtor ==  AuthService.currentUser().id || item.creditor == AuthService.currentUser().id)) {
                         filtered.push(item);
                 }
 
