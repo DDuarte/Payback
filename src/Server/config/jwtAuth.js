@@ -39,5 +39,5 @@ module.exports = function(server) {
     }
 
     server.all("/api/users", jwtTokenAuthenticator);
-    server.all("/api//users/*", jwtTokenAuthenticator);
+    server.all("/api/users/*", jwtTokenAuthenticator);
 };
