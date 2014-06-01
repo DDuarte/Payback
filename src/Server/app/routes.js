@@ -46,6 +46,7 @@ module.exports = function (server, passport, fx, jwt) {
     });
 
 
+
     // POST /api/login/local
     server.post('/api/login/local', function (req, res) {
 
@@ -99,6 +100,7 @@ module.exports = function (server, passport, fx, jwt) {
     // POST /api/login/facebook
     server.post('/api/login/facebook', function (req, res, next) {
 
+
         if (!req.body.token) {
             return res.json(400, {error: 'Missing facebook token'});
         }
@@ -146,7 +148,8 @@ module.exports = function (server, passport, fx, jwt) {
                                 user: {
                                     id: localUser.id,
                                     email: localUser.email,
-                                    avatar: profilePicture.data.url,
+                                    avatar: localUser.avatar,
+                                    currency: localUser.currency,
                                     facebookAccount: {
                                         email: profile.email,
                                         access_token: req.body.token
@@ -197,10 +200,12 @@ module.exports = function (server, passport, fx, jwt) {
                         }
 
                         var profile = JSON.parse(body);
+
                         if (profile.verified === false)
                             return callback({ error: "Facebook account not verified" });
 
-                        console.log("Profile: " + JSON.stringify(profile));
+                        if (!profile.displayName)
+                            profile.displayName = profile.first_name + " " + profile.last_name;
 
                         req.models.user.exists({email: profile.email}, function (err, exists) {
 
@@ -209,10 +214,9 @@ module.exports = function (server, passport, fx, jwt) {
                                 req.models.user.find({email: profile.email}, function (err, results) {
 
                                     if (err || !results)
-                                        return res.json(500, {error: "Internal Server error"});
+                                        return callback({error: "Internal Server error"});
 
                                     var localUser = results[0];
-                                    console.log("Localuser:" + localUser);
 
                                     req.models.facebook.create({
                                             id: profile.id,
@@ -225,14 +229,14 @@ module.exports = function (server, passport, fx, jwt) {
                                         function (err, newFacebookUser) {
 
                                             if (err || !newFacebookUser) {
-                                                return res.json(401, { error: "A Google account is already connected" });
+                                                return callback({ error: "A Facebook account is already connected:" + JSON.stringify(err) });
                                             }
 
                                             localUser.setFacebookAccount(newFacebookUser, function (err) {
 
                                                 if (err) {
                                                     console.log("error");
-                                                    return res.json(401, { error: err });
+                                                    return callback({ error: err });
                                                 }
 
                                                 var expires = moment().add('days', 7).valueOf();
@@ -243,6 +247,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                         id: localUser.id,
                                                         email: localUser.email,
                                                         avatar: localUser.avatar,
+                                                        currency: localUser.currency,
                                                         facebookAccount: {
                                                             email: newFacebookUser.email,
                                                             access_token: newFacebookUser.token
@@ -250,7 +255,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                     }
                                                 };
 
-                                                return res.json(200, ret);
+                                                return callback(null, ret);
                                             });
 
                                         });
@@ -262,9 +267,6 @@ module.exports = function (server, passport, fx, jwt) {
 
                                     if (err || exists)
                                         return callback({ error: "Facebook account is already registered" });
-
-                                    if (!profile.displayName)
-                                        profile.displayName = profile.first_name + " " + profile.last_name;
 
                                     req.models.user.exists({id: profile.displayName}, function (err, exists) {
 
@@ -309,6 +311,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                                 id: localUser.id,
                                                                 email: localUser.email,
                                                                 avatar: localUser.avatar,
+                                                                currency: localUser.currency,
                                                                 facebookAccount: {
                                                                     email: newFacebookUser.email,
                                                                     access_token: newFacebookUser.token
@@ -414,6 +417,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                     id: localUser.id,
                                                     email: localUser.email,
                                                     avatar: localUser.avatar,
+                                                    currency: localUser.currency,
                                                     facebookAccount: {
                                                         email: newFacebookUser.email,
                                                         access_token: newFacebookUser.token,
@@ -535,7 +539,10 @@ module.exports = function (server, passport, fx, jwt) {
 
             req.models.user.exists({email: profile.email}, function (err, exists) {
 
-                if (err || exists) { // if a local user is registered with the same email, link the accounts
+                if (err)
+                    return res.json(500, {error: JSON.stringify(err)})
+
+                if (exists) { // if a local user is registered with the same email, link the accounts
                     req.models.user.find({email: profile.email}, function (err, results) {
 
                         if (err || !results)
@@ -1170,10 +1177,40 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
+    // GET /api/users/{id}/friends/facebook
+    server.get('/api/users/:id/friends/facebook', function (req, res) {
 
+        req.models.user.get(req.params.id, function (err, me) {
+            if (err) {
+                res.json(500, err);
+                return;
+            } else if (!me) {
+                res.json(404, { error: "User (me) '" + req.body.id + "' does not exist." });
+                return;
+            }
+
+            me.getFriends(function (err, friends) {
+                if (err) {
+                    res.json(500, err);
+                    return;
+                } else if (!friends) {
+                    res.json(404, { error: "Friends does not exist." });
+                    return;
+                }
+
+                friends = friends.map(public_user_info);
+
+                var obj = {
+                    "total": friends.length,
+                    "friends": friends
+                };
+
+                return res.json(200, obj);
+            });
+        });
     });
 
-// POST /api/users/{id}/friends
+    // POST /api/users/{id}/friends
     server.post('/api/users/:id/friends', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -1218,7 +1255,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// DELETE /api/users/{id}/friends
+    // DELETE /api/users/{id}/friends
     server.del('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -1393,5 +1430,4 @@ module.exports = function (server, passport, fx, jwt) {
 
         return token;
     }
-}
-;
+};
