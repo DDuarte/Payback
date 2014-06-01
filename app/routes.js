@@ -798,10 +798,6 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(409, {error: "No body defined."});
         }
 
-        if (req.body.value === undefined && req.body.currency == undefined) {
-            return res.json(409, {error: "Attributes value and currency are required."});
-        }
-
         if (isNaN(req.body.value)) {
             return res.json(409, {error: "Attribute 'value' needs to be a number."});
         }
@@ -819,8 +815,14 @@ module.exports = function (server, passport, fx, jwt) {
                     return res.json(404, {error: "User '" + req.params.debtId + "' does not exist"});
                 }
 
-                debt.value = req.body.value;
-                debt.currency = req.body.currency;
+                if (req.body.value !== undefined) {
+                    debt.value = req.body.value;
+                    debt.currency = req.body.currency;
+                }
+
+                if (req.body.description) {
+                    debt.description = req.body.description;
+                }
 
                 debt.save(function (err) { // update the debt instance
 
@@ -974,13 +976,19 @@ module.exports = function (server, passport, fx, jwt) {
                 if (!exists)
                     return res.json(404, {error: "User '" + req.body.user + "' does not exist" });
 
+                var description = "";
+                if (req.body.description)
+                    description = req.body.description;
+
                 req.models.debt.create({
 
                     creditor_id: req.params.id,
                     debtor_id: req.body.user,
                     originalValue: req.body.value,
+                    description: req.body.description || '',
                     value: req.body.value,
-                    currency: req.body.currency
+                    currency: req.body.currency,
+                    description: description
 
                 }, function (err, debt) {
 
@@ -993,9 +1001,11 @@ module.exports = function (server, passport, fx, jwt) {
                         debtor: debt.debtor_id,
                         originalValue: debt.originalValue,
                         value: debt.value,
+                        description: debt.description,
                         currency: debt.currency,
                         created: debt.created,
-                        modified: debt.modified
+                        modified: debt.modified,
+                        description: debt.description
                     });
 
                 });
@@ -1282,7 +1292,8 @@ module.exports = function (server, passport, fx, jwt) {
             value: convertMoney(debt.value, debt.currency, currency),
             currency: currency,
             created: debt.created,
-            modified: debt.modified
+            modified: debt.modified,
+            description: debt.description
         });
     }
 
