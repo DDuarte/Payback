@@ -34,6 +34,8 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
+ant-build
+ant-gen
 
 # see https://intellij-support.jetbrains.com/entries/23393067
 .idea/gradle.xml
