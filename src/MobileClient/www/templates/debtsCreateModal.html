@@ -25,7 +25,7 @@
         <div class="card">
             <div class="item item-text-wrap">
                 {{ owingMoney ? 'I owe a total of ' : 'I\'m owed a total of ' }}
-                {{ amount.toFixed(2) | currency:"&euro;" }}
+                {{ amount.toFixed(2) | currency: user.currency }}
                 {{ owingMoney ? ' to:' : ' by:' }}
             </div>
         </div>
@@ -36,7 +36,7 @@
 
                 <h2>{{friend.id}}</h2>
 
-                <h3><i>{{(amount / countCheckedPayingFriends()).toFixed(2) | currency:"&euro;"}}</i></h3>
+                <h3><i>{{(amount / countCheckedPayingFriends()).toFixed(2) | currency: user.currency }}</i></h3>
                 <ion-delete-button class="ion-minus-circled"
                                    ng-click="friend.isChecked = false">
                 </ion-delete-button>
