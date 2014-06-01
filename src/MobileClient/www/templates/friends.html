@@ -11,7 +11,7 @@
                ng-model="searchText.id">
     </ion-header-bar>
     <ion-content class="has-header">
-        <ion-list can-swipe="true" show-delete="data.showDelete">
+        <ion-list can-swipe="true" show-delete="data.showDelete" >
             <ion-item ng-repeat="friend in friends | filter:searchText:strict" href="#/app/users/{{friend.id}}"
                       class="item-thumbnail-left">
                 <ion-option-button class="button-calm"
@@ -26,5 +26,10 @@
                 </ion-delete-button>
             </ion-item>
         </ion-list>
+        <ion-list  can-swipe="true" ng-if="friends.length == 0">
+
+            <h3 class="list-inset" style="color: #777777; text-align: center;"> <br/>You have no friends yet <b>:(</b><br/>  Click the button bellow to start adding</h3>
+        </ion-list>
+
     </ion-content>
 </ion-view>
