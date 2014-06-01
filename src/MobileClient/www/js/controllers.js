@@ -27,9 +27,6 @@ angular.module('starter.controllers', [])
     })
 
     .controller('LoginCtrl', function ($scope, $state, $ionicLoading, Restangular, AuthService, AlertPopupService) {
-        $scope.login = function () {
-            $state.go('app.debts');
-        };
 
         $scope.localLogin = function (user) {
             $ionicLoading.show({
@@ -41,7 +38,7 @@ angular.module('starter.controllers', [])
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
                 $ionicLoading.hide();
-                $state.go('app.debts', { userId: data.user.id});
+                $state.go('app.debts', { userId: data.user.id, initFilter: "", openDebt: -1 });
             }, function (response) {
                 $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
@@ -136,7 +133,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('UserCtrl', function ($scope, $stateParams, Restangular, AuthService, DateFormatter) {
+    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter) {
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
 
@@ -154,6 +151,11 @@ angular.module('starter.controllers', [])
 
         });
 
+        $scope.openDebt = function(debtId) {
+
+            $state.go('app.debts', { userId: $scope.currentUser.id, openDebt: debtId, initFilter: ""});
+        }
+
 
     })
 
@@ -162,7 +164,7 @@ angular.module('starter.controllers', [])
             var search = searchText.toLowerCase();
             var filtered = [];
             angular.forEach(items, function(item) {
-                if (item.value != 0 && (item.debtor ==  AuthService.currentUser().id || item.creditor == AuthService.currentUser().id)) {
+                if (AuthService.currentUser() && item.value != 0 && (item.debtor ==  AuthService.currentUser().id || item.creditor == AuthService.currentUser().id)) {
                     if (filter == 'owed' && item.debtor == userId && item.debtor.toLowerCase().indexOf(search) > -1)
                         filtered.push(item);
                     else if (filter == 'own' && item.debtor != userId && item.debtor.toLowerCase().indexOf(search) > -1)
@@ -191,9 +193,18 @@ angular.module('starter.controllers', [])
     })
 
     .controller('DebtsCtrl', function ($scope,$state, $stateParams, $ionicModal, $ionicPopup, Restangular, AuthService, AlertPopupService, DateFormatter) {
-        $scope.dateFormatter = DateFormatter;
 
         $scope.filter = 'all';
+
+        $scope.openDebt = $stateParams.openDebt;
+
+
+        if ($stateParams.initFilter) {
+            if ($stateParams.initFilter != "")$scope.filter = $stateParams.initFilter;
+        }
+
+        $scope.dateFormatter = DateFormatter;
+
         $scope.loading = true;
 
         $scope.searchText = '';
@@ -283,7 +294,6 @@ angular.module('starter.controllers', [])
             }).then(function (res) {
                 if (res) {
                     Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove().then(function (data) {
-                        console.log('hello');
                         $scope.closeDebtModal();
                         $scope.reloadDebts();
                     });
@@ -401,11 +411,31 @@ angular.module('starter.controllers', [])
             ]
         };
 
+
+
+
+
         $scope.reloadDebts = function () {
             Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
+
                 $scope.debts = [];
                 $scope.loading = false;
                 $scope.debts = data;
+
+                if ($scope.openDebt) {
+
+                    var id = $scope.openDebt;
+                    $scope.openDebt = null;
+
+                    $scope.debts.debts.forEach(function (debt) {
+                        if (debt.debtId == id) {
+                            $scope.openDebtModal(debt);
+                        }
+
+                    });
+                }
+
+
                 dataStore.update('Credit', { value: data.credit });
                 dataStore.update('Debit', { value: data.debit });
                 dataSource.load();
@@ -413,7 +443,9 @@ angular.module('starter.controllers', [])
             });
         };
 
-        $scope.reloadDebts();
+
+        $scope.friendsModal;
+
 
         $ionicModal.fromTemplateUrl('templates/debtsFriendsModal.html', function (modal) {
             $scope.friendsModal = modal;
@@ -462,24 +494,6 @@ angular.module('starter.controllers', [])
         };
 
 
-        $scope.openDebtModal = function (debt) {
-            $ionicModal.fromTemplateUrl('templates/debtModal.html', function (modal) {
-                $scope.debtModal = modal;
-                $scope.debt = debt;
-                $scope.modal.resolved = false;
-                $scope.resolved = false;
-                $scope.modal.amount = 0;
-                $scope.debtModal.show();
-
-            }, {
-                scope: $scope,  /// Give the modal access to the parent scope
-                animation: 'slide-in-up',
-                focusFirstInput: true,
-                resolved: true
-            });
-
-
-        };
 
         $scope.checkCheckedFriends = function () {
             if (!$scope.friends)
@@ -575,14 +589,38 @@ angular.module('starter.controllers', [])
 
         };
 
-
+        $scope.friendsModal;
         // Cleanup the modal when we're done with it (avoid memory leaks)
         $scope.$on('$destroy', function () {
             $scope.debts = [];
             $scope.friends = [];
-            $scope.friendsModal.remove();
+            if (typeof $scope.friendsModal != 'undefined')  $scope.friendsModal.remove();
             $scope.createDebtModal.remove();
+            if (typeof $scope.debtModal != 'undefined') $scope.debtModal.remove();
         });
+
+
+        $scope.openDebtModal = function (debt) {
+            $ionicModal.fromTemplateUrl('templates/debtModal.html', function (modal) {
+                $scope.debtModal = modal;
+                $scope.debt = debt;
+                $scope.modal.resolved = false;
+                $scope.resolved = false;
+                $scope.modal.amount = 0;
+                $scope.debtModal.show();
+
+            }, {
+                scope: $scope,  /// Give the modal access to the parent scope
+                animation: 'slide-in-up',
+                focusFirstInput: true,
+                resolved: true
+            });
+
+
+        };
+
+        $scope.reloadDebts();
+
     })
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
@@ -596,7 +634,6 @@ angular.module('starter.controllers', [])
             return $stateParams.userId === userId;
         };
 
-        console.log($stateParams.userId);
         if ($stateParams.userId == $scope.currentUserId || !$stateParams.userId)
             $scope.title = 'Friends';
         else  $scope.title = $stateParams.userId + "'s friends";

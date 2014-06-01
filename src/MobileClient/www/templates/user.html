@@ -14,7 +14,7 @@
         </div>
 
         <div ng-if="debts && user.id == currentUser.id" class="list card">
-            <a class="item " ui-sref="app.debts({userId: user.id})">
+            <a class="item " ui-sref="app.debts({userId: user.id, initFilter:'details'})">
                 <div class=" item-icon-left">
                     <i class="icon ion-clipboard"></i>
 
@@ -56,7 +56,8 @@
             <div class="item item-divider">
                 Open Debts
             </div>
-            <ion-item ng-repeat="debt in debts.debts | matchTab:'':'all':user.id" ng-click="openDebtModal(debt)"
+
+            <ion-item ng-repeat="debt in debts.debts | matchTab:'':'all':user.id" ng-click="openDebt(debt.debtId)"
                       class="item-icon-left ">
                 <div ng-if="debt.debtor == currentUser.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id ) ">
                     <i class="icon ion-arrow-down-a assertive"></i>
@@ -86,8 +87,8 @@
             <div class="item item-divider">
                 Resolved Debts
             </div>
-            <ion-item ng-repeat="debt in debts.debts  | history:''" ng-click=""
-                      class="item-icon-left " >
+            <ion-item ng-repeat="debt in debts.debts  | history:''" ng-click="openDebt(debt.debtId)"
+                      class="item-icon-left "  >
                 <div ng-if="debt.debtor != user.id && (debt.debtor == currentUser.id || debt.creditor == currentUser.id) ">
                     <i class="icon ion-ios7-upload dark"></i>
 
@@ -113,7 +114,7 @@
         </ion-list>
 
         <div ng-if="debts && user && currentUser.id == user.id" class="list card">
-            <a class="item item-icon-left item-icon-right" ui-sref="app.debts({userId: user.id, initFilter:'details'})"> <!-- TODO pass filter details -->
+            <a class="item item-icon-left item-icon-right" ui-sref="app.debts({userId: user.id})"> <!-- TODO pass filter details -->
                 <i class="icon ion-card"></i>
                 <span >My debts </span>
                 <i class="icon ion-chevron-right icon-accessory"></i></a>

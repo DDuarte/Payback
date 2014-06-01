@@ -157,7 +157,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             })
 
             .state('app.debts', {
-                url: '/users/:userId/debts',
+                url: '/users/:userId/debts/:initFilter/:openDebt',
                 views: {
                     'app': {
                         templateUrl: 'templates/debts.html',
