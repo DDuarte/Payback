@@ -68,6 +68,30 @@ angular.module('starter.controllers', [])
                 }
             });
         };
+
+        $scope.googleLogin = function () {
+            OAuth.popup("google_plus", function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    $ionicLoading.show({
+                        template: 'Logging in...'
+                    });
+                    Restangular.all('login').all('google').post({
+                        token: res.access_token
+                    }).then(function (data) {
+                            AuthService.login(data.user, data.access_token);
+                            $ionicLoading.hide();
+                            $state.go('app.debts', { userId: data.user.id});
+                        },
+                        function (response) {
+                            $ionicLoading.hide();
+                            AlertPopupService.createPopup("Error", response.data.error);
+                        });
+                }
+            });
+        };
     })
 
     .controller('SignupCtrl', function ($scope, $state, $ionicLoading, Restangular, AuthService, AlertPopupService) {
@@ -105,7 +129,7 @@ angular.module('starter.controllers', [])
                 $ionicLoading.hide();
                 AlertPopupService.createPopup("Error", response.data.error);
             });
-        }
+        };
 
         $scope.facebookSignup = function () {
 
@@ -119,6 +143,31 @@ angular.module('starter.controllers', [])
                     });
 
                     Restangular.all('signup').all('facebook').post({
+                        token: res.access_token
+                    }).then(function (data) {
+                        AuthService.login(data.user, data.access_token);
+                        $ionicLoading.hide();
+                        $state.go('app.debts', { userId: data.user.id });
+                    }, function (response) {
+                        $ionicLoading.hide();
+                        AlertPopupService.createPopup("Error", response.data.error);
+                    });
+                }
+            });
+        };
+
+        $scope.googleSignup = function () {
+
+            OAuth.popup("google_plus", function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    $ionicLoading.show({
+                        template: 'Signing up new account...'
+                    });
+
+                    Restangular.all('signup').all('google').post({
                         token: res.access_token
                     }).then(function (data) {
                         AuthService.login(data.user, data.access_token);
@@ -212,7 +261,7 @@ angular.module('starter.controllers', [])
         $scope.setFilter = function(filter) {
             $scope.searchText = '';
             $scope.filter = filter;
-        }
+        };
 
         $scope.modal = {
             amount: 0,
@@ -301,7 +350,7 @@ angular.module('starter.controllers', [])
 
             });
 
-        }
+        };
 
         $scope.updateDebt = function(debt,amount) {
 
@@ -333,28 +382,22 @@ angular.module('starter.controllers', [])
                     var newDebt = {
                         value: debt.value - amount,
                         currency: debt.currency
-                    }
+                    };
 
                     Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
                         $scope.closeDebtModal();
                         $scope.reloadDebts();
                     }, function (response) {
-                        AlertPopupService.createPopup('Error', response.error);
+                        AlertPopupService.createPopup('Error', response.data.error);
                     });
 
                 }
 
             });
 
-        }
-
-
+        };
 
         $scope.debts = []; // this is needed to keep reference constant
-
-
-
-
         $scope.user = AuthService.currentUser();
 
         var dataStore = new DevExpress.data.ArrayStore({

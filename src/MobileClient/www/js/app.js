@@ -122,6 +122,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
             }
         });
 
+        RestangularProvider.setDefaultHttpFields({timeout: 10000}); // set timeout of 10 seconds
         OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24');
 
         // configure states
