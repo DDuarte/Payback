@@ -664,8 +664,8 @@ angular.module('starter.controllers', [])
         $scope.$on('$destroy', function () {
             $scope.debts = [];
             $scope.friends = [];
-            if (typeof $scope.friendsModal != 'undefined')  $scope.friendsModal.remove();
-            $scope.createDebtModal.remove();
+            if (typeof $scope.friendsModal != 'undefined') $scope.friendsModal.remove();
+            if (typeof $scope.createDebtModal != 'undefined') $scope.createDebtModal.remove();
             if (typeof $scope.debtModal != 'undefined') $scope.debtModal.remove();
         });
 
@@ -791,7 +791,6 @@ angular.module('starter.controllers', [])
         Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
             $scope.loading = false;
-
         });
     })
 

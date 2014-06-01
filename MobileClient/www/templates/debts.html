@@ -11,7 +11,7 @@
     </ion-header-bar>
     <ion-content class="has-header list-inset" >
         <div class="card item" ng-if="debts.debts.length && filter == 'details' && (debts.debts.length != 0 && (countActive() != 0 || filter == 'history'))">
-            <h1 ng-if="debts.balance" style="text-align:center" ng-class="dark">Balance: {{ debts.balance }} {{
+            <h1 ng-if="debts.balance" style="text-align:center" ng-class="dark">Balance: {{ debts.balance.toFixed(2) }} {{
                 debts.currency }}</h1>
 
             <div id="chart" dx-pie-chart="chartOptions"></div>
@@ -32,9 +32,9 @@
                     <div class="details">
                         Debts: {{ countActive() }}
                         <br/>
-                        Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
+                        Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit.toFixed(2) }} {{ debts.currency }} </span>
                         <br/>
-                        I owe to others: <span ng-class="(debts.debit > 0) ? 'assertive' : ''"> {{ debts.debit }} {{ debts.currency }} </span>
+                        I owe to others: <span ng-class="(debts.debit > 0) ? 'assertive' : ''"> {{ debts.debit.toFixed(2) }} {{ debts.currency }} </span>
                     </div>
                 </div>
             </a>
@@ -59,7 +59,7 @@
                     <div ng-if="debt.debtor == user.id ">
                         <i class="icon ion-arrow-down-a assertive"></i>
                         <p>
-                            <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                            <h2><b>{{debt.value.toFixed(2)}} {{debt.currency}}</b></h2>
                             <h3>You owe <b>{{debt.creditor}} </b></h3>
                              <h4>{{debt.description}} </h4>
                             <h4 style="font-style:italic" class="dark"> {{dateFormatter.formatDate(debt.created)}} </h4>
@@ -70,7 +70,7 @@
                         <i class="icon ion-arrow-up-a balanced "></i>
 
                         <p>
-                            <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
+                            <h2><b>{{debt.value.toFixed(2)}} {{debt.currency}}</b></h2>
                             <h3><b>{{debt.debtor}} </b> owes you</h3>
                             <h4>{{debt.description}} </h4>
                             <h4 style="font-style:italic" class="dark">{{dateFormatter.formatDate(debt.created)}} </h4>
@@ -89,7 +89,7 @@
                 <i class="icon ion-ios7-upload dark"></i>
 
                 <p>
-                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h2><b>{{debt.originalValue.toFixed(2)}} {{debt.currency}}</b></h2>
                     <h3>You payed <b>{{debt.creditor}} </b></h3>
                     <h4>{{debt.description}} </h4>
                     <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
@@ -101,7 +101,7 @@
                 <i class="icon ion-ios7-download dark "></i>
 
                 <p>
-                    <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
+                    <h2><b>{{debt.originalValue.toFixed(2)}} {{debt.currency}}</b></h2>
                     <h3><b>{{debt.debtor}} </b> payed you</h3>
                     <h4>{{debt.description}} </h4>
                     <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
