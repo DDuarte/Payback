@@ -111,10 +111,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
-        if (typeof process !== 'undefined' && process.env && process.env.URL)
-            RestangularProvider.setBaseUrl(process.env.URL + '/api');
-        else
-            RestangularProvider.setBaseUrl('http://127.0.0.1:1337/api');
+        RestangularProvider.setBaseUrl('https://payback-app.herokuapp.com/api');
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers) {
             return {
