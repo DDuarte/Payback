@@ -45,6 +45,7 @@ module.exports = function (server, passport, fx, jwt) {
         res.send(204);
     });
 
+
     // POST /api/login/local
     server.post('/api/login/local', function (req, res) {
 
@@ -152,7 +153,10 @@ module.exports = function (server, passport, fx, jwt) {
                                     }
                                 }};
 
-                            return callback(null, ret);
+                            facebookUser.save({token: req.body.token}, function(err) {
+                                console.log("Error updating token");
+                                return callback(null, ret);
+                            });
                         });
                     });
                 });
@@ -187,8 +191,6 @@ module.exports = function (server, passport, fx, jwt) {
                 },
                 function (profilePicture, callback) {
 
-                    console.log("ProfilePicture:" + profilePicture.data.url);
-
                     request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
 
                         if (error || response.statusCode != 200) {
@@ -201,28 +203,17 @@ module.exports = function (server, passport, fx, jwt) {
 
                         console.log("Profile: " + JSON.stringify(profile));
 
-                        req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+                        req.models.user.exists({email: profile.email}, function (err, exists) {
 
-                            if (err || exists)
-                                return callback({ error: "Facebook account is already registered" });
+                            if (err || exists) {
 
-                            if (!profile.displayName)
-                                profile.displayName = profile.first_name + " " + profile.last_name;
+                                req.models.user.find({email: profile.email}, function (err, results) {
 
-                            req.models.user.exists({id: profile.displayName}, function (err, exists) {
+                                    if (err || !results)
+                                        return res.json(500, {error: "Internal Server error"});
 
-                                if (err || exists)
-                                    profile.displayName = profile.displayName + '#' + shortId.generate();
-
-                                req.models.user.create({
-                                    id: profile.displayName,
-                                    email: profile.email,
-                                    avatar: profilePicture.data.url
-                                }, function (err, localUser) {
-
-                                    if (err || !localUser) {
-                                        return callback({ error: err});
-                                    }
+                                    var localUser = results[0];
+                                    console.log("Localuser:" + localUser);
 
                                     req.models.facebook.create({
                                             id: profile.id,
@@ -230,18 +221,19 @@ module.exports = function (server, passport, fx, jwt) {
                                             displayName: profile.displayName,
                                             email: profile.email,
                                             localaccount_id: localUser.id,
-                                            avatar: profilePicture.data.url
+                                            avatar: profile.picture
                                         },
                                         function (err, newFacebookUser) {
 
                                             if (err || !newFacebookUser) {
-                                                return callback({ error: err });
+                                                return res.json(401, { error: "A Google account is already connected" });
                                             }
 
                                             localUser.setFacebookAccount(newFacebookUser, function (err) {
 
                                                 if (err) {
-                                                    return callback({ error: err });
+                                                    console.log("error");
+                                                    return res.json(401, { error: err });
                                                 }
 
                                                 var expires = moment().add('days', 7).valueOf();
@@ -259,13 +251,84 @@ module.exports = function (server, passport, fx, jwt) {
                                                     }
                                                 };
 
-                                                return callback(null, ret);
+                                                return res.json(200, ret);
                                             });
 
                                         });
                                 });
-                            });
+
+                            } else {
+
+                                req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                                    if (err || exists)
+                                        return callback({ error: "Facebook account is already registered" });
+
+                                    if (!profile.displayName)
+                                        profile.displayName = profile.first_name + " " + profile.last_name;
+
+                                    req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                                        if (err || exists)
+                                            profile.displayName = profile.displayName + '#' + shortId.generate();
+
+                                        req.models.user.create({
+                                            id: profile.displayName,
+                                            email: profile.email,
+                                            avatar: profilePicture.data.url
+                                        }, function (err, localUser) {
+
+                                            if (err || !localUser) {
+                                                return callback({ error: err});
+                                            }
+
+                                            req.models.facebook.create({
+                                                    id: profile.id,
+                                                    token: req.body.token,
+                                                    displayName: profile.displayName,
+                                                    email: profile.email,
+                                                    localaccount_id: localUser.id,
+                                                    avatar: profilePicture.data.url
+                                                },
+                                                function (err, newFacebookUser) {
+
+                                                    if (err || !newFacebookUser) {
+                                                        return callback({ error: err });
+                                                    }
+
+                                                    localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                                        if (err) {
+                                                            return callback({ error: err });
+                                                        }
+
+                                                        var expires = moment().add('days', 7).valueOf();
+                                                        var token = generateToken(localUser.id, expires);
+                                                        var ret = {
+                                                            access_token: token,
+                                                            user: {
+                                                                id: localUser.id,
+                                                                email: localUser.email,
+                                                                avatar: localUser.avatar,
+                                                                facebookAccount: {
+                                                                    email: newFacebookUser.email,
+                                                                    access_token: newFacebookUser.token
+                                                                }
+                                                            }
+                                                        };
+
+                                                        return callback(null, ret);
+                                                    });
+
+                                                });
+                                        });
+                                    });
+                                });
+
+                            }
+
                         });
+
                     });
 
                 }],
@@ -363,7 +426,6 @@ module.exports = function (server, passport, fx, jwt) {
                                             return callback(null, ret);
                                         });
 
-
                                     });
                                 });
 
@@ -382,6 +444,7 @@ module.exports = function (server, passport, fx, jwt) {
         );
     });
 
+    // DELETE /api/users/:id/connect/facebook
     server.del('/api/users/:id/connect/facebook', function(req, res, next) {
 
         req.models.user.get(req.user.id, function(err, localUser) {
@@ -445,7 +508,10 @@ module.exports = function (server, passport, fx, jwt) {
                             }
                         }};
 
-                    return res.json(200, ret);
+                    googleUser.save({token: req.body.token}, function(err) {
+                        console.log("Error updating token");
+                        return res.json(200, ret);
+                    });
                 });
             });
         });
@@ -1073,7 +1139,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// GET /api/users/{id}/friends
+    // GET /api/users/{id}/friends
     server.get('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -1101,9 +1167,11 @@ module.exports = function (server, passport, fx, jwt) {
                     "friends": friends
                 };
 
-                res.json(200, obj);
+                return res.json(200, obj);
             });
         });
+    });
+
 
     });
 
