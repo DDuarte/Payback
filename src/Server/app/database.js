@@ -14,7 +14,7 @@ module.exports = function (db, models) {
     ];
 
     var user = db.define("user", {
-        id: { type: "text", size: 20, required: true },
+        id: { type: "text", required: true },
         passwordHash: { type: "text", size: 64 },
         email: { type: "text", size: 254, required: false, unique: true },
         currency: { type: "text", required: false, defaultValue: 'EUR' },
@@ -46,7 +46,7 @@ module.exports = function (db, models) {
 
     var google = db.define("google", {
         id: { type: "text", required: true },
-        token: { type: "text", unique: true }, // we're using OpenID instead of OAuth 2.0, tokens are not provided :(
+        token: { type: "text", unique: true },
         email: { type: "text", size: 254, required: true, unique: true },
         displayName: { type: "text", required: true },
         avatar: { type: "text", required: false, defaultValue: '' }
@@ -60,6 +60,7 @@ module.exports = function (db, models) {
     google.hasOne("localAccount", user, { required: true }); // every google account has to be linked to a local account
 
     var debt = db.define("debt", {
+        description: {type: "text", required: false, defaultValue: ""},
         created: { type: "date"  },
         modified: { type: "date"  },
         originalValue: { type: "number", rational: true, required: true  },

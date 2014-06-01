@@ -618,6 +618,7 @@ module.exports = function (server, passport, fx, jwt) {
 
                 var debt = debts[0];
                 var ret = {
+                    description: debt.description,
                     debtId: debt.id,
                     creditor: debt.creditor_id,
                     debtor: debt.debtor_id,
@@ -681,7 +682,8 @@ module.exports = function (server, passport, fx, jwt) {
                         value: debt.value,
                         currency: debt.currency,
                         created: debt.created,
-                        modified: debt.modified
+                        modified: debt.modified,
+                        description: debt.description
                     });
                 });
             });
@@ -1119,6 +1121,7 @@ module.exports = function (server, passport, fx, jwt) {
 
         return callback(null, {
             debtId: debt.id,
+            description: debt.description,
             creditor: debt.creditor_id,
             creditorAvatar: defaultAvatar,
             debtor: debt.debtor_id,
