@@ -680,7 +680,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-// GET /api/exchangeRates
+    // GET /api/exchangeRates
     server.get('/api/exchangeRates', function (req, res) {
 
         return res.json(200, {
@@ -690,7 +690,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// GET /api/users/{id}
+    // GET /api/users/{id}
     server.get('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -750,7 +750,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// DELETE /api/users/{id}
+    // DELETE /api/users/{id}
     server.del('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -773,7 +773,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// GET /api/users/{id}/facebook
+    // GET /api/users/{id}/facebook
     server.get('/api/users/:id/facebook', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -798,7 +798,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-// GET /api/users/{id}/google
+    // GET /api/users/{id}/google
     server.get('/api/users/:id/google', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -823,7 +823,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-// GET /api/users/{id}/debts/{debtId}
+    // GET /api/users/{id}/debts/{debtId}
     server.get('/api/users/:id/debts/:debtId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -862,7 +862,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// PATCH /api/users/{id}/debts/{debtId}
+    // PATCH /api/users/{id}/debts/{debtId}
     server.patch('/api/users/:id/debts/:debtId', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -917,7 +917,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// DELETE /api/users/{id}/debts/{debtId}
+    // DELETE /api/users/{id}/debts/{debtId}
     server.del('/api/users/:id/debts/:debtId', function (req, res) {
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
             if (err || !exists) {
@@ -938,10 +938,10 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-// GET /api/users/{id}/debts
+    // GET /api/users/{id}/debts
     server.get('/api/users/:id/debts', function (req, res) {
 
-        var currency = req.query.currency ? req.query.currency : "EUR";
+        var currency = req.query.currency ? req.query.currency : req.user.currency;
 
         req.models.user.get(req.params.id, function (err, user) {
 
@@ -1005,7 +1005,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-// POST /api/users/{id}/debts
+    // POST /api/users/{id}/debts
     server.post('/api/users/:id/debts', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -1085,7 +1085,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// GET /api/users/{id}/friends/{friendId}
+    // GET /api/users/{id}/friends/{friendId}
     server.get('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -1107,7 +1107,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// DELETE /api/users/{id}/friends/{friendId}
+    // DELETE /api/users/{id}/friends/{friendId}
     server.del('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -1279,7 +1279,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-// GET /api/users
+    // GET /api/users
     server.get('/api/users', function (req, res) {
         req.models.user.find({}).run(function (err, users) {
             if (err) {
@@ -1320,7 +1320,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-// POST /api/users
+    // POST /api/users
     server.post('/api/users', function (req, res, next) {
         if (req.body === undefined) {
             return res.json(409, {error: "No body defined"});
@@ -1367,7 +1367,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-// asynchronous version of the fuzzy evaluation function defined above
+    // asynchronous version of the fuzzy evaluation function defined above
     function asyncFuzzyTest(searchTerm, user, callback) {
         var hay = user.id.toLowerCase(), i = 0, n = -1, l;
         searchTerm = searchTerm.toLowerCase();
