@@ -979,6 +979,7 @@ module.exports = function (server, passport, fx, jwt) {
                     creditor_id: req.params.id,
                     debtor_id: req.body.user,
                     originalValue: req.body.value,
+                    description: req.body.description || '',
                     value: req.body.value,
                     currency: req.body.currency
 
@@ -993,6 +994,7 @@ module.exports = function (server, passport, fx, jwt) {
                         debtor: debt.debtor_id,
                         originalValue: debt.originalValue,
                         value: debt.value,
+                        description: debt.description,
                         currency: debt.currency,
                         created: debt.created,
                         modified: debt.modified
