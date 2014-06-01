@@ -186,6 +186,19 @@ angular.module('starter.controllers', [])
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
 
+        $scope.countActive = function() {
+            if ($scope.loadingDebts ) return 0;
+            else  {
+                var count = 0;
+               $scope.debts.debts.forEach(function (debt) {
+                   if (debt.value > 0) count++;
+               });
+                   return count;
+
+            }
+
+        }
+
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
 
@@ -246,6 +259,19 @@ angular.module('starter.controllers', [])
         $scope.filter = 'all';
 
         $scope.openDebt = $stateParams.openDebt;
+
+        $scope.countActive = function() {
+            if ($scope.loading ) return 0;
+            else  {
+                var count = 0;
+                $scope.debts.debts.forEach(function (debt) {
+                    if (debt.value > 0) count++;
+                });
+                return count;
+
+            }
+
+        }
 
 
         if ($stateParams.initFilter) {
@@ -670,6 +696,7 @@ angular.module('starter.controllers', [])
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
         $scope.friends = [];
         $scope.loading = true;
+        $scope.userId = $stateParams.userId;
 
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;

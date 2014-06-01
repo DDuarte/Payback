@@ -17,9 +17,8 @@
             <a class="item " ui-sref="app.debts({userId: user.id, initFilter:'details'})">
                 <div class=" item-icon-left">
                     <i class="icon ion-clipboard"></i>
-
                     <div class="details">
-                        Debts: {{ debts.total }}
+                        Debts: {{ countActive(debts.total) }}
                         <br/>
                         Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
                         <br/>
