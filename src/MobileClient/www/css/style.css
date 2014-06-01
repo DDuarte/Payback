@@ -32,3 +32,16 @@
   cursor: default !important;
   pointer-events: none;
 }
+
+.tab-active {
+    filter: Alpha(Opacity=100);
+    opacity: 1.0;
+    zoom: 1;
+    background-color:#f2f2f2;
+}
+
+.tab-inactive {
+    filter: Alpha(Opacity=50);
+    opacity: .5;
+    zoom: 1;
+}

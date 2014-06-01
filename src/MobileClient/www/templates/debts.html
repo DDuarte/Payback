@@ -103,23 +103,23 @@
     </ion-content>
     <ion-footer-bar>
         <ion-tabs class="tabs-icon-top">
-            <a ng-click="setFilter('all')" class="tab-item">
+            <a ng-click="setFilter('all')" class="tab-item" ng-class="filter == 'all' ? 'tab-active' : 'tab-inactive'">
                 <i class="icon ion-card"></i>
                 All debts
             </a>
-            <a ng-click="setFilter('own')" class="tab-item">
+            <a ng-click="setFilter('own')" class="tab-item" ng-class="filter == 'own' ? 'tab-active' : 'tab-inactive'">
                 <i class="icon ion-card balanced"></i>
                 Own to me
             </a>
-            <a ng-click="setFilter('owed')" class="tab-item">
+            <a ng-click="setFilter('owed')" class="tab-item" ng-class="filter == 'owed' ? 'tab-active' : 'tab-inactive'">
                 <i class="icon ion-card assertive"></i>
                 Owed by me
             </a>
-            <a ng-click="setFilter('details')" class="tab-item">
+            <a ng-click="setFilter('details')" class="tab-item" ng-class="filter == 'details' ? 'tab-active' : 'tab-inactive'">
                 <i  class="icon ion-pie-graph positive"></i>
                 Details
             </a>
-            <a ng-click="setFilter('history')" class="tab-item">
+            <a ng-click="setFilter('history')" class="tab-item" ng-class="filter == 'history' ? 'tab-active' : 'tab-inactive'">
                 <i  class="icon ion-archive energized"></i>
                 Old Debts
             </a>
