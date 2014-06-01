@@ -138,6 +138,7 @@ angular.module('starter.controllers', [])
 
     .controller('UserCtrl', function ($scope, $stateParams, Restangular, AuthService, DateFormatter) {
         $scope.dateFormatter = DateFormatter;
+        $scope.loadingDebts = true;
 
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
@@ -146,7 +147,9 @@ angular.module('starter.controllers', [])
 
             Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
                 $scope.currentUser = AuthService.currentUser();
-                $scope.debts = data; // will be needed for debt history later on (if not own user)
+                $scope.debts = data;
+                $scope.loadingDebts = false;
+
             });
 
         });
@@ -191,6 +194,7 @@ angular.module('starter.controllers', [])
         $scope.dateFormatter = DateFormatter;
 
         $scope.filter = 'all';
+        $scope.loading = true;
 
         $scope.searchText = '';
 
@@ -400,11 +404,12 @@ angular.module('starter.controllers', [])
         $scope.reloadDebts = function () {
             Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
                 $scope.debts = [];
+                $scope.loading = false;
                 $scope.debts = data;
-
                 dataStore.update('Credit', { value: data.credit });
                 dataStore.update('Debit', { value: data.debit });
                 dataSource.load();
+
             });
         };
 
@@ -582,6 +587,7 @@ angular.module('starter.controllers', [])
 
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
         $scope.friends = [];
+        $scope.loading = true;
 
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;
@@ -676,6 +682,7 @@ angular.module('starter.controllers', [])
 
         Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
+            $scope.loading = false;
 
         });
     })

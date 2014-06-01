@@ -24,10 +24,14 @@
                 </ion-delete-button>
             </ion-item>
         </ion-list>
-        <ion-list  can-swipe="true" ng-if="friends.length == 0">
+        <ion-list  can-swipe="true" ng-if="!loading friends.length == 0">
 
             <h3 class="list-inset" style="color: #777777; text-align: center;"> <br/>You have no friends yet <b>:(</b><br/>  Click the button bellow to start adding</h3>
         </ion-list>
+
+        <div ng-if="loading"  style="text-align: center;  font-size: 90px; color: #999999;" >
+            <i class="icon ion-ios7-reloading" ></i>
+        </div>
 
     </ion-content>
 

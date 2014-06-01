@@ -23,7 +23,8 @@
 
             <h3 class="list-inset" style="color: #777777; text-align: center;"> <br/>You have no debts yet <br/> Maybe that's a good thing <b >:)</b>?</h3>
         </ion-list>
-        <div ng-if="debts && user.id == currentUser.id && filter == 'details'" class="list card">
+
+        <div ng-if="!loading && debts && user.id == currentUser.id && filter == 'details'" class="list card">
             <a class="item " ui-sref="app.debts({userId: user.id})">
                 <div class=" item-icon-left">
                     <i class="icon ion-clipboard"></i>
@@ -39,15 +40,19 @@
             </a>
         </div>
 
+        <div ng-if="loading"  style="text-align: center;  font-size: 90px; color: #999999;" >
+            <i class="icon ion-ios7-reloading" ></i>
+        </div>
 
 
-
-        <ion-list class="list" ng-if="filter != 'details' && debts.debts.length != 0">
+        <ion-list class="list" ng-if="!loading && filter != 'details' && debts.debts.length != 0">
             <div class="item item-divider" ng-if="filter != 'history'" >
                 <div ng-if="filter == 'all'"> All debts</div>
                 <div ng-if="filter == 'owed'"> My debts</div>
                 <div ng-if="filter == 'own'"> Friends debts</div>
             </div>
+
+
 
             <ion-item ng-repeat="debt in debts.debts | matchTab:searchText:filter:user.id" ng-click="openDebtModal(debt)"
                       class="item-icon-left " ng-if="filter != 'details'">
@@ -71,7 +76,8 @@
                 </div>
             </ion-item>
         </ion-list>
-    <ion-list class="list" ng-if="filter == 'history' && debts.debts.length != 0" >
+
+    <ion-list class="list" ng-if="!loading && filter == 'history' && debts.debts.length != 0" >
         <div class="item item-divider">
             History
         </div>
