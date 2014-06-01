@@ -30,7 +30,7 @@
                     <i class="icon ion-clipboard"></i>
 
                     <div class="details">
-                        Debts: {{ debts.total }}
+                        Debts: {{ countActive() }}
                         <br/>
                         Own to me: <span ng-class="(debts.credit > 0) ? 'balanced' : ''"> {{ debts.credit }} {{ debts.currency }} </span>
                         <br/>
