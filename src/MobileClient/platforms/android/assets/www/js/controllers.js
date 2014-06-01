@@ -186,6 +186,19 @@ angular.module('starter.controllers', [])
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
 
+        $scope.countActive = function() {
+            if ($scope.loadingDebts ) return 0;
+            else  {
+                var count = 0;
+               $scope.debts.debts.forEach(function (debt) {
+                   if (debt.value > 0) count++;
+               });
+                   return count;
+
+            }
+
+        }
+
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
 
@@ -246,6 +259,19 @@ angular.module('starter.controllers', [])
         $scope.filter = 'all';
 
         $scope.openDebt = $stateParams.openDebt;
+
+        $scope.countActive = function() {
+            if ($scope.loading ) return 0;
+            else  {
+                var count = 0;
+                $scope.debts.debts.forEach(function (debt) {
+                    if (debt.value > 0) count++;
+                });
+                return count;
+
+            }
+
+        }
 
 
         if ($stateParams.initFilter) {
@@ -638,8 +664,8 @@ angular.module('starter.controllers', [])
         $scope.$on('$destroy', function () {
             $scope.debts = [];
             $scope.friends = [];
-            if (typeof $scope.friendsModal != 'undefined')  $scope.friendsModal.remove();
-            $scope.createDebtModal.remove();
+            if (typeof $scope.friendsModal != 'undefined') $scope.friendsModal.remove();
+            if (typeof $scope.createDebtModal != 'undefined') $scope.createDebtModal.remove();
             if (typeof $scope.debtModal != 'undefined') $scope.debtModal.remove();
         });
 
@@ -765,7 +791,6 @@ angular.module('starter.controllers', [])
         Restangular.one('users', $stateParams.userId).one('friends').get().then(function (data) {
             $scope.friends = data.friends;
             $scope.loading = false;
-
         });
     })
 
