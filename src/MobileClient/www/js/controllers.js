@@ -552,7 +552,7 @@ angular.module('starter.controllers', [])
             return   $scope.commitEnabled;
         };
 
-        $scope.commitDebts = function (amount) {
+        $scope.commitDebts = function (amount, description) {
             $scope.changeCommit(false);
 
             $scope.friends.forEach(function (friend) {
@@ -572,6 +572,7 @@ angular.module('starter.controllers', [])
                 Restangular.one('users', debitor).all('debts').post({
                     user: creditor,
                     value: amount / $scope.countCheckedPayingFriends(),
+                    description: description,
                     currency: AuthService.currentUser().currency
                 }).then(function (data) {
                     $scope.closeCreateDebtModal();

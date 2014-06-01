@@ -61,6 +61,7 @@
                         <p>
                             <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
                             <h3>You owe <b>{{debt.creditor}} </b></h3>
+                             <h4>{{debt.description}} </h4>
                             <h4 style="font-style:italic" class="dark"> {{dateFormatter.formatDate(debt.created)}} </h4>
                         </p>
 
@@ -71,6 +72,7 @@
                         <p>
                             <h2><b>{{debt.value}} {{debt.currency}}</b></h2>
                             <h3><b>{{debt.debtor}} </b> owes you</h3>
+                            <h4>{{debt.description}} </h4>
                             <h4 style="font-style:italic" class="dark">{{dateFormatter.formatDate(debt.created)}} </h4>
                         </p>
                 </div>
@@ -89,6 +91,7 @@
                 <p>
                     <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
                     <h3>You payed <b>{{debt.creditor}} </b></h3>
+                    <h4>{{debt.description}} </h4>
                     <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
                     <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
                 </p>
@@ -100,6 +103,7 @@
                 <p>
                     <h2><b>{{debt.originalValue}} {{debt.currency}}</b></h2>
                     <h3><b>{{debt.debtor}} </b> payed you</h3>
+                    <h4>{{debt.description}} </h4>
                     <h4 style="font-style:italic" class="dark">created: {{dateFormatter.formatDate(debt.created)}} </h4>
                     <h4 style="font-style:italic" class="dark">resolved: {{dateFormatter.formatDate(debt.modified)}} </h4>
                 </p>

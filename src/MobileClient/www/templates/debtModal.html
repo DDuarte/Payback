@@ -13,6 +13,7 @@
 
             <div ng-if="debt.debtor == user.id">
                 <h3><b>You owe {{debt.creditor}} </b></h3>
+                <h4>{{debt.description}} </h4>
                 <h4 style="font-style:italic" class="dark"> created: {{dateFormatter.formatDate(debt.created)}} </h4>
                 <h4 style="font-style:italic" class="dark"> modified: {{dateFormatter.formatDate(debt.created)}} </h4>
 
@@ -21,6 +22,7 @@
             </div>
             <div ng-if="debt.debtor != user.id">
                 <h3><b>{{debt.debtor}} </b> owes you</h3>
+                <h4>{{debt.description}} </h4>
                 <h4 style="font-style:italic" class="dark"> created: {{dateFormatter.formatDate(debt.created)}} </h4>
                 <h4 style="font-style:italic" class="dark"> modified: {{dateFormatter.formatDate(debt.modified)}} </h4>
 
