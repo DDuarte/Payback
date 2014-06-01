@@ -229,7 +229,7 @@ module.exports = function (server, passport, fx, jwt) {
                                         function (err, newFacebookUser) {
 
                                             if (err || !newFacebookUser) {
-                                                return callback({ error: "A Facebook account is already connected:" + JSON.stringify(err) });
+                                                return callback({ error: "A Facebook account is already connected:" });
                                             }
 
                                             localUser.setFacebookAccount(newFacebookUser, function (err) {
