@@ -211,7 +211,7 @@ module.exports = function (server, passport, fx, jwt) {
                             req.models.user.exists({id: profile.displayName}, function (err, exists) {
 
                                 if (err || exists)
-                                    return callback({ error: "That facebook displayName is already taken" });
+                                    profile.displayName = profile.displayName + '#' + shortId.generate();
 
                                 req.models.user.create({
                                     id: profile.displayName,
@@ -228,7 +228,8 @@ module.exports = function (server, passport, fx, jwt) {
                                             token: req.body.token,
                                             displayName: profile.displayName,
                                             email: profile.email,
-                                            localaccount_id: localUser.id
+                                            localaccount_id: localUser.id,
+                                            avatar: profilePicture.data.url
                                         },
                                         function (err, newFacebookUser) {
 
@@ -276,35 +277,132 @@ module.exports = function (server, passport, fx, jwt) {
             });
     });
 
-    // GET /api/connect/facebook
-    server.get('/api/connect/facebook', passport.authorize('facebook-connect', { scope: 'email' }));
+    // POST /api/users/:id/connect/facebook
+    server.post('/api/users/:id/connect/facebook', function (req, res, next) {
 
-    // GET /api/connect/facebook/callback
-    server.get('/api/connect/facebook/callback', function (req, res) {
+        if (!req.body.token) {
+            return res.json(400, {error: 'Missing facebook token'});
+        }
 
-        passport.authorize('facebook-connect', function (err, user, info) {
+        async.waterfall([
+                function (callback) {
 
-            if (err)
-                return res.json(500, err);
+                    request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
 
-            if (!user)
-                return res.json(401, info);
+                        if (error || response.statusCode != 200)
+                            return callback(null, {error: "Invalid facebook access token"});
 
-            req.logIn(user, function (err) {
+                        var picture = JSON.parse(body).picture;
+                        callback(null, picture); // picture : {data: url }
+                    });
+
+                },
+                function (profilePicture, callback) {
+
+                    request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+
+                        if (error || response.statusCode != 200) {
+                            return callback({ error: "Invalid facebook access token" });
+                        }
+
+                        var profile = JSON.parse(body);
+                        if (profile.verified === false)
+                            return callback({ error: "Facebook account not verified" });
+
+                        console.log("Profile: " + JSON.stringify(profile));
+
+                        req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                            if (err || exists)
+                                return callback({ error: "Facebook account is already in use" });
+
+                            if (!profile.displayName)
+                                profile.displayName = profile.first_name + " " + profile.last_name;
+
+                            req.models.user.get(req.user.id, function (err, localUser) {
+                                if (err)
+                                    return callback({error: "User '" + req.user.id + "' does not exist"});
+
+                                localUser.hasFacebookAccount(function (err, facebookAccountExists) {
+
+                                    if (err || facebookAccountExists)
+                                        return callback({error: "User '" + req.user.id + "' already has a connected facebook account"});
+
+                                    req.models.facebook.create({
+                                        id: profile.id,
+                                        token: req.body.token,
+                                        displayName: profile.displayName,
+                                        email: profile.email,
+                                        localaccount_id: localUser.id,
+                                        avatar: profilePicture.data.url
+                                    }, function (err, newFacebookUser) {
+
+                                        if (err || !newFacebookUser)
+                                            return callback({ error: "Failed to create new facebook account"});
+
+                                        localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                            if (err) {
+                                                return callback({ error: "User '" + req.user.id + "' already has a connected facebook account" });
+                                            }
+
+                                            var ret = {
+                                                user: {
+                                                    id: localUser.id,
+                                                    email: localUser.email,
+                                                    avatar: localUser.avatar,
+                                                    facebookAccount: {
+                                                        email: newFacebookUser.email,
+                                                        access_token: newFacebookUser.token,
+                                                        avatar: newFacebookUser.avatar
+                                                    }
+                                                }
+                                            };
+
+                                            return callback(null, ret);
+                                        });
+
+
+                                    });
+                                });
+
+                            });
+                        });
+                    });
+                }
+            ],
+            function (err, result) {
 
                 if (err)
-                    return res.send(401);
+                    return res.json(401, err);
 
-                res.send(200);
+                return res.json(200, result);
+            }
+        );
+    });
+
+    server.del('/api/users/:id/connect/facebook', function(req, res, next) {
+
+        req.models.user.get(req.user.id, function(err, localUser) {
+
+            if (err || !localUser)
+                return res.json(400, { error: "User '" + req.user.id + "' does not exist" });
+
+            localUser.removeFacebookAccount(function (err) {
+
+                if (err)
+                    return res.json(400, { error: "User '" + req.user.id + "' does not have a facebook account" });
+
+                return res.json(204);
             });
-        })(req, res);
+        })
     });
 
     // POST /api/login/google
     server.post('/api/login/google', function (req, res, next) {
 
         if (!req.body.token) {
-            return res.json(400, {error: 'Missing google token'});
+            return res.json(401, {error: 'Missing google token'});
         }
 
         request(googleEndpoint + req.body.token, function (error, response, body) {
@@ -432,7 +530,7 @@ module.exports = function (server, passport, fx, jwt) {
                         req.models.user.exists({id: profile.displayName}, function (err, exists) {
 
                             if (err || exists)
-                                return res.json(401, { error: "That google displayName is already taken" });
+                                profile.displayName = profile.displayName + '#' + shortId.generate();
 
                             req.models.user.create({
                                 id: profile.displayName,
@@ -492,37 +590,25 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // GET /api/connect/google
-    server.get('/api/connect/google', passport.authorize('google-connect'));
+    // DELETE /api/users/:id/connect/google
+    server.del('/api/users/:id/connect/google', function (req, res) {
 
-    // GET /api/connect/google/callback
-    server.get('/api/connect/google/callback', function (req, res) {
+        req.models.user.get(req.user.id, function(err, localUser) {
 
-        passport.authorize('google-connect', function (err, user, info) {
+            if (err || !localUser)
+                return res.json(400, { error: "User '" + req.user.id + "' does not exist" });
 
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
+            localUser.removeGoogleAccount(function (err) {
 
                 if (err)
-                    return res.send(401);
+                    return res.json(400, { error: "User '" + req.user.id + "' does not have a google account" });
 
-                res.send(200);
+                return res.json(204);
             });
-        })(req, res);
+        });
     });
 
-    // GET /api/logout
-    server.get('/api/logout', function (req, res) {
-        req.logout();
-        res.send(200);
-    });
-
-    // GET /api/exchangeRates
+// GET /api/exchangeRates
     server.get('/api/exchangeRates', function (req, res) {
 
         return res.json(200, {
@@ -532,7 +618,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}
+// GET /api/users/{id}
     server.get('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -592,7 +678,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}
+// DELETE /api/users/{id}
     server.del('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -615,7 +701,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/facebook
+// GET /api/users/{id}/facebook
     server.get('/api/users/:id/facebook', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -640,7 +726,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-    // GET /api/users/{id}/google
+// GET /api/users/{id}/google
     server.get('/api/users/:id/google', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -665,7 +751,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-    // GET /api/users/{id}/debts/{debtId}
+// GET /api/users/{id}/debts/{debtId}
     server.get('/api/users/:id/debts/:debtId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -704,7 +790,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // PATCH /api/users/{id}/debts/{debtId}
+// PATCH /api/users/{id}/debts/{debtId}
     server.patch('/api/users/:id/debts/:debtId', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -757,7 +843,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/debts/{debtId}
+// DELETE /api/users/{id}/debts/{debtId}
     server.del('/api/users/:id/debts/:debtId', function (req, res) {
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
             if (err || !exists) {
@@ -778,7 +864,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // GET /api/users/{id}/debts
+// GET /api/users/{id}/debts
     server.get('/api/users/:id/debts', function (req, res) {
 
         var currency = req.query.currency ? req.query.currency : "EUR";
@@ -838,18 +924,6 @@ module.exports = function (server, passport, fx, jwt) {
                             }, function (err) {
                                 res.json(debtsData);
                             });
-                            /*debtsData.debts.forEach(function (debt) {
-                             req.models.user.get(debt.creditor, function (err, creditor) {
-                             if (!err)
-                             debt.creditorAvatar = creditor.avatar;
-
-                             req.models.user.get(debt.debtor, function (err, debtor) {
-                             if (!err)
-                             debt.debtorAvatar = debtor.avatar;
-                             res.json(debtsData);
-                             });
-                             });
-                             }); */
                         });
                     });
                 });
@@ -857,7 +931,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // POST /api/users/{id}/debts
+// POST /api/users/{id}/debts
     server.post('/api/users/:id/debts', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -929,7 +1003,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/friends/{friendId}
+// GET /api/users/{id}/friends/{friendId}
     server.get('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -951,7 +1025,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/friends/{friendId}
+// DELETE /api/users/{id}/friends/{friendId}
     server.del('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -988,7 +1062,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/friends
+// GET /api/users/{id}/friends
     server.get('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -1022,7 +1096,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // POST /api/users/{id}/friends
+// POST /api/users/{id}/friends
     server.post('/api/users/:id/friends', function (req, res, next) {
 
         if (req.body === undefined) {
@@ -1067,7 +1141,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/friends
+// DELETE /api/users/{id}/friends
     server.del('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -1091,7 +1165,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users
+// GET /api/users
     server.get('/api/users', function (req, res) {
 
         req.models.user.find({}).run(function (err, users) {
@@ -1121,7 +1195,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // POST /api/users
+// POST /api/users
     server.post('/api/users', function (req, res, next) {
         if (req.body === undefined) {
             return res.json(409, {error: "No body defined"});
@@ -1168,7 +1242,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // asynchronous version of the fuzzy evaluation function defined above
+// asynchronous version of the fuzzy evaluation function defined above
     function asyncFuzzyTest(searchTerm, user, callback) {
         var hay = user.id.toLowerCase(), i = 0, n = -1, l;
         searchTerm = searchTerm.toLowerCase();
@@ -1230,4 +1304,5 @@ module.exports = function (server, passport, fx, jwt) {
 
         return token;
     }
-};
+}
+;
