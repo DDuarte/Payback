@@ -670,6 +670,7 @@ angular.module('starter.controllers', [])
     .controller('FriendsCtrl', function ($scope, $stateParams, $ionicModal, Restangular, AuthService, AlertPopupService) {
         $scope.friends = [];
         $scope.loading = true;
+        $scope.userId = $stateParams.userId;
 
         if (AuthService.currentUser())
             $scope.currentUserId = AuthService.currentUser().id;

@@ -10,7 +10,7 @@
                ng-model="searchText">
     </ion-header-bar>
     <ion-content class="has-header list-inset" >
-        <div class="card item" ng-if="debts.debts.length && filter == 'details'">
+        <div class="card item" ng-if="debts.debts.length && filter == 'details' && (debts.debts.length != 0 && (countActive() != 0 || filter == 'history'))">
             <h1 ng-if="debts.balance" style="text-align:center" ng-class="dark">Balance: {{ debts.balance }} {{
                 debts.currency }}</h1>
 
@@ -19,12 +19,12 @@
 
 
         </div>
-        <ion-list  can-swipe="true" ng-if="debts.debts.length == 0">
+        <ion-list  can-swipe="true" ng-if="debts.debts.length == 0 || (countActive() == 0 && filter != 'history')">
 
             <h3 class="list-inset" style="color: #777777; text-align: center;"> <br/>You have no debts yet <br/> Maybe that's a good thing <b >:)</b>?</h3>
         </ion-list>
 
-        <div ng-if="!loading && debts && user.id == currentUser.id && filter == 'details'" class="list card">
+        <div ng-if="!loading && debts && user.id == currentUser.id && filter == 'details'  && (debts.debts.length != 0 && (countActive() != 0 || filter == 'history'))" class="list card">
             <a class="item " ui-sref="app.debts({userId: user.id})">
                 <div class=" item-icon-left">
                     <i class="icon ion-clipboard"></i>
@@ -45,7 +45,7 @@
         </div>
 
 
-        <ion-list class="list" ng-if="!loading && filter != 'details' && debts.debts.length != 0">
+        <ion-list class="list" ng-if="!loading && filter != 'details'  && (debts.debts.length != 0 && (countActive() != 0 || filter == 'history'))">
             <div class="item item-divider" ng-if="filter != 'history'" >
                 <div ng-if="filter == 'all'"> All debts</div>
                 <div ng-if="filter == 'owed'"> My debts</div>
