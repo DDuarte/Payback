@@ -606,8 +606,10 @@ angular.module('starter.controllers', [])
             Restangular.one('users', $stateParams.userId).one('friends', friend.id).remove().then(
                 function (data) {
                     var idx = $scope.friends.indexOf(friend);
-                    if (idx != -1)
+                    if (idx != -1) {
                         $scope.friends.splice(idx, 1);
+                        if ($scope.friends.length == 0)  $scope.data.showDelete = false;
+                    }
                 },
                 function (response) {
                     AlertPopupService.createPopup('Error', response.error);
@@ -650,6 +652,7 @@ angular.module('starter.controllers', [])
                     function (data) {
                         $scope.addingFriends.splice($scope.addingFriends.indexOf(user), 1);
                         $scope.friends.push(user);
+
                     },
                     function (response) {
                         AlertPopupService.createPopup('Error', response.error);

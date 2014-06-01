@@ -1,6 +1,4 @@
 <ion-nav-buttons side="right">
-    <button ng-if="isOwner(currentUserId)" class="button button-icon icon ion-android-add-contact"
-            ng-click="openModal()"></button>
     <button ng-if="isOwner(currentUserId) && friends.length > 0" class="button button-icon icon ion-ios7-minus-outline"
             ng-click="data.showDelete = !data.showDelete"></button>
 </ion-nav-buttons>
@@ -32,4 +30,16 @@
         </ion-list>
 
     </ion-content>
+
+    <ion-footer-bar>
+        <ion-tabs class="tabs-icon-top">
+
+            <button class="button button-balanced col col-100 icon ion-android-add-contact"
+                    ng-click="openModal()"
+                    ng-if="isOwner(currentUserId)">
+                Add new Friend
+            </button>
+        </ion-tabs>
+    </ion-footer-bar>
+
 </ion-view>
