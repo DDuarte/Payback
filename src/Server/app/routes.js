@@ -149,6 +149,7 @@ module.exports = function (server, passport, fx, jwt) {
                                     id: localUser.id,
                                     email: localUser.email,
                                     avatar: localUser.avatar,
+                                    currency: localUser.currency,
                                     facebookAccount: {
                                         email: profile.email,
                                         access_token: req.body.token
@@ -246,6 +247,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                         id: localUser.id,
                                                         email: localUser.email,
                                                         avatar: localUser.avatar,
+                                                        currency: localUser.currency,
                                                         facebookAccount: {
                                                             email: newFacebookUser.email,
                                                             access_token: newFacebookUser.token
@@ -309,6 +311,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                                 id: localUser.id,
                                                                 email: localUser.email,
                                                                 avatar: localUser.avatar,
+                                                                currency: localUser.currency,
                                                                 facebookAccount: {
                                                                     email: newFacebookUser.email,
                                                                     access_token: newFacebookUser.token
@@ -414,6 +417,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                     id: localUser.id,
                                                     email: localUser.email,
                                                     avatar: localUser.avatar,
+                                                    currency: localUser.currency,
                                                     facebookAccount: {
                                                         email: newFacebookUser.email,
                                                         access_token: newFacebookUser.token,
