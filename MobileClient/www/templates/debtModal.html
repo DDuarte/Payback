@@ -4,19 +4,27 @@
         <button class="button button-clear button-primary" ng-click="closeDebtModal()">Close</button>
     </ion-header-bar>
     <ion-content class="has-header list card">
-        <div class="item item-avatar item-icon-right"> <!-- TODO AVATAR -->
+        <div class="item item-avatar item-icon-right">
+           <img ng-if="debt.debtor == user.id && debt.creditorAvatar != null" ng-src="{{debt.creditorAvatar}}"/>
+           <img ng-if="debt.debtor == user.id && debt.creditorAvatar == null" ng-src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y"/>
+
+           <img ng-if="debt.debtor != user.id && debt.debtorAvatar != null" ng-src="{{debt.debtorAvatar}}"/>
+           <img ng-if="debt.debtor != user.id && debt.debtorAvatar == null" ng-src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y"/>
+
             <div ng-if="debt.debtor == user.id">
                 <h3><b>You owe {{debt.creditor}} </b></h3>
-                <h4 style="font-style:italic" class="dark"> created: {{formatDate(debt.created)}} </h4>
-                <h4 style="font-style:italic" class="dark"> modified: {{formatDate(debt.created)}} </h4>
+                <h4>{{debt.description}} </h4>
+                <h4 style="font-style:italic" class="dark"> created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                <h4 style="font-style:italic" class="dark"> modified: {{dateFormatter.formatDate(debt.created)}} </h4>
 
                 <i class="icon ion-arrow-down-a assertive "></i>
 
             </div>
             <div ng-if="debt.debtor != user.id">
                 <h3><b>{{debt.debtor}} </b> owes you</h3>
-                <h4 style="font-style:italic" class="dark"> created: {{formatDate(debt.created)}} </h4>
-                <h4 style="font-style:italic" class="dark"> modified: {{formatDate(debt.modified)}} </h4>
+                <h4>{{debt.description}} </h4>
+                <h4 style="font-style:italic" class="dark"> created: {{dateFormatter.formatDate(debt.created)}} </h4>
+                <h4 style="font-style:italic" class="dark"> modified: {{dateFormatter.formatDate(debt.modified)}} </h4>
 
                 <i class="icon ion-arrow-up-a balanced "></i>
 
@@ -46,11 +54,12 @@
                                 <div class="handle"></div>
                             </div>
                         </label>
-                        <label ng-if="!resolved" class="item-input">
+                        <label  class="item-input">
                             <b class="input-label"
-                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount you
+                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount <br/>you<br/>
                                 payed </b>
-                            <input type="number" ng-model="modal.amount">
+                            <b ng-if="resolved" class="assertive " class="assertive">{{modal.amount}}</b>
+                            <input  ng-if="!resolved"  type="number" ng-model="modal.amount">
                         </label>
 
                     </div>
@@ -67,7 +76,6 @@
                     <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span>
                     {{debt.currency}}</b></h2>
 
-                <div class="row">
                     <div class="col-30">
                         <b>Resolved: </b>
 
@@ -79,15 +87,15 @@
                                 <div class="handle"></div>
                             </div>
                         </label>
-                        <label ng-if="!resolved" class="item-input">
+                        <label class="item-input">
                             <b class="input-label"
-                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount you
+                               ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': ''">Ammount <br/>you<br/>
                                 received</b>
-                            <input type="number" ng-model="modal.amount">
+                            <b ng-if="resolved" class="balanced " class="assertive">{{modal.amount}}</b>
+                            <input ng-if="!resolved" type="number" ng-model="modal.amount">
                         </label>
 
                     </div>
-                </div>
                 </p>
             </div>
 

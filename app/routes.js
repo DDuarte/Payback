@@ -4,8 +4,12 @@ var accounting = require("accounting");
 var crypto = require('crypto-js');
 var moment = require('moment');
 var request = require('request');
+var shortId = require('shortid');
+var _ = require('lodash');
 
 var defaultAvatar = 'http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y';
+var facebookEndpoint = "https://graph.facebook.com/me?access_token=";
+var googleEndpoint = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=";
 
 function public_user_info(user) {
     return {
@@ -14,13 +18,22 @@ function public_user_info(user) {
     }
 }
 
-function protected_user_info(user) {
-    return {
+function protected_user_info(user, facebookAccount, googleAccount) {
+
+    var ret = {
         id: user.id,
         email: user.email,
         currency: user.currency,
         avatar: user.avatar || defaultAvatar
-    }
+    };
+
+    if (facebookAccount)
+        ret.facebookAccount = facebookAccount;
+
+    if (googleAccount)
+        ret.googleAccount = googleAccount;
+
+    return ret;
 }
 
 module.exports = function (server, passport, fx, jwt) {
@@ -89,68 +102,67 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(400, {error: 'Missing facebook token'});
         }
 
-        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+        async.waterfall([
+            function (callback) {
 
-            if (error || response.statusCode != 200) {
-                return res.json(400, { error: "Invalid facebook access token" });
-            }
+                request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
 
+                    if (error || response.statusCode != 200)
+                        return callback(null, {error: "Invalid facebook access token"});
 
-            var profile = JSON.parse(body);
-
-            if (profile.verified === false)
-                return res.json(400, { error: "Facebook account not verified" });
-
-            req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
-
-                if (err || !facebookUser) {
-                    return res.json(400, { error: "User not found" });
-                }
-
-                facebookUser.getLocalAccount(function (err, localUser) {
-
-                    if (err)
-                        return res.json(400, { error: "User not found" });
-
-                    var expires = moment().add('days', 7).valueOf();
-                    var token = generateToken(localUser.id, expires);
-                    var ret = {
-                        access_token: token,
-                        user: {
-                            id: localUser.id,
-                            email: localUser.email,
-                            facebookAccount: {
-                                email: profile.email,
-                                access_token: req.body.token
-                            }
-                        }};
-
-                    res.json(200, ret);
+                    var picture = JSON.parse(body).picture;
+                    callback(null, picture); // picture : {data: url }
                 });
-            });
-        });
-    });
 
-    // GET /api/login/facebook/callback
-    server.get('/api/login/facebook/callback', function (req, res) {
+            },
+            function (profilePicture, callback) {
+                request(facebookEndpoint + req.body.token, function (error, response, body) {
 
-        passport.authenticate('facebook-login', function (err, user, info) {
+                    if (error || response.statusCode != 200) {
+                        return callback({ error: "Invalid facebook access token" });
+                    }
 
+                    var profile = JSON.parse(body);
+
+                    if (profile.verified === false)
+                        return callback({ error: "Facebook account not verified" });
+
+                    req.models.facebook.get(profile.id, function (err, facebookUser) { // login attempt
+
+                        if (err || !facebookUser) {
+                            return callback({ error: "User not found" });
+                        }
+
+                        facebookUser.getLocalAccount(function (err, localUser) {
+
+                            if (err)
+                                return callback({ error: "Local user not found" });
+
+                            var expires = moment().add('days', 7).valueOf();
+                            var token = generateToken(localUser.id, expires);
+                            var ret = {
+                                access_token: token,
+                                user: {
+                                    id: localUser.id,
+                                    email: localUser.email,
+                                    avatar: profilePicture.data.url,
+                                    facebookAccount: {
+                                        email: profile.email,
+                                        access_token: req.body.token
+                                    }
+                                }};
+
+                            return callback(null, ret);
+                        });
+                    });
+                });
+            }
+        ], function (err, result) {
             if (err)
-                return res.json(500, err);
+                return res.json(400, err);
 
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
+            res.json(200, result);
+        });
     });
 
     // POST /api/signup/facebook
@@ -160,55 +172,332 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(401, {error: "Missing facebook token"});
         }
 
+        async.waterfall([
+                function (callback) {
 
-        request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+                    request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
+
+                        if (error || response.statusCode != 200)
+                            return callback(null, {error: "Invalid facebook access token"});
+
+                        var picture = JSON.parse(body).picture;
+                        callback(null, picture); // picture : {data: url }
+                    });
+
+                },
+                function (profilePicture, callback) {
+
+                    console.log("ProfilePicture:" + profilePicture.data.url);
+
+                    request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+
+                        if (error || response.statusCode != 200) {
+                            return callback({ error: "Invalid facebook access token" });
+                        }
+
+                        var profile = JSON.parse(body);
+                        if (profile.verified === false)
+                            return callback({ error: "Facebook account not verified" });
+
+                        console.log("Profile: " + JSON.stringify(profile));
+
+                        req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                            if (err || exists)
+                                return callback({ error: "Facebook account is already registered" });
+
+                            if (!profile.displayName)
+                                profile.displayName = profile.first_name + " " + profile.last_name;
+
+                            req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                                if (err || exists)
+                                    profile.displayName = profile.displayName + '#' + shortId.generate();
+
+                                req.models.user.create({
+                                    id: profile.displayName,
+                                    email: profile.email,
+                                    avatar: profilePicture.data.url
+                                }, function (err, localUser) {
+
+                                    if (err || !localUser) {
+                                        return callback({ error: err});
+                                    }
+
+                                    req.models.facebook.create({
+                                            id: profile.id,
+                                            token: req.body.token,
+                                            displayName: profile.displayName,
+                                            email: profile.email,
+                                            localaccount_id: localUser.id,
+                                            avatar: profilePicture.data.url
+                                        },
+                                        function (err, newFacebookUser) {
+
+                                            if (err || !newFacebookUser) {
+                                                return callback({ error: err });
+                                            }
+
+                                            localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                                if (err) {
+                                                    return callback({ error: err });
+                                                }
+
+                                                var expires = moment().add('days', 7).valueOf();
+                                                var token = generateToken(localUser.id, expires);
+                                                var ret = {
+                                                    access_token: token,
+                                                    user: {
+                                                        id: localUser.id,
+                                                        email: localUser.email,
+                                                        avatar: localUser.avatar,
+                                                        facebookAccount: {
+                                                            email: newFacebookUser.email,
+                                                            access_token: newFacebookUser.token
+                                                        }
+                                                    }
+                                                };
+
+                                                return callback(null, ret);
+                                            });
+
+                                        });
+                                });
+                            });
+                        });
+                    });
+
+                }],
+            function (err, result) {
+
+                if (err)
+                    return res.json(401, err);
+
+                return res.json(200, result);
+            });
+    });
+
+    // POST /api/users/:id/connect/facebook
+    server.post('/api/users/:id/connect/facebook', function (req, res, next) {
+
+        if (!req.body.token) {
+            return res.json(400, {error: 'Missing facebook token'});
+        }
+
+        async.waterfall([
+                function (callback) {
+
+                    request(facebookEndpoint + req.body.token + "&fields=picture.type(large)", function (error, response, body) {
+
+                        if (error || response.statusCode != 200)
+                            return callback(null, {error: "Invalid facebook access token"});
+
+                        var picture = JSON.parse(body).picture;
+                        callback(null, picture); // picture : {data: url }
+                    });
+
+                },
+                function (profilePicture, callback) {
+
+                    request('https://graph.facebook.com/me?access_token=' + req.body.token, function (error, response, body) {
+
+                        if (error || response.statusCode != 200) {
+                            return callback({ error: "Invalid facebook access token" });
+                        }
+
+                        var profile = JSON.parse(body);
+                        if (profile.verified === false)
+                            return callback({ error: "Facebook account not verified" });
+
+                        console.log("Profile: " + JSON.stringify(profile));
+
+                        req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+
+                            if (err || exists)
+                                return callback({ error: "Facebook account is already in use" });
+
+                            if (!profile.displayName)
+                                profile.displayName = profile.first_name + " " + profile.last_name;
+
+                            req.models.user.get(req.user.id, function (err, localUser) {
+                                if (err)
+                                    return callback({error: "User '" + req.user.id + "' does not exist"});
+
+                                localUser.hasFacebookAccount(function (err, facebookAccountExists) {
+
+                                    if (err || facebookAccountExists)
+                                        return callback({error: "User '" + req.user.id + "' already has a connected facebook account"});
+
+                                    req.models.facebook.create({
+                                        id: profile.id,
+                                        token: req.body.token,
+                                        displayName: profile.displayName,
+                                        email: profile.email,
+                                        localaccount_id: localUser.id,
+                                        avatar: profilePicture.data.url
+                                    }, function (err, newFacebookUser) {
+
+                                        if (err || !newFacebookUser)
+                                            return callback({ error: "Failed to create new facebook account"});
+
+                                        localUser.setFacebookAccount(newFacebookUser, function (err) {
+
+                                            if (err) {
+                                                return callback({ error: "User '" + req.user.id + "' already has a connected facebook account" });
+                                            }
+
+                                            var ret = {
+                                                user: {
+                                                    id: localUser.id,
+                                                    email: localUser.email,
+                                                    avatar: localUser.avatar,
+                                                    facebookAccount: {
+                                                        email: newFacebookUser.email,
+                                                        access_token: newFacebookUser.token,
+                                                        avatar: newFacebookUser.avatar
+                                                    }
+                                                }
+                                            };
+
+                                            return callback(null, ret);
+                                        });
+
+
+                                    });
+                                });
+
+                            });
+                        });
+                    });
+                }
+            ],
+            function (err, result) {
+
+                if (err)
+                    return res.json(401, err);
+
+                return res.json(200, result);
+            }
+        );
+    });
+
+    server.del('/api/users/:id/connect/facebook', function(req, res, next) {
+
+        req.models.user.get(req.user.id, function(err, localUser) {
+
+            if (err || !localUser)
+                return res.json(400, { error: "User '" + req.user.id + "' does not exist" });
+
+            localUser.removeFacebookAccount(function (err) {
+
+                if (err)
+                    return res.json(400, { error: "User '" + req.user.id + "' does not have a facebook account" });
+
+                return res.json(204);
+            });
+        })
+    });
+
+    // POST /api/login/google
+    server.post('/api/login/google', function (req, res, next) {
+
+        if (!req.body.token) {
+            return res.json(401, {error: 'Missing google token'});
+        }
+
+        request(googleEndpoint + req.body.token, function (error, response, body) {
 
             if (error || response.statusCode != 200) {
-                return res.json(401, { error: "Invalid facebook access token" });
+                return res.json(400, { error: "Invalid google access token" });
             }
 
             var profile = JSON.parse(body);
-            if (profile.verified === false)
-                return res.json(401, { error: "Facebook account not verified" });
 
-            req.models.facebook.exists({ id: profile.id }, function (err, exists) {
+            console.log(error);
+            console.log(body);
 
-                if (err || exists)
-                    return res.json(401, { error: "Facebook account is already registered" });
+            if (profile.verified_email === false)
+                return res.json(400, { error: "Google account not verified" });
 
-                if (!profile.displayName)
-                    profile.displayName = profile.first_name + " " + profile.last_name;
+            req.models.google.get(profile.id, function (err, googleUser) { // login attempt
 
-                req.models.user.exists({id: profile.displayName}, function (err, exists) {
+                if (err || !googleUser) {
+                    return res.json(400, { error: "User not found" });
+                }
 
-                    if (err || exists)
-                        return res.json(401, { error: "That facebook displayName is already taken" });
+                googleUser.getLocalAccount(function (err, localUser) {
 
-                    req.models.user.create({
-                        id: profile.displayName,
-                        email: profile.email
-                    }, function (err, localUser) {
+                    if (err)
+                        return res.json(400, { error: "Local user not found" });
 
-                        if (err || !localUser) {
-                            return res.json(401, { error: err});
-                        }
+                    var expires = moment().add('days', 7).valueOf();
+                    var token = generateToken(localUser.id, expires);
+                    var ret = {
+                        access_token: token,
+                        user: {
+                            id: localUser.id,
+                            email: localUser.email,
+                            avatar: localUser.avatar,
+                            googleAccount: {
+                                email: profile.email,
+                                access_token: req.body.token
+                            }
+                        }};
 
-                        req.models.facebook.create({
+                    return res.json(200, ret);
+                });
+            });
+        });
+    });
+
+    // POST /api/signup/google
+    server.post('/api/signup/google', function (req, res, next) {
+
+        request(googleEndpoint + req.body.token, function (error, response, body) {
+
+            if (error || response.statusCode != 200) {
+                return res.json(401, { error: "Invalid google access token" });
+            }
+
+            var profile = JSON.parse(body);
+            if (profile.verified_email === false)
+                return res.json(401, { error: "Google account not verified" });
+
+            console.log("Profile: " + JSON.stringify(profile));
+
+            if (!profile.displayName)
+                profile.displayName = profile.given_name + " " + profile.family_name;
+
+            req.models.user.exists({email: profile.email}, function (err, exists) {
+
+                if (err || exists) { // if a local user is registered with the same email, link the accounts
+                    req.models.user.find({email: profile.email}, function (err, results) {
+
+                        if (err || !results)
+                            return res.json(500, {error: "Internal Server error"});
+
+                        var localUser = results[0];
+                        console.log("Localuser:" + localUser);
+
+                        req.models.google.create({
                                 id: profile.id,
                                 token: req.body.token,
                                 displayName: profile.displayName,
                                 email: profile.email,
-                                localaccount_id: localUser.id
+                                localaccount_id: localUser.id,
+                                avatar: profile.picture
                             },
-                            function (err, newFacebookUser) {
+                            function (err, newGoogleUser) {
 
-                                if (err || !newFacebookUser) {
-                                    return res.json(401, { error: err });
+                                if (err || !newGoogleUser) {
+                                    return res.json(401, { error: "A Google account is already connected" });
                                 }
 
-                                localUser.setFacebookAccount(newFacebookUser, function (err) {
+                                localUser.setGoogleAccount(newGoogleUser, function (err) {
 
                                     if (err) {
+                                        console.log("error");
                                         return res.json(401, { error: err });
                                     }
 
@@ -219,9 +508,10 @@ module.exports = function (server, passport, fx, jwt) {
                                         user: {
                                             id: localUser.id,
                                             email: localUser.email,
-                                            facebookAccount: {
-                                                email: newFacebookUser.email,
-                                                access_token: newFacebookUser.token
+                                            avatar: localUser.avatar,
+                                            googleAccount: {
+                                                email: newGoogleUser.email,
+                                                access_token: newGoogleUser.token
                                             }
                                         }
                                     };
@@ -231,152 +521,95 @@ module.exports = function (server, passport, fx, jwt) {
 
                             });
                     });
-                });
+                }
+                else {
+                    req.models.google.exists({ id: profile.id }, function (err, exists) {
+
+                        if (err || exists)
+                            return res.json(401, { error: "Google account is already registered" });
+
+                        req.models.user.exists({id: profile.displayName}, function (err, exists) {
+
+                            if (err || exists)
+                                profile.displayName = profile.displayName + '#' + shortId.generate();
+
+                            req.models.user.create({
+                                id: profile.displayName,
+                                email: profile.email,
+                                avatar: profile.picture
+                            }, function (err, localUser) {
+
+                                if (err || !localUser) {
+                                    return res.json(401, { error: err});
+                                }
+
+                                req.models.google.create({
+                                        id: profile.id,
+                                        token: req.body.token,
+                                        displayName: profile.displayName,
+                                        email: profile.email,
+                                        localaccount_id: localUser.id,
+                                        avatar: profile.picture
+                                    },
+                                    function (err, newGoogleUser) {
+
+                                        if (err || !newGoogleUser) {
+                                            return res.json(401, { error: err });
+                                        }
+
+                                        localUser.setGoogleAccount(newGoogleUser, function (err) {
+
+                                            if (err) {
+                                                return res.json(401, { error: err });
+                                            }
+
+                                            var expires = moment().add('days', 7).valueOf();
+                                            var token = generateToken(localUser.id, expires);
+                                            var ret = {
+                                                access_token: token,
+                                                user: {
+                                                    id: localUser.id,
+                                                    email: localUser.email,
+                                                    avatar: localUser.avatar,
+                                                    googleAccount: {
+                                                        email: newGoogleUser.email,
+                                                        access_token: newGoogleUser.token
+                                                    }
+                                                }
+                                            };
+
+                                            return res.json(200, ret);
+                                        });
+
+                                    });
+                            });
+                        });
+                    });
+                }
+            });
+
+        });
+    });
+
+    // DELETE /api/users/:id/connect/google
+    server.del('/api/users/:id/connect/google', function (req, res) {
+
+        req.models.user.get(req.user.id, function(err, localUser) {
+
+            if (err || !localUser)
+                return res.json(400, { error: "User '" + req.user.id + "' does not exist" });
+
+            localUser.removeGoogleAccount(function (err) {
+
+                if (err)
+                    return res.json(400, { error: "User '" + req.user.id + "' does not have a google account" });
+
+                return res.json(204);
             });
         });
     });
 
-    // GET /api/signup/facebook/callback
-    server.get('/api/signup/facebook/callback', function (req, res) {
-
-        passport.authenticate('facebook-signup', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
-    });
-
-    // GET /api/connect/facebook
-    server.get('/api/connect/facebook', passport.authorize('facebook-connect', { scope: 'email' }));
-
-    // GET /api/connect/facebook/callback
-    server.get('/api/connect/facebook/callback', function (req, res) {
-
-        passport.authorize('facebook-connect', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-    });
-
-    // GET /api/login/google
-    server.get('/api/login/google', function (req, res, next) {
-        passport.authenticate('google-login')(req, res, next);
-    });
-
-    // GET /api/login/google/callback
-    server.get('/api/login/google/callback', function (req, res, next) {
-
-        passport.authenticate('google-login', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res, next);
-
-    });
-
-    // GET /api/signup/google/{id}
-    server.get('/api/signup/google/:id', function (req, res, next) {
-
-        if (!req.params.id)
-            return next("Attribute 'id' is missing.");
-
-        req.models.user.exists({ id: req.params.id }, function (err, exists) { // check if userID already exists
-
-            if (err || exists)
-                return res.json(403, "User '" + req.params.id + "' already exists.");
-
-            passport.authenticate('google-signup', {state: req.params.id })(req, res, next);
-        });
-    });
-
-    // GET /api/signup/google/callback
-    server.get('/api/signup/google/callback', function (req, res) {
-
-        passport.authenticate('google-signup', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-
-    });
-
-    // GET /api/connect/google
-    server.get('/api/connect/google', passport.authorize('google-connect'));
-
-    // GET /api/connect/google/callback
-    server.get('/api/connect/google/callback', function (req, res) {
-
-        passport.authorize('google-connect', function (err, user, info) {
-
-            if (err)
-                return res.json(500, err);
-
-            if (!user)
-                return res.json(401, info);
-
-            req.logIn(user, function (err) {
-
-                if (err)
-                    return res.send(401);
-
-                res.send(200);
-            });
-        })(req, res);
-    });
-
-    // GET /api/logout
-    server.get('/api/logout', function (req, res) {
-        req.logout();
-        res.send(200);
-    });
-
-    // GET /api/exchangeRates
+// GET /api/exchangeRates
     server.get('/api/exchangeRates', function (req, res) {
 
         return res.json(200, {
@@ -386,7 +619,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}
+// GET /api/users/{id}
     server.get('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -408,11 +641,11 @@ module.exports = function (server, passport, fx, jwt) {
     server.patch('/api/users/:id', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
-            return next("Can only change 'email', 'currency' or 'avatar' attributes of the user.");
+            return res.json(409, {error: "Can only change 'email', 'currency' or 'avatar' attributes of the user."});
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -446,7 +679,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}
+// DELETE /api/users/{id}
     server.del('/api/users/:id', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -469,7 +702,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/facebook
+// GET /api/users/{id}/facebook
     server.get('/api/users/:id/facebook', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -494,7 +727,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-    // GET /api/users/{id}/google
+// GET /api/users/{id}/google
     server.get('/api/users/:id/google', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -519,7 +752,7 @@ module.exports = function (server, passport, fx, jwt) {
         })
     });
 
-    // GET /api/users/{id}/debts/{debtId}
+// GET /api/users/{id}/debts/{debtId}
     server.get('/api/users/:id/debts/:debtId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -538,6 +771,7 @@ module.exports = function (server, passport, fx, jwt) {
 
                 var debt = debts[0];
                 var ret = {
+                    description: debt.description,
                     debtId: debt.id,
                     creditor: debt.creditor_id,
                     debtor: debt.debtor_id,
@@ -557,19 +791,19 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // PATCH /api/users/{id}/debts/{debtId}
+// PATCH /api/users/{id}/debts/{debtId}
     server.patch('/api/users/:id/debts/:debtId', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.value === undefined && req.body.currency == undefined) {
-            return next("Attributes value and currency are required.");
+            return res.json(409, {error: "Attributes value and currency are required."});
         }
 
         if (isNaN(req.body.value)) {
-            return next("Attribute 'value' needs to be a number.");
+            return res.json(409, {error: "Attribute 'value' needs to be a number."});
         }
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
@@ -601,7 +835,8 @@ module.exports = function (server, passport, fx, jwt) {
                         value: debt.value,
                         currency: debt.currency,
                         created: debt.created,
-                        modified: debt.modified
+                        modified: debt.modified,
+                        description: debt.description
                     });
                 });
             });
@@ -609,28 +844,28 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/debts/{debtId}
+// DELETE /api/users/{id}/debts/{debtId}
     server.del('/api/users/:id/debts/:debtId', function (req, res) {
-
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
-
             if (err || !exists) {
                 res.json(404, { error: "User '" + req.params.id + "' does not exist"});
                 return;
             }
 
-            req.models.debt.remove({ id: req.params.debtId }, function (err) {
-
+            req.models.debt.get(req.params.debtId, function (err, debt) {
                 if (err)
                     return res.json(404, { error: "Debt '" + req.params.debtId + "' does not exist" });
 
-                res.send(204);
+                debt.remove(function (err) {
+                    if (err)
+                        return res.json(500, { error: "Could not remove debt '" + req.params.debtId + "': " + err });
+                    res.send(204);
+                });
             });
         });
-
     });
 
-    // GET /api/users/{id}/debts
+// GET /api/users/{id}/debts
     server.get('/api/users/:id/debts', function (req, res) {
 
         var currency = req.query.currency ? req.query.currency : "EUR";
@@ -675,19 +910,21 @@ module.exports = function (server, passport, fx, jwt) {
                                 debts: debtsConverted
                             };
 
-                            debtsData.debts.forEach(function (debt) {
-                                req.models.user.get(debt.creditor_id, function (err, creditor) {
+                            async.each(debtsData.debts, function (debt, callback) {
+                                req.models.user.get(debt.creditor, function (err, creditor) {
                                     if (!err)
                                         debt.creditorAvatar = creditor.avatar;
-                                });
 
-                                req.models.user.get(debt.debtor_id, function (err, debtor) {
-                                    if (!err)
-                                        debt.debtorAvatar = debtor.avatar;
+                                    req.models.user.get(debt.debtor, function (err, debtor) {
+                                        if (!err)
+                                            debt.debtorAvatar = debtor.avatar;
+
+                                        callback(null);
+                                    })
                                 });
+                            }, function (err) {
+                                res.json(debtsData);
                             });
-
-                            res.json(debtsData);
                         });
                     });
                 });
@@ -695,26 +932,26 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // POST /api/users/{id}/debts
+// POST /api/users/{id}/debts
     server.post('/api/users/:id/debts', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.user === undefined) {
-            return next("Attribute 'user' is missing.");
+            return res.json(409, {error: "Attribute 'user' is missing."});
         }
 
         if (req.body.value === undefined) {
-            return next("Attribute 'value' is missing.");
+            return res.json(409, {error: "Attribute 'value' is missing."});
         }
 
         if (!req.body.currency)
-            return next("Attribute 'currency' is missing");
+            return res.json(409, {error: "Attribute 'currency' is missing"});
 
         if (isNaN(req.body.value)) {
-            return next("Attribute 'value' needs to be a number.");
+            return res.json(409, {error: "Attribute 'value' needs to be a number."});
         }
 
         req.models.user.exists({ id: req.params.id }, function (err, exists) {
@@ -767,7 +1004,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/friends/{friendId}
+// GET /api/users/{id}/friends/{friendId}
     server.get('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -789,7 +1026,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/friends/{friendId}
+// DELETE /api/users/{id}/friends/{friendId}
     server.del('/api/users/:id/friends/:friendId', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -826,7 +1063,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users/{id}/friends
+// GET /api/users/{id}/friends
     server.get('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -860,15 +1097,15 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // POST /api/users/{id}/friends
+// POST /api/users/{id}/friends
     server.post('/api/users/:id/friends', function (req, res, next) {
 
         if (req.body === undefined) {
-            return next("No body defined.");
+            return res.json(409, {error: "No body defined."});
         }
 
         if (req.body.id === undefined) {
-            return next("Attribute 'id' is missing.");
+            return res.json(409, {error: "Attribute 'id' is missing."});
         }
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -905,7 +1142,7 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // DELETE /api/users/{id}/friends
+// DELETE /api/users/{id}/friends
     server.del('/api/users/:id/friends', function (req, res) {
 
         req.models.user.get(req.params.id, function (err, me) {
@@ -929,11 +1166,9 @@ module.exports = function (server, passport, fx, jwt) {
 
     });
 
-    // GET /api/users
+// GET /api/users
     server.get('/api/users', function (req, res) {
-
         req.models.user.find({}).run(function (err, users) {
-
             if (err) {
                 res.json(500, err);
                 return;
@@ -941,48 +1176,61 @@ module.exports = function (server, passport, fx, jwt) {
 
             users = users.map(public_user_info);
 
-            if (!req.query.search)
-                res.json(200, {
+            var removeSelf = req.query.self !== undefined && req.query.self == 'false';
+
+            if (!req.query.search) {
+                if (removeSelf) {
+                    users = _.remove(users, function (user) {
+                        return req.user.id !== user.id;
+                    });
+                }
+
+                res.json({
                     total: users.length,
                     users: users
                 });
-            else {
+            } else {
                 var fuzzyTest = asyncFuzzyTest.bind(undefined, req.query.search);
                 async.filter(users, fuzzyTest, function (results) { // asynchronous search
-                    res.json(200, {
+                    if (removeSelf) {
+                        results = _.remove(results, function (user) {
+                            return req.user.id !== user.id;
+                        });
+                    }
+
+                    res.json({
                         total: results.length,
                         users: results
                     });
                 });
             }
         });
-
     });
 
-    // POST /api/users
+// POST /api/users
     server.post('/api/users', function (req, res, next) {
         if (req.body === undefined) {
-            return next("No body defined");
+            return res.json(409, {error: "No body defined"});
         }
 
         if (req.body.id === undefined) {
-            return next("Attribute 'id' is missing.");
+            return res.json(409, {error: "Attribute 'id' is missing."});
         }
 
         if (req.body.email === undefined) {
-            return next("Attribute 'email' is missing.");
+            return res.json(409, {error: "Attribute 'email' is missing."});
         }
 
         if (!/\S+@\S+\.\S+/.test(req.body.email)) {
-            return next("Attribute 'email' is not a valid email address.");
+            return res.json(409, {error: "Attribute 'email' is not a valid email address."});
         }
 
         if (req.body.passwordHash === undefined) {
-            return next("Attribute 'passwordHash' is missing");
+            return res.json(409, {error: "Attribute 'passwordHash' is missing"});
         }
 
         if (req.body.currency === undefined) {
-            return next("Attribute 'currency' is missing");
+            return res.json(409, {error: "Attribute 'currency' is missing"});
         }
 
         req.models.user.create({
@@ -1006,7 +1254,7 @@ module.exports = function (server, passport, fx, jwt) {
         });
     });
 
-    // asynchronous version of the fuzzy evaluation function defined above
+// asynchronous version of the fuzzy evaluation function defined above
     function asyncFuzzyTest(searchTerm, user, callback) {
         var hay = user.id.toLowerCase(), i = 0, n = -1, l;
         searchTerm = searchTerm.toLowerCase();
@@ -1025,8 +1273,11 @@ module.exports = function (server, passport, fx, jwt) {
 
         return callback(null, {
             debtId: debt.id,
+            description: debt.description,
             creditor: debt.creditor_id,
+            creditorAvatar: defaultAvatar,
             debtor: debt.debtor_id,
+            debtorAvatar: defaultAvatar,
             originalValue: convertMoney(debt.originalValue, debt.currency, currency),
             value: convertMoney(debt.value, debt.currency, currency),
             currency: currency,
@@ -1065,4 +1316,5 @@ module.exports = function (server, passport, fx, jwt) {
 
         return token;
     }
-};
+}
+;

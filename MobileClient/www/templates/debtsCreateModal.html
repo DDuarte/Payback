@@ -8,6 +8,11 @@
             <span class="input-label">Amount</span>
             <input ng-init="amount=0.0" type="number" ng-model="amount">
         </label>
+
+        <label class="item item-input">
+            <span class="input-label">Description</span>
+            <input ng-init="description=''" placeholder="none" type="text" ng-model="description">
+        </label>
         <!-- <li class="item item-toggle">
             I'm also {{ owingMoney ? 'paying' : 'receiving' }}
             <label class="toggle toggle-assertive">
@@ -40,7 +45,7 @@
         <div class="bar bar-footer bar-balanced" ng-show="amount > 0 && commitStatus()">
             <div class="title">
                 <button class="button button-clear button-full"
-                        ng-click="commitDebts(amount)">Ok
+                        ng-click="commitDebts(amount,description)">Ok
                 </button>
             </div>
         </div>
