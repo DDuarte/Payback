@@ -52,14 +52,6 @@ angular.module('starter.controllers', [])
                 }
                 else {
 
-                    Restangular.all('facebook').all('friends').post({
-                        token: res.access_token
-                    }).then(function(data) {
-
-                    }, function(error) {
-                        console.log("Error");
-                    });
-
                     $ionicLoading.show({
                         template: 'Logging in...'
                     });
@@ -239,7 +231,7 @@ angular.module('starter.controllers', [])
                     }).then(function (data) {
 
                         if (data.added > 0) {
-                            AlertPopupService.createPopup("Success", "Added " + data.added + " users").then(function() {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function() {
                                 $state.go('app.friends', {userId: AuthService.currentUser().id});
                             });
                         } else {
