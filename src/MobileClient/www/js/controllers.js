@@ -651,7 +651,7 @@ angular.module('starter.controllers', [])
                     // AlertPopupService.createPopup('Success!', 'New debt created!');
 
                 }, function (response) {
-                    AlertPopupService.createPopup('Error', response.error);
+                    AlertPopupService.createPopup('Error', response.data.error);
                     $scope.changeCommit(true);
 
                 });
