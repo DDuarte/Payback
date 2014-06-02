@@ -46,11 +46,16 @@ angular.module('starter.controllers', [])
         };
 
         $scope.facebookLogin = function () {
-            OAuth.popup("facebook", function (err, res) {
+            OAuth.popup("facebook", {authorize:{scope:"public_profile user_friends email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
                 else {
+
+                    res.get("/me/friends").done(function(data) { // check for facebook friends for testing purposes
+                        console.log(data);
+                    });
+
                     $ionicLoading.show({
                         template: 'Logging in...'
                     });
