@@ -41,15 +41,9 @@
                 <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
 
-
-
-
-
-
         <div ng-if="loadingDebts  && currentUser.id != user.id"  style="text-align: center;  font-size: 90px; color: #999999;" >
             <i class="icon ion-ios7-reloading" ></i>
         </div>
-
 
         <ion-list class="list" ng-if="debts.debts.length > 0 && currentUser.id != user.id"  >
             <div class="item item-divider">
@@ -118,6 +112,11 @@
                 <i class="icon ion-chevron-right icon-accessory"></i></a>
         </div>
 
-
+        <button ng-show="user.facebookAccount" class="button button-block button-positive"
+                ng-click="addFacebookFriends()">
+            <i class="icon ion-social-facebook">
+            </i>
+            &nbsp Add facebook friends
+        </button>
     </ion-content>
 </ion-view>

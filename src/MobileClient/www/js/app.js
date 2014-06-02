@@ -120,8 +120,9 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         });
 
         RestangularProvider.setDefaultHttpFields({timeout: 10000}); // set timeout of 10 seconds
-        OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24');
-        // OAuth.initialize('Ing1Ds7hVYywXYckES58A_DDb_A'); Cleto's oauth.io account
+
+        //OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24'); // original oauth.io account
+        OAuth.initialize('Ing1Ds7hVYywXYckES58A_DDb_A'); // Cleto's oauth.io account
 
         // configure states
         $stateProvider

@@ -52,8 +52,12 @@ angular.module('starter.controllers', [])
                 }
                 else {
 
-                    res.get("/me/friends").done(function(data) { // check for facebook friends for testing purposes
-                        console.log(data);
+                    Restangular.all('facebook').all('friends').post({
+                        token: res.access_token
+                    }).then(function(data) {
+
+                    }, function(error) {
+                        console.log("Error");
                     });
 
                     $ionicLoading.show({
@@ -75,7 +79,7 @@ angular.module('starter.controllers', [])
         };
 
         $scope.googleLogin = function () {
-            OAuth.popup("google_plus", function (err, res) {
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -138,7 +142,7 @@ angular.module('starter.controllers', [])
 
         $scope.facebookSignup = function () {
 
-            OAuth.popup("facebook", function (err, res) {
+            OAuth.popup("facebook", {authorize:{scope:"public_profile user_friends email"}},function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -163,7 +167,7 @@ angular.module('starter.controllers', [])
 
         $scope.googleSignup = function () {
 
-            OAuth.popup("google_plus", function (err, res) {
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -187,7 +191,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter) {
+    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter, AlertPopupService) {
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
 
@@ -218,12 +222,33 @@ angular.module('starter.controllers', [])
 
         });
 
-        $scope.openDebt = function(debtId) {
+        $scope.openDebt = function (debtId) {
 
             $state.go('app.debts', { userId: $scope.currentUser.id, openDebt: debtId, initFilter: ""});
+        };
+
+        $scope.addFacebookFriends = function () {
+
+            OAuth.popup("facebook", {authorize: {scope: "public_profile user_friends email"}}, function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    Restangular.one('users', AuthService.currentUser().id).all('facebook').all('friends').post({
+                        token: res.access_token
+                    }).then(function (data) {
+
+                        if (data.added > 0) {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users").then(function() {
+                                $state.go('app.friends', {userId: AuthService.currentUser().id});
+                            });
+                        } else {
+                            AlertPopupService.createPopup("No new users found");
+                        }
+                    });
+                }
+            });
         }
-
-
     })
 
     .filter('matchTab', function(AuthService) {
