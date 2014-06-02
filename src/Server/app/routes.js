@@ -45,6 +45,50 @@ module.exports = function (server, passport, fx, jwt) {
         res.send(204);
     });
 
+    // POST /api/users/{id}/facebook/friends
+    server.post('/api/users/:id/facebook/friends', function (req, res, next) {
+
+        if (req.user.id !== req.params.id)
+            return res.json(401, { error: "No permission" });
+
+        if (!req.body.token)
+            return res.json(400, { error: "Missing facebook token" });
+
+        var token = req.body.token;
+        request("https://graph.facebook.com/me/friends?access_token=" + token, function(err, response, body) {
+
+            var friends = JSON.parse(body).data;
+            var numFriendsAdded = 0;
+            req.models.user.get(req.user.id, function(err, localUser) {
+
+                if (err || !localUser)
+                    return res.json(401, { error: "Invalid user id" });
+
+                async.each(friends, function (friend, callback) {
+
+                    req.models.facebook.get(friend.id, function(err, facebookUser) {
+
+                        if (err || !facebookUser)
+                            return callback(null);
+
+                        facebookUser.getLocalAccount(function(err, localFriend) {
+                            localUser.addFriends([localFriend], { date: new Date() }, function (err) {
+                                if (err)
+                                    return callback(null);
+
+                                ++numFriendsAdded;
+                                return callback(null);
+                            });
+                        });
+                    });
+
+                }, function() { // this function is called when all the friends are processed
+                    return res.json(200, {added: numFriendsAdded}); // return number of added friends
+                });
+
+            });
+         });
+    });
 
 
     // POST /api/login/local
@@ -700,11 +744,34 @@ module.exports = function (server, passport, fx, jwt) {
                 return;
             }
 
-            if (req.user && req.user.id == user.id) {
-                res.json(protected_user_info(user));
-            } else {
-                res.json(public_user_info(user));
-            }
+            if (!req.user || req.user.id !== user.id)
+                return res.json(200, public_user_info(user));
+
+            var protectedUser = protected_user_info(user);
+
+            user.getFacebookAccount(function(err, facebookAccount) {
+
+                if (!err && facebookAccount)
+                    protectedUser.facebookAccount = {
+                        id: facebookAccount.id,
+                        email: facebookAccount.email,
+                        token: facebookAccount.token,
+                        avatar: facebookAccount.avatar
+                    };
+
+                user.getGoogleAccount(function(err, googleAccount) {
+
+                    if (!err && googleAccount)
+                        protectedUser.googleAccount = {
+                            id: googleAccount.id,
+                            email: googleAccount.email,
+                            token: googleAccount.token,
+                            avatar: googleAccount.avatar
+                        };
+
+                    return res.json(200, protectedUser);
+                });
+            });
         });
     });
 
@@ -1235,7 +1302,7 @@ module.exports = function (server, passport, fx, jwt) {
             req.models.user.get(req.body.id, function (err, friend) {
 
                 if (err) {
-                    res.json(500, err);
+                    res.json(500, {error: err});
                     return;
                 } else if (!friend) {
                     res.json(404, {error: "User (friend) '" + req.body.id + "' does not exist."});
