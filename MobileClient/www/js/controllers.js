@@ -46,11 +46,12 @@ angular.module('starter.controllers', [])
         };
 
         $scope.facebookLogin = function () {
-            OAuth.popup("facebook", function (err, res) {
+            OAuth.popup("facebook", {authorize:{scope:"public_profile user_friends email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
                 else {
+
                     $ionicLoading.show({
                         template: 'Logging in...'
                     });
@@ -70,7 +71,7 @@ angular.module('starter.controllers', [])
         };
 
         $scope.googleLogin = function () {
-            OAuth.popup("google_plus", function (err, res) {
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -133,7 +134,7 @@ angular.module('starter.controllers', [])
 
         $scope.facebookSignup = function () {
 
-            OAuth.popup("facebook", function (err, res) {
+            OAuth.popup("facebook", {authorize:{scope:"public_profile user_friends email"}},function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -158,7 +159,7 @@ angular.module('starter.controllers', [])
 
         $scope.googleSignup = function () {
 
-            OAuth.popup("google_plus", function (err, res) {
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
                 if (err) {
                     AlertPopupService.createPopup("Error", err);
                 }
@@ -182,7 +183,7 @@ angular.module('starter.controllers', [])
         }
     })
 
-    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter) {
+    .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter, AlertPopupService) {
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
 
@@ -204,7 +205,7 @@ angular.module('starter.controllers', [])
 
         }).then(function () {
 
-            Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
+            Restangular.one('users', $stateParams.userId).one('debts').get({ "currency": $scope.user.currency }).then(function (data) {
                 $scope.currentUser = AuthService.currentUser();
                 $scope.debts = data;
                 $scope.loadingDebts = false;
@@ -213,12 +214,33 @@ angular.module('starter.controllers', [])
 
         });
 
-        $scope.openDebt = function(debtId) {
+        $scope.openDebt = function (debtId) {
 
             $state.go('app.debts', { userId: $scope.currentUser.id, openDebt: debtId, initFilter: ""});
+        };
+
+        $scope.addFacebookFriends = function () {
+
+            OAuth.popup("facebook", {authorize: {scope: "public_profile user_friends email"}}, function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    Restangular.one('users', AuthService.currentUser().id).all('facebook').all('friends').post({
+                        token: res.access_token
+                    }).then(function (data) {
+
+                        if (data.added > 0) {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function() {
+                                $state.go('app.friends', {userId: AuthService.currentUser().id});
+                            });
+                        } else {
+                            AlertPopupService.createPopup("No new users found");
+                        }
+                    });
+                }
+            });
         }
-
-
     })
 
     .filter('matchTab', function(AuthService) {
@@ -271,11 +293,11 @@ angular.module('starter.controllers', [])
 
             }
 
-        }
-
+        };
 
         if ($stateParams.initFilter) {
-            if ($stateParams.initFilter != "")$scope.filter = $stateParams.initFilter;
+            if ($stateParams.initFilter != "")
+                $scope.filter = $stateParams.initFilter;
         }
 
         $scope.dateFormatter = DateFormatter;
@@ -301,11 +323,12 @@ angular.module('starter.controllers', [])
             else $scope.modal.amount = 0;
         };
 
-
         $scope.resolveDebt = function(debt) {
             var title;
-            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + debt.value + ' ' + debt.currency + ' and thus resolved the debt?';
-            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + debt.value + ' ' + debt.currency + ' and resolved the debt ?';
+            if (debt.debtor == $scope.user.id)
+                title = 'Do you confirm that you payed ' + debt.creditor + ' ' + debt.value + ' ' + $scope.user.currency + ' and thus resolved the debt?';
+            else
+                title= 'Do you confirm that ' + debt.debtor + ' payed you ' + debt.value + ' ' + $scope.user.currency + ' and resolved the debt ?';
             $ionicPopup.show({
                 title: title ,
                 scope: $scope,
@@ -330,8 +353,8 @@ angular.module('starter.controllers', [])
 
                     var newDebt = {
                         value: 0,
-                        currency: debt.currency
-                    }
+                        currency: $scope.user.currency
+                    };
 
                     Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
                         $scope.closeDebtModal();
@@ -343,7 +366,7 @@ angular.module('starter.controllers', [])
                 }
 
             });
-        }
+        };
 
         $scope.deleteDebt = function(debt) {
 
@@ -368,7 +391,7 @@ angular.module('starter.controllers', [])
                 ]
             }).then(function (res) {
                 if (res) {
-                    Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove().then(function (data) {
+                    Restangular.one('users', $stateParams.userId).one('debts', debt.debtId).remove().then(function (data) {
                         $scope.closeDebtModal();
                         $scope.reloadDebts();
                     });
@@ -381,8 +404,8 @@ angular.module('starter.controllers', [])
         $scope.updateDebt = function(debt,amount) {
 
             var title;
-            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + amount + ' ' + debt.currency + ', but still owe  him/her ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
-            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + amount + ' ' + debt.currency + ', but is still owing you ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
+            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + amount + ' ' + $scope.user.currency + ', but still owe  him/her ' + (debt.value - amount) + ' ' + $scope.user.currency + ' ?';
+            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + amount + ' ' + $scope.user.currency + ', but is still owing you ' + (debt.value - amount) + ' ' + $scope.user.currency + ' ?';
                 $ionicPopup.show({
                 title: title ,
                 scope: $scope,
@@ -407,7 +430,7 @@ angular.module('starter.controllers', [])
 
                     var newDebt = {
                         value: debt.value - amount,
-                        currency: debt.currency
+                        currency: $scope.user.currency
                     };
 
                     Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
@@ -460,7 +483,7 @@ angular.module('starter.controllers', [])
                         position: 'inside',
                         radialOffset: -20,
                         customizeText: function (arg) {
-                            return arg.argumentText + ": " + arg.valueText + " € ";
+                            return arg.argumentText + ': ' + arg.valueText + ' ' + $scope.user.currency + ' ';
                         },
                         font: {
                             size: '15px'
@@ -485,7 +508,7 @@ angular.module('starter.controllers', [])
 
 
         $scope.reloadDebts = function () {
-            Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
+            Restangular.one('users', $stateParams.userId).one('debts').get({ "currency": $scope.user.currency }).then(function (data) {
 
                 $scope.debts = [];
                 $scope.loading = false;
@@ -651,7 +674,7 @@ angular.module('starter.controllers', [])
                     // AlertPopupService.createPopup('Success!', 'New debt created!');
 
                 }, function (response) {
-                    AlertPopupService.createPopup('Error', response.error);
+                    AlertPopupService.createPopup('Error', response.data.error);
                     $scope.changeCommit(true);
 
                 });

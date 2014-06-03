@@ -36,11 +36,11 @@
             <div ng-if="debt.debtor == user.id">
                 <p>
 
-                <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{debt.currency}}</b></h2>
+                <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{user.currency}}</b></h2>
 
                 <h2>Amount left: <b ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': 'assertive'">
                     <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span>
-                    {{debt.currency}}</b></h2>
+                    {{user.currency}}</b></h2>
 
                 <div class="row">
                     <div class="col-30">
@@ -70,11 +70,11 @@
             <div ng-if="debt.debtor != user.id">
                 <p>
 
-                <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{debt.currency}}</b></h2>
+                <h2>Initial Amount: <b class="dark">{{debt.originalValue}} {{user.currency}}</b></h2>
 
                 <h2>Amount left: <b ng-class="modal.amount < 0 || modal.amount > debt.value ? 'assertive': 'balanced'">
                     <span ng-if="!(modal.amount < 0 || modal.amount > debt.value)">{{debt.value - modal.amount}} </span>
-                    {{debt.currency}}</b></h2>
+                    {{user.currency}}</b></h2>
 
                     <div class="col-30">
                         <b>Resolved: </b>

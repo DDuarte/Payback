@@ -112,6 +112,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
 
         // base API Url
         RestangularProvider.setBaseUrl('https://payback-app.herokuapp.com/api');
+        //RestangularProvider.setBaseUrl('http://127.0.0.1:1337/api');
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers) {
             return {
@@ -120,6 +121,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
         });
 
         RestangularProvider.setDefaultHttpFields({timeout: 10000}); // set timeout of 10 seconds
+
         OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24');
 
         // configure states
