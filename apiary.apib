@@ -8,7 +8,9 @@ Currently the Payback API does not provide authenticated access.
 Authentication will be implemented using OAuth, with logins by username and password, Facebook, Google and other services.
 
 ## Digital Signature
-To prevent tampering of the data, a digital signature is included as a query parameter in the resources' URI.
+To prevent tampering of the data, a digital signature is included as a header in every request.
+The header name is X-Checksum and it is calculated using HMAC-SHA1 of the JSON representation of an object
+including url, query parameters and request body.
 
 ## Media Types
 Where applicable this API uses the JSON media-type to represent resources states and affordances.
@@ -30,7 +32,7 @@ This resource does not have any attributes.
 # Group User
 Users related resources of the **Payback API**
 
-## User [/users/{id}{?checksum}]
+## User [/users/{id}]
 A single User object. The User resource is the central resource in the Payback API. It represents one user of the service.
 
 The User resource has the following attributes:
@@ -40,7 +42,6 @@ The User resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
-    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -71,10 +72,6 @@ This method is only available for the authenticated user.
 ### Update a single User [PATCH]
 This method is only available for the authenticated user.
 *email* is the only modifiable field.
-
-+ Parameters
-
-    + checksum (string, required, `abcd`) ... Digital signature of the *email*
 
 + Request (application/json)
 
@@ -115,7 +112,7 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist." }
 
-## Debt [/users/{id}/debts/{debtId}{?checksum,currency}]
+## Debt [/users/{id}/debts/{debtId}{?currency}]
 A single Debt object. The Debt resource represents a debt that a User has on another User.
 
 A positive *value* means that this User owes something to another User, a negative *value* means that this User is owed by another User.
@@ -134,7 +131,6 @@ The Debt resource has the following attributes:
 + Parameters
     + id (string, required, `john`) ... ID of the User
     + debtId (number, required, `1`) ... ID of the Debt of a User
-    + checksum (string, required, `abcd`) ... Digital signature of the *id* and *debtId*
 
 + Model (application/json)
 
@@ -175,10 +171,6 @@ This method is only available for the authenticated user.
 This method is only available for the authenticated user.
 The only modifiable field is *value*.
 
-+ Parameters
-
-    + checksum (string, required, `abcd`) ... Digital signature of the *value* and *currency*
-
 + Request (application/json)
 
         {
@@ -217,7 +209,7 @@ This method is only available for the authenticated user.
 
         { "error": "Debt '2' for user 'johndoe' does not exist." }
 
-## Debts Collection [/users/{id}/debts{?checksum,currency}]
+## Debts Collection [/users/{id}/debts{?currency}]
 Collection of all Debts that another User owes this User.
 
 The Debts Collection resource has the following attribute:
@@ -231,7 +223,6 @@ The Debts Collection resource has the following attribute:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
-    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -288,10 +279,6 @@ This method is only available for the authenticated user.
 ### Create a new Debt between a User and single User [POST]
 This method is only available for the authenticated user.
 
-+ Parameters
-
-    + checksum (string, required, `abcd`) ... Digital signature of the *user*, *value* and *currency*.
-
 + Request (application/json)
 
         {
@@ -342,7 +329,7 @@ This method is only available for the authenticated user.
         or
         { "error": "Value '0.0001' is invalid." }
 
-## Friend [/users/{id}/friends/{friendId}{?checksum}]
+## Friend [/users/{id}/friends/{friendId}]
 A single Friend object. The Friend resource represents a friend of a User.
 
 The Friend resource has the following attributes:
@@ -352,7 +339,6 @@ The Friend resource has the following attributes:
 + Parameters
     + id (string, required, `john`) ... ID of the User
     + friendId (string, required, `jane`) ... ID of a Friend of a User
-    + checksum (string, required, `abcd`) ... Digital signature of id and friendId
 
 + Model (application/json)
 
@@ -394,7 +380,7 @@ This method is only available for the authenticated user.
 
         { "error": "User 'johndoe' does not exist or is not a friend." }
 
-## Friends Collection [/users/{id}/friends{?checksum}]
+## Friends Collection [/users/{id}/friends]
 Collection of all Users that are Friends of a User.
 
 This is a one-way only friendship and it is used to provide quick access to Users that are commonly used in the transactions.
@@ -406,7 +392,6 @@ The Friends Collection resource has the following attributes:
 
 + Parameters
     + id (string, required, `john`) ... ID of the User
-    + checksum (string, required, `abcd`) ... Digital signature of the id
 
 + Model (application/json)
 
@@ -468,7 +453,7 @@ This method is only available for the authenticated user.
         or
         { "error": "Invalid checksum" }
 
-## Users Collection [/users{?search,checksum}]
+## Users Collection [/users{?search}]
 Collection of all Users.
 
 The User Collection resource has the following attributes:
@@ -480,7 +465,6 @@ The User Collection resource has the following attributes:
 + Parameters
 
     + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
-    + checksum (string, optional, `abcd`) ... Digital signature of the search if it exists
 
 + Response 200 (application/json)
 
@@ -504,7 +488,6 @@ The User Collection resource has the following attributes:
 + Parameters
 
     + search (string, optional, `jo`) ... Fuzzy search. Only users that have an *id* or *email* related to the *search* parameter are returned.
-    + checksum (string, required, `abcd`) ... Digital signature of the id, email and passwordHash
 
 + Request (application/json)
 
