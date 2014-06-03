@@ -111,7 +111,8 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
     .config(function ($stateProvider, $urlRouterProvider, RestangularProvider, AuthServiceProvider) {
 
         // base API Url
-        RestangularProvider.setBaseUrl('http://localhost:1337/api');
+        RestangularProvider.setBaseUrl('https://payback-app.herokuapp.com/api');
+        //RestangularProvider.setBaseUrl('http://127.0.0.1:1337/api');
 
         RestangularProvider.addFullRequestInterceptor(function (element, operation, what, url, headers) {
             return {
@@ -121,8 +122,7 @@ angular.module('PaybackApp', ['ionic', 'starter.controllers', 'restangular', 'ng
 
         RestangularProvider.setDefaultHttpFields({timeout: 10000}); // set timeout of 10 seconds
 
-        OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24'); // original oauth.io account
-        //OAuth.initialize('Ing1Ds7hVYywXYckES58A_DDb_A'); // Cleto's oauth.io account
+        OAuth.initialize('Er6QTrouxLQowqHiw5SScL78y24');
 
         // configure states
         $stateProvider

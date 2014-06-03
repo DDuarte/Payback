@@ -205,7 +205,7 @@ angular.module('starter.controllers', [])
 
         }).then(function () {
 
-            Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
+            Restangular.one('users', $stateParams.userId).one('debts').get({ "currency": $scope.user.currency }).then(function (data) {
                 $scope.currentUser = AuthService.currentUser();
                 $scope.debts = data;
                 $scope.loadingDebts = false;
@@ -293,11 +293,11 @@ angular.module('starter.controllers', [])
 
             }
 
-        }
-
+        };
 
         if ($stateParams.initFilter) {
-            if ($stateParams.initFilter != "")$scope.filter = $stateParams.initFilter;
+            if ($stateParams.initFilter != "")
+                $scope.filter = $stateParams.initFilter;
         }
 
         $scope.dateFormatter = DateFormatter;
@@ -323,11 +323,12 @@ angular.module('starter.controllers', [])
             else $scope.modal.amount = 0;
         };
 
-
         $scope.resolveDebt = function(debt) {
             var title;
-            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + debt.value + ' ' + debt.currency + ' and thus resolved the debt?';
-            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + debt.value + ' ' + debt.currency + ' and resolved the debt ?';
+            if (debt.debtor == $scope.user.id)
+                title = 'Do you confirm that you payed ' + debt.creditor + ' ' + debt.value + ' ' + $scope.user.currency + ' and thus resolved the debt?';
+            else
+                title= 'Do you confirm that ' + debt.debtor + ' payed you ' + debt.value + ' ' + $scope.user.currency + ' and resolved the debt ?';
             $ionicPopup.show({
                 title: title ,
                 scope: $scope,
@@ -352,8 +353,8 @@ angular.module('starter.controllers', [])
 
                     var newDebt = {
                         value: 0,
-                        currency: debt.currency
-                    }
+                        currency: $scope.user.currency
+                    };
 
                     Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
                         $scope.closeDebtModal();
@@ -365,7 +366,7 @@ angular.module('starter.controllers', [])
                 }
 
             });
-        }
+        };
 
         $scope.deleteDebt = function(debt) {
 
@@ -390,7 +391,7 @@ angular.module('starter.controllers', [])
                 ]
             }).then(function (res) {
                 if (res) {
-                    Restangular.one('users', $stateParams.userId).one('debts',debt.debtId).remove().then(function (data) {
+                    Restangular.one('users', $stateParams.userId).one('debts', debt.debtId).remove().then(function (data) {
                         $scope.closeDebtModal();
                         $scope.reloadDebts();
                     });
@@ -403,8 +404,8 @@ angular.module('starter.controllers', [])
         $scope.updateDebt = function(debt,amount) {
 
             var title;
-            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + amount + ' ' + debt.currency + ', but still owe  him/her ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
-            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + amount + ' ' + debt.currency + ', but is still owing you ' + (debt.value - amount) + ' ' + debt.currency + ' ?';
+            if (debt.debtor == $scope.user.id) title = 'Do you confirm that you payed ' + debt.creditor + ' ' + amount + ' ' + $scope.user.currency + ', but still owe  him/her ' + (debt.value - amount) + ' ' + $scope.user.currency + ' ?';
+            else title= 'Do you confirm that ' + debt.debtor + ' payed you ' + amount + ' ' + $scope.user.currency + ', but is still owing you ' + (debt.value - amount) + ' ' + $scope.user.currency + ' ?';
                 $ionicPopup.show({
                 title: title ,
                 scope: $scope,
@@ -429,7 +430,7 @@ angular.module('starter.controllers', [])
 
                     var newDebt = {
                         value: debt.value - amount,
-                        currency: debt.currency
+                        currency: $scope.user.currency
                     };
 
                     Restangular.one('users', $scope.user.id).all('debts').all(debt.debtId).patch(newDebt).then(function (data) {
@@ -482,7 +483,7 @@ angular.module('starter.controllers', [])
                         position: 'inside',
                         radialOffset: -20,
                         customizeText: function (arg) {
-                            return arg.argumentText + ": " + arg.valueText + " € ";
+                            return arg.argumentText + ': ' + arg.valueText + ' ' + $scope.user.currency + ' ';
                         },
                         font: {
                             size: '15px'
@@ -507,7 +508,7 @@ angular.module('starter.controllers', [])
 
 
         $scope.reloadDebts = function () {
-            Restangular.one('users', $stateParams.userId).one('debts').get().then(function (data) {
+            Restangular.one('users', $stateParams.userId).one('debts').get({ "currency": $scope.user.currency }).then(function (data) {
 
                 $scope.debts = [];
                 $scope.loading = false;
