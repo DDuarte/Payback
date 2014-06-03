@@ -188,7 +188,7 @@ angular.module('starter.controllers', [])
         $scope.loadingDebts = true;
         $scope.isEditing = false;
 
-        $scope.editPassword = function() {
+        $scope.editPassword = function () {
             $scope.isEditing = true;
             $scope.isEditingPassword = true;
         };
@@ -197,28 +197,27 @@ angular.module('starter.controllers', [])
 
             Restangular.one('users', AuthService.currentUser().id)
                 .patch({password: CryptoJS.SHA256(newPassword).toString(CryptoJS.enc.Hex)}).then(
-
-                function(data) {
-                    AlertPopupService.createPopup("Password successfully changed", "", function(){
+                function (data) {
+                    AlertPopupService.createPopup("Password successfully changed", "", function () {
                         $scope.isEditing = false;
                     });
-                }, function(response) {
+                }, function (response) {
                     AlertPopupService.createPopup("Error", response.data.error);
                 });
         };
 
-        $scope.countActive = function() {
-            if ($scope.loadingDebts ) return 0;
-            else  {
+        $scope.countActive = function () {
+            if ($scope.loadingDebts) return 0;
+            else {
                 var count = 0;
-               $scope.debts.debts.forEach(function (debt) {
-                   if (debt.value > 0) count++;
-               });
-                   return count;
+                $scope.debts.debts.forEach(function (debt) {
+                    if (debt.value > 0) count++;
+                });
+                return count;
 
             }
 
-        }
+        };
 
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
@@ -251,7 +250,7 @@ angular.module('starter.controllers', [])
                     }).then(function (data) {
 
                         if (data.added > 0) {
-                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function() {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function () {
                                 $state.go('app.friends', {userId: AuthService.currentUser().id});
                             });
                         } else {
@@ -260,8 +259,9 @@ angular.module('starter.controllers', [])
                     });
                 }
             });
-        $scope.cancelEdit = function() {
-            $scope.isEditing = false;
+            $scope.cancelEdit = function () {
+                $scope.isEditing = false;
+            }
         }
     })
 
