@@ -186,6 +186,26 @@ angular.module('starter.controllers', [])
     .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter, AlertPopupService) {
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
+        $scope.isEditing = false;
+
+        $scope.editPassword = function() {
+            $scope.isEditing = true;
+            $scope.isEditingPassword = true;
+        };
+
+        $scope.changePassword = function (newPassword) {
+
+            Restangular.one('users', AuthService.currentUser().id)
+                .patch({password: CryptoJS.SHA256(newPassword).toString(CryptoJS.enc.Hex)}).then(
+
+                function(data) {
+                    AlertPopupService.createPopup("Password successfully changed", "", function(){
+                        $scope.isEditing = false;
+                    });
+                }, function(response) {
+                    AlertPopupService.createPopup("Error", response.data.error);
+                });
+        };
 
         $scope.countActive = function() {
             if ($scope.loadingDebts ) return 0;
@@ -240,6 +260,8 @@ angular.module('starter.controllers', [])
                     });
                 }
             });
+        $scope.cancelEdit = function() {
+            $scope.isEditing = false;
         }
     })
 

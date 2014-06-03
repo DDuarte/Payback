@@ -52,7 +52,7 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(401, { error: "No permission" });
 
         if (!req.body.token)
-            return res.json(400, { error: "Missing facebook token" });
+            return res.json(400, { error: "Missing google token" });
 
         var token = req.body.token;
         request("https://graph.facebook.com/me/friends?access_token=" + token, function(err, response, body) {
@@ -782,8 +782,8 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(409, {error: "No body defined."});
         }
 
-        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
-            return res.json(409, {error: "Can only change 'email', 'currency' or 'avatar' attributes of the user."});
+        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined && req.body.password == undefined) {
+            return res.json(409, {error: "Can only change 'email', 'currency', 'avatar' or 'password' attributes of the user."});
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -803,6 +803,10 @@ module.exports = function (server, passport, fx, jwt) {
 
             if (req.body.avatar) {
                 updateObj.avatar = req.body.avatar;
+            }
+
+            if (req.body.password) {
+                updateObj.passwordHash = req.body.password;
             }
 
             user.save(updateObj, function (err) {
