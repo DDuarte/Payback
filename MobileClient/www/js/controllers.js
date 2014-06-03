@@ -64,7 +64,20 @@ angular.module('starter.controllers', [])
                         },
                         function (response) {
                             $ionicLoading.hide();
-                            AlertPopupService.createPopup("Error", response.data.error);
+
+                            if (response.data.error == "User not found") {
+                                Restangular.all('signup').all('facebook').post({
+                                    token: res.access_token
+                                }).then(function (data) {
+                                    AuthService.login(data.user, data.access_token);
+                                    $ionicLoading.hide();
+                                    $state.go('app.debts', { userId: data.user.id });
+                                }, function (response) {
+                                    $ionicLoading.hide();
+                                    AlertPopupService.createPopup("Error", response.data.error);
+                                });
+                            } else
+                                AlertPopupService.createPopup("Error", response.data.error);
                         });
                 }
             });
@@ -88,7 +101,20 @@ angular.module('starter.controllers', [])
                         },
                         function (response) {
                             $ionicLoading.hide();
-                            AlertPopupService.createPopup("Error", response.data.error);
+
+                            if (response.data.error == "User not found") {
+                                Restangular.all('signup').all('google').post({
+                                    token: res.access_token
+                                }).then(function (data) {
+                                    AuthService.login(data.user, data.access_token);
+                                    $ionicLoading.hide();
+                                    $state.go('app.debts', { userId: data.user.id });
+                                }, function (response) {
+                                    $ionicLoading.hide();
+                                    AlertPopupService.createPopup("Error", response.data.error);
+                                });
+                            } else
+                                AlertPopupService.createPopup("Error", response.data.error);
                         });
                 }
             });
@@ -186,19 +212,38 @@ angular.module('starter.controllers', [])
     .controller('UserCtrl', function ($scope, $state, $stateParams, Restangular, AuthService, DateFormatter, AlertPopupService) {
         $scope.dateFormatter = DateFormatter;
         $scope.loadingDebts = true;
+        $scope.isEditing = false;
 
-        $scope.countActive = function() {
-            if ($scope.loadingDebts ) return 0;
-            else  {
+        $scope.editPassword = function () {
+            $scope.isEditing = true;
+            $scope.isEditingPassword = true;
+        };
+
+        $scope.changePassword = function (newPassword) {
+
+            Restangular.one('users', AuthService.currentUser().id)
+                .patch({password: CryptoJS.SHA256(newPassword).toString(CryptoJS.enc.Hex)}).then(
+                function (data) {
+                    AlertPopupService.createPopup("Password successfully changed", "", function () {
+                        $scope.isEditing = false;
+                    });
+                }, function (response) {
+                    AlertPopupService.createPopup("Error", response.data.error);
+                });
+        };
+
+        $scope.countActive = function () {
+            if ($scope.loadingDebts) return 0;
+            else {
                 var count = 0;
-               $scope.debts.debts.forEach(function (debt) {
-                   if (debt.value > 0) count++;
-               });
-                   return count;
+                $scope.debts.debts.forEach(function (debt) {
+                    if (debt.value > 0) count++;
+                });
+                return count;
 
             }
 
-        }
+        };
 
         Restangular.one('users', $stateParams.userId).get().then(function (data) {
             $scope.user = data;
@@ -231,7 +276,7 @@ angular.module('starter.controllers', [])
                     }).then(function (data) {
 
                         if (data.added > 0) {
-                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function() {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function () {
                                 $state.go('app.friends', {userId: AuthService.currentUser().id});
                             });
                         } else {
@@ -240,6 +285,33 @@ angular.module('starter.controllers', [])
                     });
                 }
             });
+        };
+
+        $scope.addGoogleFriends = function () {
+
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    Restangular.one('users', AuthService.currentUser().id).all('google').all('friends').post({
+                        token: res.access_token
+                    }).then(function (data) {
+
+                        if (data.added > 0) {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function () {
+                                $state.go('app.friends', {userId: AuthService.currentUser().id});
+                            });
+                        } else {
+                            AlertPopupService.createPopup("No new users found");
+                        }
+                    });
+                }
+            });
+        };
+
+        $scope.cancelEdit = function () {
+            $scope.isEditing = false;
         }
     })
 

@@ -72,6 +72,10 @@ module.exports = function (server, passport, fx, jwt) {
                             return callback(null);
 
                         facebookUser.getLocalAccount(function(err, localFriend) {
+
+                            if (err || !localFriend)
+                                return callback(null);
+
                             localUser.addFriends([localFriend], { date: new Date() }, function (err) {
                                 if (err)
                                     return callback(null);
@@ -87,7 +91,59 @@ module.exports = function (server, passport, fx, jwt) {
                 });
 
             });
-         });
+        });
+    });
+
+    // POST /api/users/{id}/google/friends
+    server.post('/api/users/:id/google/friends', function (req, res, next) {
+
+        if (req.user.id !== req.params.id)
+            return res.json(401, { error: "No permission" });
+
+        if (!req.body.token)
+            return res.json(400, { error: "Missing google token" });
+
+        var token = req.body.token;
+        request("https://www.googleapis.com/plus/v1/people/me/people/visible?access_token=" + token, function(err, response, body) {
+
+            if (err)
+                return res.json(201, {error: err});
+
+            var friends = JSON.parse(body).items;
+            var numFriendsAdded = 0;
+            req.models.user.get(req.user.id, function(err, localUser) {
+
+                if (err || !localUser)
+                    return res.json(401, { error: "Invalid user id" });
+
+                async.each(friends, function (friend, callback) {
+
+                    req.models.google.get(friend.id, function(err, googleUser) {
+
+                        if (err || !googleUser)
+                            return callback(null);
+
+                        googleUser.getLocalAccount(function(err, localFriend) {
+
+                            if (err || !localFriend)
+                                return callback(null);
+
+                            localUser.addFriends([localFriend], { date: new Date() }, function (err) {
+                                if (err)
+                                    return callback(null);
+
+                                ++numFriendsAdded;
+                                return callback(null);
+                            });
+                        });
+                    });
+
+                }, function() { // this function is called when all the friends are processed
+                    return res.json(200, {added: numFriendsAdded}); // return number of added friends
+                });
+
+            });
+        });
     });
 
 
@@ -279,7 +335,6 @@ module.exports = function (server, passport, fx, jwt) {
                                             localUser.setFacebookAccount(newFacebookUser, function (err) {
 
                                                 if (err) {
-                                                    console.log("error");
                                                     return callback({ error: err });
                                                 }
 
@@ -419,8 +474,6 @@ module.exports = function (server, passport, fx, jwt) {
                         if (profile.verified === false)
                             return callback({ error: "Facebook account not verified" });
 
-                        console.log("Profile: " + JSON.stringify(profile));
-
                         req.models.facebook.exists({ id: profile.id }, function (err, exists) {
 
                             if (err || exists)
@@ -523,10 +576,6 @@ module.exports = function (server, passport, fx, jwt) {
             }
 
             var profile = JSON.parse(body);
-
-            console.log(error);
-            console.log(body);
-
             if (profile.verified_email === false)
                 return res.json(400, { error: "Google account not verified" });
 
@@ -548,6 +597,7 @@ module.exports = function (server, passport, fx, jwt) {
                         user: {
                             id: localUser.id,
                             email: localUser.email,
+                            currency: localUser.currency,
                             avatar: localUser.avatar,
                             googleAccount: {
                                 email: profile.email,
@@ -576,8 +626,6 @@ module.exports = function (server, passport, fx, jwt) {
             if (profile.verified_email === false)
                 return res.json(401, { error: "Google account not verified" });
 
-            console.log("Profile: " + JSON.stringify(profile));
-
             if (!profile.displayName)
                 profile.displayName = profile.given_name + " " + profile.family_name;
 
@@ -593,7 +641,6 @@ module.exports = function (server, passport, fx, jwt) {
                             return res.json(500, {error: "Internal Server error"});
 
                         var localUser = results[0];
-                        console.log("Localuser:" + localUser);
 
                         req.models.google.create({
                                 id: profile.id,
@@ -606,13 +653,12 @@ module.exports = function (server, passport, fx, jwt) {
                             function (err, newGoogleUser) {
 
                                 if (err || !newGoogleUser) {
-                                    return res.json(401, { error: "A Google account is already connected" });
+                                    return res.json(401, { error: "A Google account is already \connected" });
                                 }
 
                                 localUser.setGoogleAccount(newGoogleUser, function (err) {
 
                                     if (err) {
-                                        console.log("error");
                                         return res.json(401, { error: err });
                                     }
 
@@ -624,6 +670,7 @@ module.exports = function (server, passport, fx, jwt) {
                                             id: localUser.id,
                                             email: localUser.email,
                                             avatar: localUser.avatar,
+                                            currency: localUser.currency,
                                             googleAccount: {
                                                 email: newGoogleUser.email,
                                                 access_token: newGoogleUser.token
@@ -686,6 +733,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                     id: localUser.id,
                                                     email: localUser.email,
                                                     avatar: localUser.avatar,
+                                                    currency: localUser.currency,
                                                     googleAccount: {
                                                         email: newGoogleUser.email,
                                                         access_token: newGoogleUser.token
@@ -782,8 +830,8 @@ module.exports = function (server, passport, fx, jwt) {
             return res.json(409, {error: "No body defined."});
         }
 
-        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined) {
-            return res.json(409, {error: "Can only change 'email', 'currency' or 'avatar' attributes of the user."});
+        if (req.body.email === undefined && req.body.currency == undefined && req.body.avatar == undefined && req.body.password == undefined) {
+            return res.json(409, {error: "Can only change 'email', 'currency', 'avatar' or 'password' attributes of the user."});
         }
 
         req.models.user.get(req.params.id, function (err, user) {
@@ -803,6 +851,10 @@ module.exports = function (server, passport, fx, jwt) {
 
             if (req.body.avatar) {
                 updateObj.avatar = req.body.avatar;
+            }
+
+            if (req.body.password) {
+                updateObj.passwordHash = req.body.password;
             }
 
             user.save(updateObj, function (err) {
