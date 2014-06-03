@@ -111,7 +111,7 @@ angular.module('starter.controllers', [])
 
         $scope.currency = $scope.currencies[$scope.currencies.indexOf("EUR")];
 
-        $scope.signup = function (user) {
+        $scope.signup = function (user, currency) {
             $ionicLoading.show({
                 template: 'Signing up new account...'
             });
@@ -120,7 +120,7 @@ angular.module('starter.controllers', [])
                 id: user.id,
                 password: CryptoJS.SHA256(user.password).toString(CryptoJS.enc.Hex),
                 email: user.email,
-                currency: $scope.currency
+                currency: currency
             }).then(function (data) {
                 AuthService.login(data.user, data.access_token);
 
