@@ -259,7 +259,30 @@ angular.module('starter.controllers', [])
                     });
                 }
             });
-        }
+        };
+
+        $scope.addGoogleFriends = function () {
+
+            OAuth.popup("google_plus", {authorize:{scope:"profile https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/userinfo.profile email"}}, function (err, res) {
+                if (err) {
+                    AlertPopupService.createPopup("Error", err);
+                }
+                else {
+                    Restangular.one('users', AuthService.currentUser().id).all('google').all('friends').post({
+                        token: res.access_token
+                    }).then(function (data) {
+
+                        if (data.added > 0) {
+                            AlertPopupService.createPopup("Success", "Added " + data.added + " users", function () {
+                                $state.go('app.friends', {userId: AuthService.currentUser().id});
+                            });
+                        } else {
+                            AlertPopupService.createPopup("No new users found");
+                        }
+                    });
+                }
+            });
+        };
 
         $scope.cancelEdit = function () {
             $scope.isEditing = false;

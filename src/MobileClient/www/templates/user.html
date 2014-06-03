@@ -127,18 +127,18 @@
                     <i class="icon ion-chevron-right icon-accessory"></i></a>
             </div>
 
-            <button ng-show="user.facebookAccount" class="button button-block button-positive"
+            <button ng-show="user.facebookAccount && user.id == currentUser.id" class="button button-block button-positive"
                     ng-click="addFacebookFriends()">
                 <i class="icon ion-social-facebook">
                 </i>
                 &nbsp Add facebook friends
             </button>
 
-            <!-- <button ng-show="user.googleAccount" class="button button-block button-assertive" ng-click="addGoogleFriends()">
+            <button ng-show="user.googleAccount && user.id == currentUser.id" class="button button-block button-assertive" ng-click="addGoogleFriends()">
                 <i class="icon ion-social-googleplus">
                 </i>
                 &nbsp Add Google+ Friends
-            </button> -->
+            </button>
         </div>
 
         <div ng-show="isEditing && isEditingPassword">
