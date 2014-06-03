@@ -279,7 +279,6 @@ module.exports = function (server, passport, fx, jwt) {
                                             localUser.setFacebookAccount(newFacebookUser, function (err) {
 
                                                 if (err) {
-                                                    console.log("error");
                                                     return callback({ error: err });
                                                 }
 
@@ -419,8 +418,6 @@ module.exports = function (server, passport, fx, jwt) {
                         if (profile.verified === false)
                             return callback({ error: "Facebook account not verified" });
 
-                        console.log("Profile: " + JSON.stringify(profile));
-
                         req.models.facebook.exists({ id: profile.id }, function (err, exists) {
 
                             if (err || exists)
@@ -523,10 +520,6 @@ module.exports = function (server, passport, fx, jwt) {
             }
 
             var profile = JSON.parse(body);
-
-            console.log(error);
-            console.log(body);
-
             if (profile.verified_email === false)
                 return res.json(400, { error: "Google account not verified" });
 
@@ -548,6 +541,7 @@ module.exports = function (server, passport, fx, jwt) {
                         user: {
                             id: localUser.id,
                             email: localUser.email,
+                            currency: localUser.currency,
                             avatar: localUser.avatar,
                             googleAccount: {
                                 email: profile.email,
@@ -576,8 +570,6 @@ module.exports = function (server, passport, fx, jwt) {
             if (profile.verified_email === false)
                 return res.json(401, { error: "Google account not verified" });
 
-            console.log("Profile: " + JSON.stringify(profile));
-
             if (!profile.displayName)
                 profile.displayName = profile.given_name + " " + profile.family_name;
 
@@ -593,7 +585,6 @@ module.exports = function (server, passport, fx, jwt) {
                             return res.json(500, {error: "Internal Server error"});
 
                         var localUser = results[0];
-                        console.log("Localuser:" + localUser);
 
                         req.models.google.create({
                                 id: profile.id,
@@ -606,13 +597,12 @@ module.exports = function (server, passport, fx, jwt) {
                             function (err, newGoogleUser) {
 
                                 if (err || !newGoogleUser) {
-                                    return res.json(401, { error: "A Google account is already connected" });
+                                    return res.json(401, { error: "A Google account is already \connected" });
                                 }
 
                                 localUser.setGoogleAccount(newGoogleUser, function (err) {
 
                                     if (err) {
-                                        console.log("error");
                                         return res.json(401, { error: err });
                                     }
 
@@ -624,6 +614,7 @@ module.exports = function (server, passport, fx, jwt) {
                                             id: localUser.id,
                                             email: localUser.email,
                                             avatar: localUser.avatar,
+                                            currency: localUser.currency,
                                             googleAccount: {
                                                 email: newGoogleUser.email,
                                                 access_token: newGoogleUser.token
@@ -686,6 +677,7 @@ module.exports = function (server, passport, fx, jwt) {
                                                     id: localUser.id,
                                                     email: localUser.email,
                                                     avatar: localUser.avatar,
+                                                    currency: localUser.currency,
                                                     googleAccount: {
                                                         email: newGoogleUser.email,
                                                         access_token: newGoogleUser.token
