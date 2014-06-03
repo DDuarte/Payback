@@ -64,7 +64,20 @@ angular.module('starter.controllers', [])
                         },
                         function (response) {
                             $ionicLoading.hide();
-                            AlertPopupService.createPopup("Error", response.data.error);
+
+                            if (response.data.error == "User not found") {
+                                Restangular.all('signup').all('facebook').post({
+                                    token: res.access_token
+                                }).then(function (data) {
+                                    AuthService.login(data.user, data.access_token);
+                                    $ionicLoading.hide();
+                                    $state.go('app.debts', { userId: data.user.id });
+                                }, function (response) {
+                                    $ionicLoading.hide();
+                                    AlertPopupService.createPopup("Error", response.data.error);
+                                });
+                            } else
+                                AlertPopupService.createPopup("Error", response.data.error);
                         });
                 }
             });
@@ -88,7 +101,20 @@ angular.module('starter.controllers', [])
                         },
                         function (response) {
                             $ionicLoading.hide();
-                            AlertPopupService.createPopup("Error", response.data.error);
+
+                            if (response.data.error == "User not found") {
+                                Restangular.all('signup').all('google').post({
+                                    token: res.access_token
+                                }).then(function (data) {
+                                    AuthService.login(data.user, data.access_token);
+                                    $ionicLoading.hide();
+                                    $state.go('app.debts', { userId: data.user.id });
+                                }, function (response) {
+                                    $ionicLoading.hide();
+                                    AlertPopupService.createPopup("Error", response.data.error);
+                                });
+                            } else
+                                AlertPopupService.createPopup("Error", response.data.error);
                         });
                 }
             });
