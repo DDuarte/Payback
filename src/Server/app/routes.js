@@ -72,6 +72,10 @@ module.exports = function (server, passport, fx, jwt) {
                             return callback(null);
 
                         facebookUser.getLocalAccount(function(err, localFriend) {
+
+                            if (err || !localFriend)
+                                return callback(null);
+
                             localUser.addFriends([localFriend], { date: new Date() }, function (err) {
                                 if (err)
                                     return callback(null);
@@ -120,6 +124,10 @@ module.exports = function (server, passport, fx, jwt) {
                             return callback(null);
 
                         googleUser.getLocalAccount(function(err, localFriend) {
+
+                            if (err || !localFriend)
+                                return callback(null);
+
                             localUser.addFriends([localFriend], { date: new Date() }, function (err) {
                                 if (err)
                                     return callback(null);
