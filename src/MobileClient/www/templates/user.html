@@ -154,7 +154,7 @@
             </form>
         </div>
 
-        <button ng-show="!isEditing" class="button button-block button-stable"
+        <button ng-show="!isEditing && user.id == currentUser.id" class="button button-block button-stable"
                 ng-click="editPassword()">
             <i class="icon ion-edit">
             </i>

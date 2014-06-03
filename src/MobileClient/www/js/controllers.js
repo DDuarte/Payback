@@ -259,9 +259,10 @@ angular.module('starter.controllers', [])
                     });
                 }
             });
-            $scope.cancelEdit = function () {
-                $scope.isEditing = false;
-            }
+        }
+
+        $scope.cancelEdit = function () {
+            $scope.isEditing = false;
         }
     })
 
